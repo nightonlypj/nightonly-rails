@@ -29,7 +29,7 @@ default: &default
   # encoding: utf8mb4 # NOTE: MySQL 5.7.7以降でないとmigrateに失敗する
   # collation: utf8mb4_bin
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  # username: rails_app
+  # username: nightonly_app
   # password: abc123
   # host: localhost
   username: root
@@ -60,7 +60,7 @@ default-pg: &default-pg
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  # username: rails_app
+  # username: nightonly_app
   # password: abc123
   # host: localhost
   username: postgres
@@ -72,7 +72,7 @@ default-pg: &default-pg
 development:
   <<: *default
 #  database: db/development.sqlite3
-  database: rails_app_development
+  database: nightonly_app_development
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -80,8 +80,8 @@ development:
 test:
   <<: *default
 #  database: db/test.sqlite3
-  database: rails_app_test
-  # username: rails_app_test
+  database: nightonly_app_test
+  # username: nightonly_app_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is

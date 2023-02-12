@@ -1,6 +1,6 @@
-# Ruby on Railsベースアプリケーション（Space）
+# nightonlyアプリケーション（Rails/API）
 
-運営元とユーザー同士が作成したスペース上で情報共有する（BtoC向け）  
+fork: https://dev.azure.com/nightonly/_git/rails-app-origin, space_develop
 (Ruby 3.0.0, Rails 6.1.4.1)
 
 ## コマンドメモ
@@ -32,7 +32,7 @@ https://hub.docker.com/editions/community/docker-ce-desktop-mac/
 ### コンテナ作成＆起動
 
 ```
-$ cd rails-app-origin
+$ cd nightonly-rails
 
 $ docker-compose build
 $ docker-compose up
@@ -286,7 +286,7 @@ $ rm -f ~/.my.cnf
 ### 起動まで
 
 ```
-$ cd rails-app-origin
+$ cd nightonly-rails
 $ cp -a config/settings/development.yml,local config/settings/development.yml
 
 $ bundle install

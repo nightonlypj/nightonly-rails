@@ -1,8 +1,8 @@
 ja:
-  app_name: 'RailsAppOrigin'
-  sub_title: ': ベースアプリケーション'
-  my_name: 'My name'
-  my_url: 'https://example.com'
+  app_name: '忘れん坊'
+  sub_title: ': 定期タスクの管理・リマインダー（Slack対応）'
+  my_name: 'Night Only Project.'
+  my_url: 'https://nightonly.com/'
   activerecord:
     models:
       infomation: 'お知らせ'
