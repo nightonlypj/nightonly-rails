@@ -1,3 +1,37 @@
 class TaskCycle < ApplicationRecord
+  belongs_to :space
   belongs_to :task
+
+  # 周期
+  enum cycle: {
+    weekly: 1,  # 週次
+    monthly: 2, # 月次
+    yearly: 3   # 年次
+  }, _prefix: true
+
+  # 週
+  enum week: {
+    first: 1,  # 第1
+    second: 2, # 第2
+    third: 3,  # 第3
+    fourth: 4, # 第4
+    last: 5    # 最終
+  }, _prefix: true
+
+  # 曜日
+  enum wday: {
+    sun: 0, # 日曜日
+    mon: 1, # 月曜日
+    tue: 2, # 火曜日
+    wed: 3, # 水曜日
+    thu: 4, # 木曜日
+    fri: 5, # 金曜日
+    sat: 6  # 土曜日
+  }, _prefix: true
+
+  # 休日の扱い
+  enum handling_holiday: {
+    before: -1, # 前日
+    after: 1    # 翌日
+  }, _prefix: true
 end
