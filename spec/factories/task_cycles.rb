@@ -37,7 +37,7 @@ FactoryBot.define do
       month { Time.current.month }
     end
 
-    # 年次/月次 -> 日/営業日/週
+    # 毎月/毎年 -> 日/営業日/週
     trait :day do
       day  { Time.current.day }
       wday { nil }

@@ -6,9 +6,47 @@ class Task < ApplicationRecord
 
   # 優先度
   enum priority: {
-    none: 0,   # (なし)
-    high: 1,   # 高
-    middle: 2, # 中
-    low: 3     # 低
+    high: 10,   # 高
+    middle: 20, # 中
+    low: 30,    # 低
+    none: 90    # 未設定
   }, _prefix: true
+
+  scope :search, lambda { |text|
+    return if text&.strip.blank?
+
+    collate = connection_db_config.configuration_hash[:adapter] == 'mysql2' ? ' COLLATE utf8_unicode_ci' : ''
+    like = connection_db_config.configuration_hash[:adapter] == 'postgresql' ? 'ILIKE' : 'LIKE'
+    sql = "tasks.title#{collate} #{like} ?"
+
+    task = all
+    text.split(/[[:blank:]]+/).each do |word|
+      value = "%#{word}%"
+      task = task.where(sql, value)
+    end
+
+    task
+  }
+  scope :by_priority, lambda { |priorities|
+    return none if priorities.count.zero?
+    return if priorities.count >= Task.priorities.count
+
+    where(priority: priorities)
+  }
+  scope :by_start_end_date, lambda { |before, active, after|
+    return none if !before && !active && !after
+    return if before && active && after
+
+    task = none
+    task = task.or(where(started_date: (Time.current.to_date + 1.day)..)) if before
+    task = task.or(where('started_date <= ? AND (ended_date IS NULL OR ended_date >= ?)', Time.current.to_date, Time.current.to_date)) if active
+    task = task.or(where(ended_date: ..(Time.current.to_date - 1.day))) if after
+
+    task
+  }
+
+  # 最終更新日時
+  def last_updated_at
+    updated_at == created_at ? nil : updated_at
+  end
 end

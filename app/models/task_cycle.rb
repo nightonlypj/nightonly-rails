@@ -4,9 +4,9 @@ class TaskCycle < ApplicationRecord
 
   # 周期
   enum cycle: {
-    weekly: 1,  # 週次
-    monthly: 2, # 月次
-    yearly: 3   # 年次
+    weekly: 1,  # 毎週
+    monthly: 2, # 毎月
+    yearly: 3   # 毎年
   }, _prefix: true
 
   # 週
@@ -34,4 +34,15 @@ class TaskCycle < ApplicationRecord
     before: -1, # 前日
     after: 1    # 翌日
   }, _prefix: true
+
+  scope :by_month, lambda { |months|
+    return none if months.count.zero?
+    return if months.include?(nil) && months.compact.uniq.sort == [*1..12]
+
+    where(month: months)
+  }
+
+  scope :by_task_period, lambda { |start_date, end_date|
+    where('tasks.started_date <= ? AND (tasks.ended_date IS NULL OR tasks.ended_date >= ?)', end_date, start_date)
+  }
 end

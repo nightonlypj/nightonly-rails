@@ -255,15 +255,15 @@ ja:
         cr: 'CR'
     task:
       priority:
-        none: ''
         high: '高'
         middle: '中'
         low: '低'
+        none: '未設定'
     task_cycle:
       cycle:
-        weekly: '週次'
-        monthly: '月次'
-        yearly: '年次'
+        weekly: '毎週'
+        monthly: '毎月'
+        yearly: '毎年'
       week:
         first: '第1'
         second: '第2'
@@ -283,9 +283,11 @@ ja:
         after: '翌日'
   errors:
     messages:
+      default: 'エラーが発生しました。しばらく時間をあけてから、やり直してください。'
       param:
         blank: '値がありません。'
         not_exist: '値が存在しません。'
+        invalid: '形式が正しくありません。'
       infomation:
         ended: '掲載期間が終了しました。'
   alert:
