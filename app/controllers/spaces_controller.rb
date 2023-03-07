@@ -19,18 +19,17 @@ class SpacesController < ApplicationAuthController
   def index
     @text = params[:text]&.slice(..(255 - 1))
     @option = params[:option] == '1'
-    force_true = !Settings.enable_public_space
     @checked = {
-      public: params[:public] != '0' || force_true,
-      private: params[:private] != '0' || force_true,
-      join: params[:join] != '0' || force_true,
-      nojoin: params[:nojoin] != '0' || force_true,
+      public: params[:public] != '0',
+      private: params[:private] != '0',
+      join: params[:join] != '0',
+      nojoin: params[:nojoin] != '0',
       active: params[:active] != '0',
       destroy: params[:destroy] == '1'
     }
 
-    @spaces = Space.by_target(current_user, @checked).search(@text)
-                   .page(params[:page]).per(Settings.default_spaces_limit).order(created_at: :desc, id: :desc)
+    @spaces = Space.by_target(current_user, @checked).search(@text).order(created_at: :desc, id: :desc)
+                   .page(params[:page]).per(Settings.default_spaces_limit)
     @members = []
     if current_user.present?
       members = Member.where(space_id: @spaces.ids, user: current_user)

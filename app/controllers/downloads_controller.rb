@@ -8,8 +8,8 @@ class DownloadsController < ApplicationAuthController
   # GET /downloads(.json) ダウンロード結果一覧API
   def index
     @id = params[:id].present? ? params[:id].to_i : nil
-    @downloads = Download.where(user: current_user).search(@id)
-                         .page(params[:page]).per(Settings.default_downloads_limit).order(id: :desc)
+    @downloads = Download.where(user: current_user).search(@id).order(id: :desc)
+                         .page(params[:page]).per(Settings.default_downloads_limit)
 
     if format_html? && @downloads.current_page > [@downloads.total_pages, 1].max
       return redirect_to @downloads.total_pages <= 1 ? downloads_path : downloads_path(page: @downloads.total_pages)
