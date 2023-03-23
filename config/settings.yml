@@ -72,3 +72,17 @@ member_emails_max_count: 100
 default_downloads_limit: 25
 # ダウンロード削除の猶予期間（単位：日）
 download_destroy_schedule_days: 7
+
+## タスク
+# 一覧のデフォルト最大表示件数
+default_tasks_limit: 25
+# タイトルの最大文字数
+task_title_maximum: 128
+# 概要の最大文字数
+task_summary_maximum: 10240
+# 前提の最大文字数
+task_premise_maximum: 10240
+# 手順の最大文字数
+task_process_maximum: 10240
+# 周期の最大件数
+task_cycles_max_count: 5

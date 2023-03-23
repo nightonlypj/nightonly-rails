@@ -71,6 +71,7 @@
   space_id: 1
   task_id: 21
   cycle: monthly
+  target: day
   day: 1
   handling_holiday: before
   period: 1
@@ -79,6 +80,7 @@
   space_id: 1
   task_id: 22
   cycle: monthly
+  target: day
   day: 1
   handling_holiday: after
   period: 1
@@ -87,6 +89,7 @@
   space_id: 1
   task_id: 23
   cycle: monthly
+  target: day
   day: 31
   handling_holiday: before
   period: 1
@@ -95,6 +98,7 @@
   space_id: 1
   task_id: 24
   cycle: monthly
+  target: day
   day: 31
   handling_holiday: after
   period: 1
@@ -103,6 +107,7 @@
   space_id: 1
   task_id: 25
   cycle: monthly
+  target: day
   day: 1
   handling_holiday: before
   period: 2
@@ -111,6 +116,7 @@
   space_id: 1
   task_id: 26
   cycle: monthly
+  target: day
   day: 1
   handling_holiday: after
   period: 2
@@ -119,6 +125,7 @@
   space_id: 1
   task_id: 27
   cycle: monthly
+  target: day
   day: 31
   handling_holiday: before
   period: 2
@@ -127,6 +134,7 @@
   space_id: 1
   task_id: 28
   cycle: monthly
+  target: day
   day: 31
   handling_holiday: after
   period: 2
@@ -137,6 +145,7 @@
   space_id: 1
   task_id: 31
   cycle: monthly
+  target: business_day
   business_day: 1
   period: 1
 # 毎月最終営業日 = 毎月末日（前日）
@@ -144,6 +153,7 @@
   space_id: 1
   task_id: 32
   cycle: monthly
+  target: business_day
   business_day: 31
   period: 1
 # 毎月第1営業日までの2日間
@@ -151,6 +161,7 @@
   space_id: 1
   task_id: 33
   cycle: monthly
+  target: business_day
   business_day: 1
   period: 2
 # 毎月最終営業日までの2日間 = 毎月末日（前日）
@@ -158,6 +169,7 @@
   space_id: 1
   task_id: 34
   cycle: monthly
+  target: business_day
   business_day: 31
   period: 2
 
@@ -167,6 +179,7 @@
   space_id: 1
   task_id: 41
   cycle: monthly
+  target: week
   week: first
   wday: mon
   handling_holiday: before
@@ -176,6 +189,7 @@
   space_id: 1
   task_id: 42
   cycle: monthly
+  target: week
   week: first
   wday: mon
   handling_holiday: after
@@ -185,6 +199,7 @@
   space_id: 1
   task_id: 43
   cycle: monthly
+  target: week
   week: last
   wday: fri
   handling_holiday: before
@@ -194,6 +209,7 @@
   space_id: 1
   task_id: 44
   cycle: monthly
+  target: week
   week: last
   wday: fri
   handling_holiday: after
@@ -203,6 +219,7 @@
   space_id: 1
   task_id: 45
   cycle: monthly
+  target: week
   week: first
   wday: mon
   handling_holiday: before
@@ -212,6 +229,7 @@
   space_id: 1
   task_id: 46
   cycle: monthly
+  target: week
   week: first
   wday: mon
   handling_holiday: after
@@ -221,6 +239,7 @@
   space_id: 1
   task_id: 47
   cycle: monthly
+  target: week
   week: last
   wday: fri
   handling_holiday: before
@@ -230,6 +249,7 @@
   space_id: 1
   task_id: 48
   cycle: monthly
+  target: week
   week: last
   wday: fri
   handling_holiday: after
@@ -242,6 +262,7 @@
   task_id: 51
   cycle: yearly
   month: 1
+  target: day
   day: 1
   handling_holiday: before
   period: 1
@@ -251,6 +272,7 @@
   task_id: 52
   cycle: yearly
   month: 1
+  target: day
   day: 1
   handling_holiday: after
   period: 1
@@ -260,6 +282,7 @@
   task_id: 53
   cycle: yearly
   month: 12
+  target: day
   day: 31
   handling_holiday: before
   period: 1
@@ -269,6 +292,7 @@
   task_id: 54
   cycle: yearly
   month: 12
+  target: day
   day: 31
   handling_holiday: after
   period: 1
@@ -278,6 +302,7 @@
   task_id: 55
   cycle: yearly
   month: 1
+  target: day
   day: 1
   handling_holiday: before
   period: 2
@@ -287,6 +312,7 @@
   task_id: 56
   cycle: yearly
   month: 1
+  target: day
   day: 1
   handling_holiday: after
   period: 2
@@ -296,6 +322,7 @@
   task_id: 57
   cycle: yearly
   month: 12
+  target: day
   day: 31
   handling_holiday: before
   period: 2
@@ -305,6 +332,7 @@
   task_id: 58
   cycle: yearly
   month: 12
+  target: day
   day: 31
   handling_holiday: after
   period: 2
@@ -316,6 +344,7 @@
   task_id: 61
   cycle: yearly
   month: 1
+  target: business_day
   business_day: 1
   period: 1
 # 毎年12月最終営業日 = 毎年12月末日（前日）
@@ -324,6 +353,7 @@
   task_id: 62
   cycle: yearly
   month: 12
+  target: business_day
   business_day: 31
   period: 1
 # 毎年1月第1営業日までの2日間
@@ -332,6 +362,7 @@
   task_id: 63
   cycle: yearly
   month: 1
+  target: business_day
   business_day: 1
   period: 2
 # 毎年12月最終営業日までの2日間 = 毎年12月末日（前日）
@@ -340,6 +371,7 @@
   task_id: 64
   cycle: yearly
   month: 12
+  target: business_day
   business_day: 31
   period: 2
 
@@ -350,6 +382,7 @@
   task_id: 71
   cycle: yearly
   month: 1
+  target: week
   week: first
   wday: mon
   handling_holiday: before
@@ -360,6 +393,7 @@
   task_id: 72
   cycle: yearly
   month: 1
+  target: week
   week: first
   wday: mon
   handling_holiday: after
@@ -370,6 +404,7 @@
   task_id: 73
   cycle: yearly
   month: 12
+  target: week
   week: last
   wday: fri
   handling_holiday: before
@@ -380,6 +415,7 @@
   task_id: 74
   cycle: yearly
   month: 12
+  target: week
   week: last
   wday: fri
   handling_holiday: after
@@ -390,6 +426,7 @@
   task_id: 75
   cycle: yearly
   month: 1
+  target: week
   week: first
   wday: mon
   handling_holiday: before
@@ -400,6 +437,7 @@
   task_id: 76
   cycle: yearly
   month: 1
+  target: week
   week: first
   wday: mon
   handling_holiday: after
@@ -410,6 +448,7 @@
   task_id: 77
   cycle: yearly
   month: 12
+  target: week
   week: last
   wday: fri
   handling_holiday: before
@@ -420,6 +459,7 @@
   task_id: 78
   cycle: yearly
   month: 12
+  target: week
   week: last
   wday: fri
   handling_holiday: after
@@ -443,10 +483,26 @@
   wday: mon
   handling_holiday: before
   period: 1
-# （スペース2）毎週月曜日（前日）
+# （スペース3）毎週月曜日（前日）
 - id: 931
-  space_id: 2
+  space_id: 3
   task_id: 93
+  cycle: weekly
+  wday: mon
+  handling_holiday: before
+  period: 1
+# （スペース5）毎週月曜日（前日）
+- id: 941
+  space_id: 5
+  task_id: 94
+  cycle: weekly
+  wday: mon
+  handling_holiday: before
+  period: 1
+# （サンプル）毎週月曜日（前日）
+- id: 951
+  space_id: 100
+  task_id: 95
   cycle: weekly
   wday: mon
   handling_holiday: before

@@ -55,7 +55,8 @@ module TasksConcern
 
   def tasks_search
     Task.where(space: @space).search(@text).by_priority(@priorities).by_start_end_date(@before, @active, @after)
-        .eager_load(:task_cycles, :created_user, :last_updated_user).order(SORT_COLUMN[@sort] + (@desc ? ' DESC' : ''), id: :desc)
+        .eager_load(:task_cycles_active, :created_user, :last_updated_user)
+        .order(SORT_COLUMN[@sort] + (@desc ? ' DESC' : ''), id: :desc).merge(TaskCycle.order(:updated_at, :id))
   end
 
   # ダウンロードファイルのデータ作成

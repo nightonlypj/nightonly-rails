@@ -120,13 +120,13 @@ Style/FrozenStringLiteralComment:
 
 # C: Layout/LineLength: Line is too long.
 Layout/LineLength:
-  Max: 160
+  # Max: 160
   Exclude:
     - 'spec/**/*'
 
 # C: Metrics/MethodLength: Method has too many lines.
 Metrics/MethodLength:
-  Max: 30
+  # Max: 30
   Exclude:
     - 'spec/**/*'
 

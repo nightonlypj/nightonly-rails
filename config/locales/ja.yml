@@ -1,5 +1,5 @@
 ja:
-  app_name: '忘れん坊'
+  app_name: '忘れん坊（β版）'
   sub_title: ': 定期タスクの管理・リマインダー（Slack対応）'
   my_name: 'Night Only Project.'
   my_url: 'https://nightonly.com/'
@@ -121,12 +121,14 @@ ja:
         task: 'タスク'
         cycle: '周期'
         month: '月'
+        target: '対象'
         day: '日'
         business_day: '営業日'
         week: '週'
         wday: '曜日'
         handling_holiday: '休日の扱い'
         period: '期間（日）'
+        deleted_at: '削除日時'
         created_at: '作成日時'
         updated_at: '更新日時'
     errors:
@@ -196,6 +198,49 @@ ja:
             search_params:
               blank: '選択してください。'
               invalid: '形式が正しくありません。'
+        task:
+          attributes:
+            priority:
+              blank: '選択してください。'
+            title:
+              blank: '入力してください。'
+              too_long: '%{count}文字以下で入力してください。'
+            summary:
+              too_long: '%{count}文字以下で入力してください。'
+            premise:
+              too_long: '%{count}文字以下で入力してください。'
+            process:
+              too_long: '%{count}文字以下で入力してください。'
+            started_date:
+              blank: '入力してください。'
+        task_cycle:
+          attributes:
+            cycle:
+              blank: '選択してください。'
+            month:
+              blank: '入力してください。'
+              greater_than_or_equal_to: '%{count}以上の値を入力してください。'
+              less_than_or_equal_to: '%{count}以下の値を入力してください。'
+            target:
+              blank: '選択してください。'
+            day:
+              blank: '入力してください。'
+              greater_than_or_equal_to: '%{count}以上の値を入力してください。'
+              less_than_or_equal_to: '%{count}以下の値を入力してください。'
+            business_day:
+              blank: '入力してください。'
+              greater_than_or_equal_to: '%{count}以上の値を入力してください。'
+              less_than_or_equal_to: '%{count}以下の値を入力してください。'
+            week:
+              blank: '選択してください。'
+            wday:
+              blank: '選択してください。'
+            handling_holiday:
+              blank: '選択してください。'
+            period:
+              blank: '入力してください。'
+              greater_than_or_equal_to: '%{count}以上の値を入力してください。'
+              less_than_or_equal_to: '%{count}以下の値を入力してください。'
   items:
     member:
       user.name: 'メンバー'
@@ -264,6 +309,10 @@ ja:
         weekly: '毎週'
         monthly: '毎月'
         yearly: '毎年'
+      target:
+        day: '日'
+        business_day: '営業日'
+        week: '週'
       week:
         first: '第1'
         second: '第2'
@@ -290,6 +339,10 @@ ja:
         invalid: '形式が正しくありません。'
       infomation:
         ended: '掲載期間が終了しました。'
+      task_cycles:
+        zero: '有効な周期が存在しません。'
+        max_count: '有効な周期が最大件数(%{count}件)を超えています。'
+        not_unique: '同じ周期が存在します。'
   alert:
     page:
       notfound: 'ページが見つかりません。'
@@ -323,16 +376,16 @@ ja:
       image_destroy: '画像を削除しました。'
     space:
       create: 'スペースを作成しました。'
-      update: 'スペース設定を変更しました。'
+      update: 'スペースの設定を変更しました。'
       destroy: 'スペースの削除を受け付けました。'
       undo_destroy: 'スペース削除の取り消しが完了しました。'
     invitation:
       create: '招待URLを作成しました。'
-      update: '招待URL設定を変更しました。'
+      update: '招待URLの設定を変更しました。'
       copy_success: 'クリップボードにコピーしました。'
     member:
       create: 'メンバー招待の処理が完了しました。結果を確認してください。'
-      update: 'メンバー情報を変更しました。'
+      update: 'メンバーの情報を変更しました。'
       destroy: '%{destroy_count}名のメンバーを解除しました。'
       destroy_include_notfound: '%{count}名中%{destroy_count}名のメンバーを解除しました。'
       destroy_include_myself: '%{count}名中%{destroy_count}名のメンバーを解除しました。（自分は解除できません。他の管理者に依頼してください。）'
@@ -342,6 +395,9 @@ ja:
         waiting: 'ダウンロードファイルの作成を開始しました。完了まで暫くお待ちください。'
         processing: 'ダウンロードファイルの作成を開始しました。完了まで暫くお待ちください。'
         success: 'ダウンロードファイルの作成が完了しました。ダウンロード結果からダウンロードしてください。'
+    task:
+      create: 'タスクを追加しました。'
+      update: 'タスクの設定を変更しました。'
   mailer:
     user:
       destroy_reserved:

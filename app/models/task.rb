@@ -3,14 +3,16 @@ class Task < ApplicationRecord
   belongs_to :created_user,      class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
   belongs_to :last_updated_user, class_name: 'User', optional: true
   has_many :task_cycles, dependent: :destroy
+  has_many :task_cycles_active, -> { where(deleted_at: nil) }, class_name: 'TaskCycle'
 
-  # 優先度
-  enum priority: {
-    high: 10,   # 高
-    middle: 20, # 中
-    low: 30,    # 低
-    none: 90    # 未設定
-  }, _prefix: true
+  validates :priority, presence: true
+  validates :title, presence: true
+  validates :title, length: { maximum: Settings.task_title_maximum }, if: proc { errors[:title].blank? }
+  validates :summary, length: { maximum: Settings.task_summary_maximum }, if: proc { |task| task.summary.present? }
+  validates :premise, length: { maximum: Settings.task_premise_maximum }, if: proc { |task| task.premise.present? }
+  validates :process, length: { maximum: Settings.task_process_maximum }, if: proc { |task| task.process.present? }
+  validates :started_date, presence: true
+  # TODO: 既に通知のがある場合は変更できない？
 
   scope :search, lambda { |text|
     return if text&.strip.blank?
@@ -44,6 +46,14 @@ class Task < ApplicationRecord
 
     task
   }
+
+  # 優先度
+  enum priority: {
+    high: 10,   # 高
+    middle: 20, # 中
+    low: 30,    # 低
+    none: 90    # 未設定
+  }, _prefix: true
 
   # 最終更新日時
   def last_updated_at

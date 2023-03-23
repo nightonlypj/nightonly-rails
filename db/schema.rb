@@ -172,17 +172,20 @@ ActiveRecord::Schema.define(version: 2023_02_17_225608) do
     t.bigint "task_id", null: false, comment: "タスクID"
     t.integer "cycle", null: false, comment: "周期"
     t.integer "month", comment: "月"
+    t.integer "target", comment: "対象"
     t.integer "day", comment: "日"
     t.integer "business_day", comment: "営業日"
     t.integer "week", comment: "週"
     t.integer "wday", comment: "曜日"
     t.integer "handling_holiday", comment: "休日の扱い"
     t.integer "period", default: 1, null: false, comment: "期間（日）"
+    t.datetime "deleted_at", comment: "削除日時"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["space_id", "cycle", "month"], name: "index_task_cycles1"
     t.index ["space_id"], name: "index_task_cycles_on_space_id"
     t.index ["task_id"], name: "index_task_cycles_on_task_id"
+    t.index ["updated_at", "id"], name: "index_task_cycles2"
   end
 
   create_table "tasks", charset: "utf8", collation: "utf8_bin", comment: "タスク", force: :cascade do |t|
