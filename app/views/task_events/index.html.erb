@@ -1,0 +1,29 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Task Events</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Space</th>
+      <th>Task cycle</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @task_events.each do |task_event| %>
+      <tr>
+        <td><%= task_event.space_id %></td>
+        <td><%= task_event.task_cycle_id %></td>
+        <td><%= link_to 'Show', task_event %></td>
+        <td><%= link_to 'Edit', edit_task_event_path(task_event) %></td>
+        <td><%= link_to 'Destroy', task_event, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Task Event', new_task_event_path %>

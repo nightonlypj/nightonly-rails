@@ -1,0 +1,1 @@
+json.array! @task_events, partial: 'task_events/task_event', as: :task_event
