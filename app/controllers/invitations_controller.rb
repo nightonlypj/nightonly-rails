@@ -80,7 +80,7 @@ class InvitationsController < ApplicationAuthController
   end
 
   def set_invitation
-    @invitation = Invitation.where(space: @space, code: params[:code])&.first
+    @invitation = Invitation.where(space: @space, code: params[:code]).first
     return response_not_found if @invitation.blank?
 
     if @invitation.ended_at.present?

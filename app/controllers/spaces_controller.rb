@@ -128,7 +128,7 @@ class SpacesController < ApplicationAuthController
     return response_not_found if @space.blank?
     return authenticate_user! if @space.private && !user_signed_in?
 
-    @current_member = current_user.present? ? Member.where(space: @space, user: current_user)&.first : nil
+    @current_member = current_user.present? ? Member.where(space: @space, user: current_user).first : nil
     response_forbidden if @space.private && @current_member.blank?
   end
 
@@ -204,6 +204,7 @@ class SpacesController < ApplicationAuthController
       params[:space][:private] = true if target == :create
       params[:space][:private] = @space.private if target == :update
     end
+    params[:space][:description] = params[:space][:description]&.gsub(/\R/, "\n") # NOTE: 改行コードを統一
 
     params.require(:space).permit(:name, :description, :private, :image)
   end
