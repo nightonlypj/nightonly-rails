@@ -19,5 +19,9 @@ class CreateTasks < ActiveRecord::Migration[6.1]
     add_index :tasks, [:space_id, :priority],                  name: 'index_tasks1'
     add_index :tasks, [:space_id, :started_date, :ended_date], name: 'index_tasks2'
     add_index :tasks, [:space_id, :ended_date],                name: 'index_tasks3'
-  end
+    add_index :tasks, [:created_user_id, :id],                 name: 'index_tasks4'
+    add_index :tasks, [:last_updated_user_id, :id],            name: 'index_tasks5'
+    add_index :tasks, [:created_at, :id],                      name: 'index_tasks6'
+    add_index :tasks, [:updated_at, :id],                      name: 'index_tasks7'
+end
 end

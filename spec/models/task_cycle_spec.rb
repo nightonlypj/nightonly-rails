@@ -1,4 +1,5 @@
-# require 'rails_helper'
+require 'rails_helper'
 
-# RSpec.describe TaskCycle, type: :model do
-# end
+RSpec.describe TaskCycle, type: :model do
+  # TODO
+end

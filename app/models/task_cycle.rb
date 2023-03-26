@@ -1,6 +1,7 @@
 class TaskCycle < ApplicationRecord
   belongs_to :space
   belongs_to :task
+  has_many :task_events, dependent: :destroy
 
   validates :cycle, presence: true
   validates :month, presence: true, if: proc { |task_cycle| task_cycle.cycle_yearly? }

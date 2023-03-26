@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_02_17_225608) do
+ActiveRecord::Schema.define(version: 2023_03_24_125734) do
 
   create_table "admin_users", charset: "utf8", collation: "utf8_bin", comment: "管理者", force: :cascade do |t|
     t.string "name", null: false, comment: "氏名"
@@ -188,6 +188,23 @@ ActiveRecord::Schema.define(version: 2023_02_17_225608) do
     t.index ["updated_at", "id"], name: "index_task_cycles2"
   end
 
+  create_table "task_events", charset: "utf8", collation: "utf8_bin", force: :cascade do |t|
+    t.bigint "space_id", null: false, comment: "スペースID"
+    t.bigint "task_cycle_id", null: false, comment: "タスク周期ID"
+    t.date "started_date", null: false, comment: "開始日"
+    t.date "ended_date", null: false, comment: "終了日"
+    t.integer "status", default: 0, null: false, comment: "ステータス"
+    t.text "memo", comment: "メモ"
+    t.bigint "assigned_user_id", comment: "担当者ID"
+    t.datetime "assigned_at", comment: "担当日時"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["assigned_user_id"], name: "index_task_events_on_assigned_user_id"
+    t.index ["space_id"], name: "index_task_events_on_space_id"
+    t.index ["task_cycle_id", "ended_date"], name: "index_task_events1", unique: true
+    t.index ["task_cycle_id"], name: "index_task_events_on_task_cycle_id"
+  end
+
   create_table "tasks", charset: "utf8", collation: "utf8_bin", comment: "タスク", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.integer "priority", default: 0, null: false, comment: "優先度"
@@ -201,12 +218,16 @@ ActiveRecord::Schema.define(version: 2023_02_17_225608) do
     t.bigint "last_updated_user_id", comment: "最終更新者ID"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["created_at", "id"], name: "index_tasks6"
+    t.index ["created_user_id", "id"], name: "index_tasks4"
     t.index ["created_user_id"], name: "index_tasks_on_created_user_id"
+    t.index ["last_updated_user_id", "id"], name: "index_tasks5"
     t.index ["last_updated_user_id"], name: "index_tasks_on_last_updated_user_id"
     t.index ["space_id", "ended_date"], name: "index_tasks3"
     t.index ["space_id", "priority"], name: "index_tasks1"
     t.index ["space_id", "started_date", "ended_date"], name: "index_tasks2"
     t.index ["space_id"], name: "index_tasks_on_space_id"
+    t.index ["updated_at", "id"], name: "index_tasks7"
   end
 
   create_table "users", charset: "utf8", collation: "utf8_bin", comment: "ユーザー", force: :cascade do |t|
@@ -266,5 +287,7 @@ ActiveRecord::Schema.define(version: 2023_02_17_225608) do
   add_foreign_key "members", "users"
   add_foreign_key "task_cycles", "spaces"
   add_foreign_key "task_cycles", "tasks"
+  add_foreign_key "task_events", "spaces"
+  add_foreign_key "task_events", "task_cycles"
   add_foreign_key "tasks", "spaces"
 end

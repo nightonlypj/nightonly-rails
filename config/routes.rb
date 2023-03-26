@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  resources :task_events
+  draw :task_events
   draw :tasks
   draw :downloads
   draw :members
