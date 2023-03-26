@@ -1,5 +1,6 @@
 class TasksController < ApplicationAuthController
   include TasksConcern
+  include TaskCyclesConcern
   before_action :response_not_acceptable_for_not_api
   before_action :set_space_current_member
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy]
@@ -19,15 +20,15 @@ class TasksController < ApplicationAuthController
   def events
     @tasks = {}
     @next_events = []
-    @next_start_date = [@start_date, Time.current.to_date].max # TODO: 一旦、当日以降。通知用を作ったらその次の日
-    return if @next_start_date > @end_date
+    next_start_date = [@start_date, Time.current.to_date].max
+    return if next_start_date > @end_date
 
-    @holidays = Holiday.where(date: (@next_start_date - 1.month)..@end_date).index_by(&:date) # NOTE: 期間(task_cycles.period)が1ヶ月以下の前提
+    set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
     before_count = 0
-    task_cycles = TaskCycle.active.where(space: @space).by_month(cycle_months + [nil])
-                           .eager_load(:task).by_task_period(@next_start_date, @end_date).merge(Task.order(:priority, :id))
+    task_cycles = TaskCycle.active.where(space: @space).by_month(cycle_months(next_start_date, @end_date) + [nil])
+                           .eager_load(:task).by_task_period(next_start_date, @end_date).merge(Task.order(:priority, :id))
     task_cycles.each do |task_cycle|
-      cycle_set_next_events(task_cycle, task_cycle.task)
+      cycle_set_next_events(task_cycle, task_cycle.task, next_start_date, @end_date)
 
       if before_count != @next_events.count
         @tasks[task_cycle.task_id] = task_cycle.task if @tasks[task_cycle.task_id].blank?
@@ -72,13 +73,6 @@ class TasksController < ApplicationAuthController
 
   private
 
-  def cycle_months
-    return [*@next_start_date.month..@end_date.month] if @next_start_date.year == @end_date.year
-    return [*@next_start_date.month..12, *1..@end_date.month].uniq.sort if @next_start_date.year == @end_date.year + 1
-
-    [*1..12]
-  end
-
   def render_success(notice, status = nil)
     set_task(@task.id)
     return render :show_index, locals: { notice: t(notice) }, status: status if params[:months].blank?
@@ -86,135 +80,17 @@ class TasksController < ApplicationAuthController
     months = params[:months].sort
     @next_events = []
 
-    @next_start_date = [Time.new(months.first[0, 4], months.first[4, 2], 1).to_date, Time.current.to_date].max # TODO: 一旦、当日以降。通知用を作ったらその次の日
+    start_date = Time.new(months.first[0, 4], months.first[4, 2], 1).to_date
+    next_start_date = [start_date, Time.current.to_date].max
     @end_date = Time.new(months.last[0, 4], months.last[4, 2], 31).to_date
     @end_date = (@end_date - 1.month).end_of_month if @end_date.day != 31 # NOTE: 存在しない日付は丸められる為
 
-    @holidays = Holiday.where(date: (@next_start_date - 1.month)..@end_date).index_by(&:date) # NOTE: 期間(task_cycles.period)が1ヶ月以下の前提
+    set_holidays(start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
     @task.task_cycles_active.each do |task_cycle|
-      cycle_set_next_events(task_cycle, @task, months)
+      cycle_set_next_events(task_cycle, @task, next_start_date, @end_date, months)
     end
 
     render :show_events, locals: { notice: t(notice) }, status: status
-  end
-
-  def cycle_set_next_events(task_cycle, task, months = nil)
-    start_date = [@next_start_date, task.started_date].max
-    end_date = [@end_date, task.ended_date].compact.min
-
-    case task_cycle.cycle.to_sym
-    when :weekly
-      weekly_set_next_events(task_cycle, start_date, end_date, months)
-    when :monthly
-      monthly_set_next_events(task_cycle, start_date, end_date, months)
-    when :yearly
-      yearly_set_next_events(task_cycle, start_date, end_date, months)
-    else
-      # :nocov:
-      raise "task_cycle.cycle not found.(#{task_cycle.cycle})[id: #{task_cycle.id}]"
-      # :nocov:
-    end
-  end
-
-  def weekly_set_next_events(task_cycle, start_date, end_date, months)
-    date = start_date + ((task_cycle.wday_before_type_cast - start_date.wday) % 7).days
-    while date <= end_date # NOTE: 終了日が期間内のもの。開始日のみ期間内のものは含まれない。期間(task_cycles.period)が1ヶ月以下の前提
-      set_next_events(date, task_cycle, start_date) if months.blank? || months.include?(date.strftime('%Y%m'))
-      date += 1.week
-    end
-  end
-
-  def monthly_set_next_events(task_cycle, start_date, end_date, months)
-    month = start_date.beginning_of_month
-    while month <= end_date # NOTE: 終了日が期間内のもの。開始日のみ期間内のものは含まれない。期間(task_cycles.period)が1ヶ月以下の前提
-      target_set_next_events(month, task_cycle, start_date) if months.blank? || months.include?(month.strftime('%Y%m'))
-      month += 1.month
-    end
-  end
-
-  def yearly_set_next_events(task_cycle, start_date, end_date, months)
-    month = start_date.beginning_of_month
-    while month <= end_date # NOTE: 終了日が期間内のもの。開始日のみ期間内のものは含まれない。期間(task_cycles.period)が1ヶ月以下の前提
-      if month.month == task_cycle.month
-        target_set_next_events(month, task_cycle, start_date) if months.blank? || months.include?(month.strftime('%Y%m'))
-        break if month.year >= end_date.year
-      end
-      month += 1.month
-    end
-  end
-
-  def target_set_next_events(month, task_cycle, start_date)
-    case task_cycle.target&.to_sym
-    when :day
-      day_set_next_events(month, task_cycle, start_date)
-    when :business_day
-      business_day_set_next_events(month, task_cycle, start_date)
-    when :week
-      week_set_next_events(month, task_cycle, start_date)
-    else
-      # :nocov:
-      raise "task_cycle.target not found.(#{task_cycle.target})[id: #{task_cycle.id}]"
-      # :nocov:
-    end
-  end
-
-  def day_set_next_events(month, task_cycle, start_date)
-    date = month + (task_cycle.day - 1).days
-    date = (date - 1.month).end_of_month if date.day != task_cycle.day # NOTE: 存在しない日付は丸められる為
-    set_next_events(date, task_cycle, start_date)
-  end
-
-  def business_day_set_next_events(month, task_cycle, start_date)
-    date = month.end_of_month
-    if task_cycle.business_day < date.day # NOTE: 最終営業日は月末（後続処理で休日の場合は前日）
-      count = 0
-      date = month
-      loop do
-        count += 1 unless holiday?(date)
-        break if count == task_cycle.business_day
-        break if date >= month.end_of_month
-
-        date += 1.day
-      end
-    end
-    set_next_events(date, task_cycle, start_date)
-  end
-
-  def week_set_next_events(month, task_cycle, start_date)
-    date = month + ((task_cycle.wday_before_type_cast - month.wday) % 7).days + ((task_cycle.week_before_type_cast - 1) * 7).days
-    date -= 7.days while date.month > month.month
-    set_next_events(date, task_cycle, start_date)
-  end
-
-  def set_next_events(date, task_cycle, start_date)
-    event_end_date = handling_end_date(date, task_cycle.handling_holiday)
-    return if event_end_date < start_date
-
-    event_start_date = end_to_start_date(event_end_date, task_cycle.period)
-    @next_events.push([task_cycle, event_start_date, event_end_date]) if event_start_date >= start_date
-  end
-
-  def handling_end_date(date, handling_holiday)
-    add_day = handling_holiday == 'after' ? 1.day : -1.day
-    date += add_day while holiday?(date)
-
-    date
-  end
-
-  def end_to_start_date(date, period)
-    count = 1
-    while count < period
-      date -= 1.day
-      next if holiday?(date)
-
-      count += 1
-    end
-
-    date
-  end
-
-  def holiday?(date)
-    @holidays[date].present? || [0, 6].include?(date.wday) # NOTE: 土日もスキップ
   end
 
   # Use callbacks to share common setup or constraints between actions.
@@ -248,7 +124,7 @@ class TasksController < ApplicationAuthController
 
     if @start_date.present? && @end_date.present?
       month_count = ((@end_date.year - @start_date.year) * 12) + @end_date.month - @start_date.month + 1
-      errors.push({ end_date: '3ヶ月以内で指定してください。' }) if month_count > 3
+      errors.push({ end_date: t('errors.messages.task_events.max_month_count', count: Settings.task_events_max_month_count) }) if month_count > Settings.task_events_max_month_count
     end
 
     render './failure', locals: { errors: errors, alert: t('errors.messages.default') }, status: :unprocessable_entity if errors.present?
