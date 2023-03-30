@@ -28,7 +28,7 @@ json.task do
 end
 json.tasks do
   json.array! @tasks do |task|
-    json.partial! 'task', task: task
+    json.partial! 'task', task: task, use_add_info: false
 
     json.cycles do
       json.array! task.task_cycles_active do |task_cycle|

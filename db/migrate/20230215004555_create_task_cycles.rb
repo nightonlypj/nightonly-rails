@@ -1,7 +1,7 @@
 class CreateTaskCycles < ActiveRecord::Migration[6.1]
   def change
     create_table :task_cycles, comment: 'タスク周期' do |t|
-      t.references :space, null: false, type: :bigint, foreign_key: true, comment: 'スペースID' # NOTE: indexの為
+      t.references :space, null: false, type: :bigint, foreign_key: true, comment: 'スペースID'
       t.references :task,  null: false, type: :bigint, foreign_key: true, comment: 'タスクID'
 
       t.integer :cycle, null: false, comment: '周期'

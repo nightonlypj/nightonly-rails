@@ -18,6 +18,7 @@ namespace :task_event do
     begin
       start_date = args.start_date&.to_date
       raise '日付が指定されていません。' if start_date.blank?
+      raise '翌々日以降の日付は指定できません。' if start_date > Time.current.to_date.tomorrow
     rescue StandardError
       raise '日付の形式が不正です。'
     end
@@ -39,11 +40,17 @@ namespace :task_event do
       spaces = Space.order(:id)
       count = spaces.count
       now = Time.current
+      @months = nil
       spaces.each.with_index(1) do |space, index|
         task_cycles = TaskCycle.active.where(space: space).by_month(cycle_months(business_date, end_date) + [nil])
                                .eager_load(:task).by_task_period(business_date, end_date).merge(Task.order(:priority, :id))
         logger.info("[#{index}/#{count}] space.id: #{space.id}, task_cycles.count: #{task_cycles.count}")
         next if task_cycles.count.zero?
+
+        task_events = TaskEvent.where(space: space, started_date: start_date..business_date)
+                               .eager_load(task_cycle: :task).merge(Task.order(:priority, :id)).order(:id)
+        @task_event_exists = task_events.map { |task_event| [{ task_cycle_id: task_event.task_cycle_id, ended_date: task_event.ended_date }, true] }.to_h
+        logger.debug("@task_event_exists: #{@task_event_exists}")
 
         @next_events = []
         task_cycles.each do |task_cycle|
@@ -52,13 +59,12 @@ namespace :task_event do
         insert_events = @next_events.filter { |_, event_start_date, _| event_start_date == business_date }
         total_insert_count += insert_events.count
         logger.info("insert: #{insert_events.count}")
-        logger.debug(insert_events)
         next if insert_events.count.zero?
 
         insert_datas = insert_events.map do |task_cycle, event_start_date, event_end_date|
           { space_id: space.id, task_cycle_id: task_cycle.id, started_date: event_start_date, ended_date: event_end_date, created_at: now, updated_at: now }
         end
-        logger.debug(insert_datas)
+        logger.debug("insert_datas: #{insert_datas}")
         next if dry_run
 
         TaskEvent.insert_all!(insert_datas) if insert_datas.present?

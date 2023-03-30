@@ -1,3 +1,4 @@
+json.id task_cycle.id
 json.cycle task_cycle.cycle
 json.cycle_i18n task_cycle.cycle_i18n
 json.month task_cycle.month if task_cycle.cycle_yearly?

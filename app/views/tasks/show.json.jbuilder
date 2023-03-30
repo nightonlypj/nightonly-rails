@@ -3,10 +3,7 @@ json.alert alert if alert.present?
 json.notice notice if notice.present?
 
 json.task do
-  json.partial! 'task', task: @task
-  json.summary @task.summary
-  json.premise @task.premise
-  json.process @task.process
+  json.partial! 'task', task: @task, use_add_info: true
 
   json.cycles do
     json.array! @task.task_cycles_active do |task_cycle|

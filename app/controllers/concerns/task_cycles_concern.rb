@@ -3,6 +3,12 @@ module TaskCyclesConcern
 
   private
 
+  def set_task(id = params[:id])
+    @task = Task.where(id: id).eager_load(:task_cycles_active, :created_user, :last_updated_user)
+                .merge(TaskCycle.order(:updated_at, :id)).first
+    response_not_found if @task.blank?
+  end
+
   def set_holidays(start_date, end_date)
     @holidays = Holiday.where(date: start_date..end_date).index_by(&:date)
   end
@@ -14,17 +20,17 @@ module TaskCyclesConcern
     [*1..12]
   end
 
-  def cycle_set_next_events(task_cycle, task, start_date, end_date, months = nil)
+  def cycle_set_next_events(task_cycle, task, start_date, end_date)
     task_start_date = [start_date, task.started_date].max
     task_end_date = [end_date, task.ended_date].compact.min
 
     case task_cycle.cycle.to_sym
     when :weekly
-      weekly_set_next_events(task_cycle, task_start_date, task_end_date, months)
+      weekly_set_next_events(task_cycle, task_start_date, task_end_date)
     when :monthly
-      monthly_set_next_events(task_cycle, task_start_date, task_end_date, months)
+      monthly_set_next_events(task_cycle, task_start_date, task_end_date)
     when :yearly
-      yearly_set_next_events(task_cycle, task_start_date, task_end_date, months)
+      yearly_set_next_events(task_cycle, task_start_date, task_end_date)
     else
       # :nocov:
       raise "task_cycle.cycle not found.(#{task_cycle.cycle})[id: #{task_cycle.id}]"
@@ -32,31 +38,40 @@ module TaskCyclesConcern
     end
   end
 
-  def weekly_set_next_events(task_cycle, task_start_date, task_end_date, months)
+  def weekly_set_next_events(task_cycle, task_start_date, task_end_date)
+    result = false
     date = task_start_date + ((task_cycle.wday_before_type_cast - task_start_date.wday) % 7).days
     while date <= task_end_date # NOTE: 終了日が期間内のもの。開始日のみ期間内のものは含まれない
-      set_next_events(date, task_cycle, task_start_date) if months.blank? || months.include?(date.strftime('%Y%m'))
+      result = true if set_next_events(date, task_cycle, task_start_date)
       date += 1.week
     end
+
+    result
   end
 
-  def monthly_set_next_events(task_cycle, task_start_date, task_end_date, months)
+  def monthly_set_next_events(task_cycle, task_start_date, task_end_date)
+    result = false
     month = task_start_date.beginning_of_month
     while month <= task_end_date # NOTE: 終了日が期間内のもの。開始日のみ期間内のものは含まれない
-      target_set_next_events(month, task_cycle, task_start_date) if months.blank? || months.include?(month.strftime('%Y%m'))
+      result = true if target_set_next_events(month, task_cycle, task_start_date)
       month += 1.month
     end
+
+    result
   end
 
-  def yearly_set_next_events(task_cycle, task_start_date, task_end_date, months)
+  def yearly_set_next_events(task_cycle, task_start_date, task_end_date)
+    result = false
     month = task_start_date.beginning_of_month
     while month <= task_end_date # NOTE: 終了日が期間内のもの。開始日のみ期間内のものは含まれない
       if month.month == task_cycle.month
-        target_set_next_events(month, task_cycle, task_start_date) if months.blank? || months.include?(month.strftime('%Y%m'))
+        result = true if target_set_next_events(month, task_cycle, task_start_date)
         break if month.year >= task_end_date.year
       end
       month += 1.month
     end
+
+    result
   end
 
   def target_set_next_events(month, task_cycle, task_start_date)
@@ -105,10 +120,14 @@ module TaskCyclesConcern
   def set_next_events(date, task_cycle, task_start_date)
     event_end_date = handling_holiday_date(date, task_cycle.handling_holiday&.to_sym)
     return if event_end_date < task_start_date
+    return unless @months.blank? || @months.include?(event_end_date.strftime('%Y%m'))
 
     event_start_date = end_to_start_date(event_end_date, task_cycle.period)
-    if event_start_date >= task_start_date && !TaskEvent.where(task_cycle: task_cycle, ended_date: event_end_date).exists? # TODO: 毎回SQLを発行しない
+    if event_start_date >= task_start_date && !@task_event_exists.key?(task_cycle_id: task_cycle.id, ended_date: event_end_date)
       @next_events.push([task_cycle, event_start_date, event_end_date])
+      true
+    else
+      false
     end
   end
 

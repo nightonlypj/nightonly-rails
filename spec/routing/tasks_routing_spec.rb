@@ -10,11 +10,6 @@ RSpec.describe TasksController, type: :routing do
       expect(get: "/tasks/#{space_code}.json").to route_to('tasks#index', space_code: space_code, format: 'json')
     end
 
-    it 'routes to #events' do
-      expect(get: "/tasks/#{space_code}/events").to route_to('tasks#events', space_code: space_code)
-      expect(get: "/tasks/#{space_code}/events.json").to route_to('tasks#events', space_code: space_code, format: 'json')
-    end
-
     it 'routes to #show' do
       # expect(get: '/tasks/1').to route_to('tasks#show', id: '1') # NOTE: tasks#index
       expect(get: "/tasks/#{space_code}/detail/1").to route_to('tasks#show', space_code: space_code, id: '1')

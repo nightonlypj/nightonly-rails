@@ -3,6 +3,10 @@ module TasksConcern
 
   private
 
+  def check_power
+    response_forbidden unless @current_member.power_admin? || @current_member.power_writer?
+  end
+
   SORT_COLUMN = {
     'priority' => 'tasks.priority',
     'title' => 'tasks.title',

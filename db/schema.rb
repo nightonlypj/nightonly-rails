@@ -197,9 +197,12 @@ ActiveRecord::Schema.define(version: 2023_03_24_125734) do
     t.text "memo", comment: "メモ"
     t.bigint "assigned_user_id", comment: "担当者ID"
     t.datetime "assigned_at", comment: "担当日時"
+    t.bigint "last_updated_user_id", comment: "最終更新者ID"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["assigned_user_id"], name: "index_task_events_on_assigned_user_id"
+    t.index ["last_updated_user_id"], name: "index_task_events_on_last_updated_user_id"
+    t.index ["space_id", "ended_date"], name: "index_task_events2"
     t.index ["space_id"], name: "index_task_events_on_space_id"
     t.index ["task_cycle_id", "ended_date"], name: "index_task_events1", unique: true
     t.index ["task_cycle_id"], name: "index_task_events_on_task_cycle_id"

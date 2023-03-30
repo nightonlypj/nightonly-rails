@@ -2,39 +2,17 @@ class TasksController < ApplicationAuthController
   include TasksConcern
   include TaskCyclesConcern
   before_action :response_not_acceptable_for_not_api
-  before_action :set_space_current_member
+  before_action :set_space_current_member_auth_private
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy]
   before_action :check_power, only: %i[create update destroy]
   before_action :set_task, only: %i[show update]
   before_action :set_params_index, only: :index
-  before_action :set_params_events, only: :events
   before_action :validate_params_create, only: :create
   before_action :validate_params_update, only: :update
 
   # GET /tasks/:space_code(.json) タスク一覧API
   def index
     @tasks = tasks_search.page(params[:page]).per(Settings.default_tasks_limit)
-  end
-
-  # GET /tasks/:space_code/events(.json) タスクイベント一覧API
-  def events
-    @tasks = {}
-    @next_events = []
-    next_start_date = [@start_date, Time.current.to_date].max
-    return if next_start_date > @end_date
-
-    set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
-    before_count = 0
-    task_cycles = TaskCycle.active.where(space: @space).by_month(cycle_months(next_start_date, @end_date) + [nil])
-                           .eager_load(:task).by_task_period(next_start_date, @end_date).merge(Task.order(:priority, :id))
-    task_cycles.each do |task_cycle|
-      cycle_set_next_events(task_cycle, task_cycle.task, next_start_date, @end_date)
-
-      if before_count != @next_events.count
-        @tasks[task_cycle.task_id] = task_cycle.task if @tasks[task_cycle.task_id].blank?
-        before_count = @next_events.count
-      end
-    end
   end
 
   # GET /tasks/:space_code/detail/:id(.json) タスク詳細API
@@ -75,74 +53,30 @@ class TasksController < ApplicationAuthController
 
   def render_success(notice, status = nil)
     set_task(@task.id)
-    return render :show_index, locals: { notice: t(notice) }, status: status if params[:months].blank?
+    return render :show_index, locals: { notice: t(notice) }, status: status if @months.blank?
 
-    months = params[:months].sort
+    set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
+
+    business_date = handling_holiday_date(Time.current.to_date.tomorrow, :after)
+    if @start_date <= business_date
+      @task_events = TaskEvent.joins(:task_cycle).where(space: @space, task_cycle: { task_id: @task.id }).by_month(@months, business_date).order(:id)
+    else
+      @task_events = []
+    end
+
     @next_events = []
+    @task_event_exists = @task_events.map { |task_event| [{ task_cycle_id: task_event.task_cycle_id, ended_date: task_event.ended_date }, true] }.to_h
+    logger.debug("@task_event_exists: #{@task_event_exists}")
 
-    start_date = Time.new(months.first[0, 4], months.first[4, 2], 1).to_date
-    next_start_date = [start_date, Time.current.to_date].max
-    @end_date = Time.new(months.last[0, 4], months.last[4, 2], 31).to_date
-    @end_date = (@end_date - 1.month).end_of_month if @end_date.day != 31 # NOTE: 存在しない日付は丸められる為
-
-    set_holidays(start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
+    next_start_date = [@start_date, Time.current.to_date].max
     @task.task_cycles_active.each do |task_cycle|
-      cycle_set_next_events(task_cycle, @task, next_start_date, @end_date, months)
+      cycle_set_next_events(task_cycle, @task, next_start_date, @end_date)
     end
 
     render :show_events, locals: { notice: t(notice) }, status: status
   end
 
   # Use callbacks to share common setup or constraints between actions.
-  def set_space_current_member
-    @space = Space.find_by(code: params[:space_code])
-    return response_not_found if @space.blank?
-    return authenticate_user! if @space.private && !user_signed_in?
-
-    @current_member = current_user.present? ? Member.where(space: @space, user: current_user)&.first : nil
-    response_forbidden if @space.private && @current_member.blank?
-  end
-
-  def set_task(id = params[:id])
-    @task = Task.where(id: id).eager_load(:task_cycles_active, :created_user, :last_updated_user)
-                .merge(TaskCycle.order(:updated_at, :id)).first
-    response_not_found if @task.blank?
-  end
-
-  def check_power
-    response_forbidden unless @current_member.power_admin? || @current_member.power_writer?
-  end
-
-  def set_params_events
-    errors = []
-
-    @start_date, error = validate_date(params[:start_date])
-    errors.push({ start_date: error }) if error.present?
-
-    @end_date, error = validate_date(params[:end_date])
-    errors.push({ end_date: error }) if error.present?
-
-    if @start_date.present? && @end_date.present?
-      month_count = ((@end_date.year - @start_date.year) * 12) + @end_date.month - @start_date.month + 1
-      errors.push({ end_date: t('errors.messages.task_events.max_month_count', count: Settings.task_events_max_month_count) }) if month_count > Settings.task_events_max_month_count
-    end
-
-    render './failure', locals: { errors: errors, alert: t('errors.messages.default') }, status: :unprocessable_entity if errors.present?
-  end
-
-  def validate_date(value)
-    return nil, t('errors.messages.param.blank') if value.blank?
-
-    result, year, month, day = */^(\d+)-(\d+)-(\d+)$/.match(value.gsub(%r{/}, '-'))
-    result, year, month, day = */^(\d{4})(\d{2})(\d{2})$/.match(value) if result.blank?
-    return nil, t('errors.messages.param.invalid') if result.blank? || !(0..9999).cover?(year.to_i) || !(1..12).cover?(month.to_i) || !(1..31).cover?(day.to_i)
-
-    result = Time.new(year, month, day).to_date
-    result = (result - 1.month).end_of_month if result.day != day.to_i # NOTE: 存在しない日付は丸められる為
-
-    result
-  end
-
   def validate_params_create
     @task = Task.new(task_params.merge(space: @space, created_user: current_user))
     check_validation(:create)
@@ -156,14 +90,20 @@ class TasksController < ApplicationAuthController
   def check_validation(target)
     @task.valid?
 
-    exist_task_cycles = target == :create ? {} : @task.task_cycles_active.index_by { |task_cycle| task_cycle_key(task_cycle) }
     @now = Time.current
+    check_validation_cycles(params[:task][:cycles], target)
+    check_validation_months(params[:months])
 
+    render './failure', locals: { errors: @task.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if @task.errors.any?
+  end
+
+  def check_validation_cycles(cycles, target)
     cycle_error = 0
     use_task_cycle_keys = {}
+    exist_task_cycles = target == :create ? {} : @task.task_cycles_active.index_by { |task_cycle| task_cycle_key(task_cycle) }
     @insert_task_cycles = []
     active_task_cycle_ids = []
-    params[:task][:cycles].each.with_index(1) do |task_cycle, index|
+    cycles.each.with_index(1) do |task_cycle, index|
       next if task_cycle[:delete].present? && task_cycle[:delete] == true
 
       task_cycle = TaskCycle.new(task_cycle_params(task_cycle).merge(space: @space, task: @task))
@@ -196,8 +136,6 @@ class TasksController < ApplicationAuthController
       @task.errors.add(:cycles, t('errors.messages.task_cycles.zero')) if count.zero?
       @task.errors.add(:cycles, t('errors.messages.task_cycles.max_count', count: Settings.task_cycles_max_count)) if count > Settings.task_cycles_max_count
     end
-
-    render './failure', locals: { errors: @task.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if @task.errors.any?
   end
 
   def task_cycle_key(task_cycle)
@@ -211,6 +149,28 @@ class TasksController < ApplicationAuthController
       handling_holiday: task_cycle.handling_holiday,
       period: task_cycle.period
     }
+  end
+
+  def check_validation_months(months)
+    @months = months
+    return if @months.blank?
+
+    @months = @months.compact.uniq.sort
+    @months.each do |month|
+      valid = month.length == 6
+      valid = false if valid && get_date(month).blank?
+      @task.errors.add(:months, t('errors.messages.task.months.invalid', month: month)) unless valid
+    end
+    return if @task.errors.any?
+
+    @start_date = get_date(@months.first)
+    @end_date = get_date(@months.last).end_of_month
+  end
+
+  def get_date(month)
+    "#{month}01".to_date
+  rescue StandardError
+    nil
   end
 
   # Only allow a list of trusted parameters through.
