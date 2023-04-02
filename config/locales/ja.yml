@@ -139,9 +139,9 @@ ja:
         started_date: '開始日'
         ended_date: '終了日'
         status: 'ステータス'
-        memo: 'メモ'
         assigned_user: '担当者ID'
         assigned_at: '担当日時'
+        memo: 'メモ'
         last_updated_user: '最終更新者'
         created_at: '作成日時'
         updated_at: '更新日時'
@@ -227,6 +227,9 @@ ja:
               too_long: '%{count}文字以下で入力してください。'
             started_date:
               blank: '入力してください。'
+              taken: '今日より後の日付を入力してください。'
+            ended_date:
+              taken: '開始日より後の日付を入力してください。'
         task_cycle:
           attributes:
             cycle:
@@ -241,14 +244,17 @@ ja:
               blank: '入力してください。'
               greater_than_or_equal_to: '%{count}以上の値を入力してください。'
               less_than_or_equal_to: '%{count}以下の値を入力してください。'
+              taken: '同じ日が設定されています。'
             business_day:
               blank: '入力してください。'
               greater_than_or_equal_to: '%{count}以上の値を入力してください。'
               less_than_or_equal_to: '%{count}以下の値を入力してください。'
+              taken: '同じ営業日が設定されています。'
             week:
               blank: '選択してください。'
             wday:
               blank: '選択してください。'
+              taken: '同じ曜日が設定されています。'
             handling_holiday:
               blank: '選択してください。'
             period:
@@ -371,7 +377,6 @@ ja:
       task_cycles:
         zero: '有効な周期が存在しません。'
         max_count: '有効な周期が最大件数(%{count}件)を超えています。'
-        not_unique: '同じ周期が存在します。'
   alert:
     page:
       notfound: 'ページが見つかりません。'
@@ -427,6 +432,8 @@ ja:
     task:
       create: 'タスクを追加しました。'
       update: 'タスクの設定を変更しました。'
+    task_event:
+      update: 'イベントの情報を変更しました。'
   mailer:
     user:
       destroy_reserved:

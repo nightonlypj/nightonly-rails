@@ -194,9 +194,9 @@ ActiveRecord::Schema.define(version: 2023_03_24_125734) do
     t.date "started_date", null: false, comment: "開始日"
     t.date "ended_date", null: false, comment: "終了日"
     t.integer "status", default: 0, null: false, comment: "ステータス"
-    t.text "memo", comment: "メモ"
     t.bigint "assigned_user_id", comment: "担当者ID"
     t.datetime "assigned_at", comment: "担当日時"
+    t.text "memo", comment: "メモ"
     t.bigint "last_updated_user_id", comment: "最終更新者ID"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false

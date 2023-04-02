@@ -7,6 +7,12 @@ module TasksConcern
     response_forbidden unless @current_member.power_admin? || @current_member.power_writer?
   end
 
+  def set_task(id = params[:id])
+    @task = Task.where(id: id).eager_load(:task_cycles_active, :created_user, :last_updated_user)
+                .merge(TaskCycle.order(:updated_at, :id)).first
+    response_not_found if @task.blank?
+  end
+
   SORT_COLUMN = {
     'priority' => 'tasks.priority',
     'title' => 'tasks.title',

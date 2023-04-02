@@ -8,14 +8,14 @@ class TaskCycle < ApplicationRecord
   validates :month, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 12 }, if: proc { |task_cycle| task_cycle.month.present? }
   validates :target, presence: true, if: proc { |task_cycle| task_cycle.cycle_monthly_or_yearly? }
   validates :day, presence: true, if: proc { |task_cycle| task_cycle.cycle_monthly_or_yearly? && task_cycle.target_day? }
-  validates :day, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 31 }, if: proc { |task_cycle| task_cycle.day.present? && errors[:day].blank? }
+  validates :day, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 31 }, if: proc { |task_cycle| task_cycle.day.present? }
   validates :business_day, presence: true, if: proc { |task_cycle| task_cycle.cycle_monthly_or_yearly? && task_cycle.target_business_day? }
-  validates :business_day, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 31 }, if: proc { |task_cycle| task_cycle.business_day.present? && errors[:business_day].blank? }
+  validates :business_day, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 31 }, if: proc { |task_cycle| task_cycle.business_day.present? }
   validates :week, presence: true, if: proc { |task_cycle| task_cycle.cycle_monthly_or_yearly? && task_cycle.target_week? }
   validates :wday, presence: true, if: proc { |task_cycle| task_cycle.cycle_weekly? || (task_cycle.cycle_monthly_or_yearly? && task_cycle.target_week?) }
   validates :handling_holiday, presence: true, if: proc { |task_cycle| task_cycle.cycle_weekly? || (task_cycle.cycle_monthly_or_yearly? && task_cycle.target_day_or_week?) }
   validates :period, presence: true
-  validates :period, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 20 }, if: proc { errors[:period].blank? }
+  validates :period, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 20 }, if: proc { |task_cycle| task_cycle.period.present? }
 
   scope :active, -> { where(deleted_at: nil) }
   scope :by_month, lambda { |months|

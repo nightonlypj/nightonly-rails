@@ -8,6 +8,7 @@ FactoryBot.define do
     wday             { Time.current.wday }
     handling_holiday { %i[before after][rand(2)] }
     period           { rand(1..3) }
+
     after(:build) do |task_cycle|
       if task_cycle.task.blank?
         task_cycle.space = FactoryBot.build(:space) if task_cycle.space.blank?

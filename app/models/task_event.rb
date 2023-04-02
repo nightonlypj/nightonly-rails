@@ -1,8 +1,13 @@
 class TaskEvent < ApplicationRecord
+  attr_accessor :assign_myself, :assign_delete
+
   belongs_to :space
   belongs_to :task_cycle
   belongs_to :assigned_user, class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
   belongs_to :last_updated_user, class_name: 'User', optional: true
+
+  validates :status, presence: true
+  validates :memo, length: { maximum: Settings.task_event_memo_maximum }, if: proc { |task_event| task_event.memo.present? }
 
   scope :by_month, lambda { |months, last_date|
     return none if months.count.zero?

@@ -7,16 +7,18 @@ class TaskEventsController < ApplicationAuthController
   before_action :check_power, only: :update
   before_action :set_task_event, only: %i[show update]
   before_action :set_params_index, only: :index
+  before_action :validate_params_update, only: :update
 
   # GET /task_events/:space_code(.json) タスクイベント一覧API
   def index
-    set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
-
     @events = []
     @tasks = {}
-    business_date = handling_holiday_date(Time.current.to_date.tomorrow, :after)
-    if @start_date <= business_date
-      @task_events = TaskEvent.where(space: @space, started_date: @start_date..business_date)
+
+    tomorrow = Time.current.to_date.tomorrow
+    set_holidays(tomorrow, tomorrow + 1.month) # NOTE: 1ヶ月以上の休みはない前提
+    next_business_date = handling_holiday_date(tomorrow, :after)
+    if @start_date <= next_business_date
+      @task_events = TaskEvent.where(space: @space, started_date: @start_date..next_business_date)
                               .eager_load(task_cycle: [task: %i[created_user last_updated_user]]).merge(Task.order(:priority, :id)).order(:id)
       @task_events.each do |task_event|
         task_cycle = task_event.task_cycle
@@ -30,9 +32,10 @@ class TaskEventsController < ApplicationAuthController
     next_start_date = [@start_date, Time.current.to_date].max
     return if next_start_date > @end_date
 
-    @task_event_exists = @task_events.map { |task_event| [{ task_cycle_id: task_event.task_cycle_id, ended_date: task_event.ended_date }, true] }.to_h
-    logger.debug("@task_event_exists: #{@task_event_exists}")
+    @exist_task_events = @task_events.map { |task_event| [{ task_cycle_id: task_event.task_cycle_id, ended_date: task_event.ended_date }, true] }.to_h
+    logger.debug("@exist_task_events: #{@exist_task_events}")
 
+    set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
     @months = nil
     task_cycles = TaskCycle.active.where(space: @space).by_month(cycle_months(next_start_date, @end_date) + [nil])
                            .eager_load(task: %i[created_user last_updated_user]).by_task_period(next_start_date, @end_date).merge(Task.order(:priority, :id))
@@ -49,7 +52,17 @@ class TaskEventsController < ApplicationAuthController
 
   # POST /task_events/:space_code/update/:id(.json) タスクイベント変更API(処理)
   def update
-    # TODO
+    if @task_event.assign_myself
+      @task_event.assigned_user = current_user
+      @task_event.assigned_at = Time.current
+    end
+    if @task_event.assign_delete
+      @task_event.assigned_user = nil
+      @task_event.assigned_at = nil
+    end
+    @task_event.save!
+
+    render locals: { notice: t('notice.task_event.update') }
   end
 
   private
@@ -90,8 +103,17 @@ class TaskEventsController < ApplicationAuthController
     result
   end
 
+  def validate_params_update
+    @task_event.assign_attributes(task_event_params.merge(last_updated_user: current_user))
+    return if @task_event.valid?
+
+    render './failure', locals: { errors: @task_event.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
+  end
+
   # Only allow a list of trusted parameters through.
   def task_event_params
-    params.require(:task_event).permit(:space_id, :task_cycle_id)
+    params[:task_event][:status] = nil if TaskEvent.statuses[params[:task_event][:status]].blank? # NOTE: ArgumentError対策
+
+    params.require(:task_event).permit(:status, :assign_myself, :assign_delete, :memo)
   end
 end

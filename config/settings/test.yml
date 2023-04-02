@@ -90,3 +90,11 @@ task_summary_maximum: 17 # NOTE: (6+8?+3)以上 = "#{title}の概要"
 task_premise_maximum: 17 # NOTE: (6+8?+3)以上 = "#{title}の前提"
 # 手順の最大文字数
 task_process_maximum: 17 # NOTE: (6+8?+3)以上 = "#{title}の手順"
+# 周期の最大件数
+task_cycles_max_count: 2
+# イベントの最大月数
+task_events_max_month_count: 2
+
+## タスクイベント
+# メモの最大文字数
+task_event_memo_maximum: 14 # NOTE: (6+8?)以上 = "memo(#{n})"

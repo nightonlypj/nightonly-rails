@@ -8,10 +8,11 @@ class CreateTaskEvents < ActiveRecord::Migration[6.1]
       t.date :ended_date,   null: false, comment: '終了日'
 
       t.integer :status, null: false, default: 0, comment: 'ステータス'
-      t.text    :memo, comment: 'メモ'
 
       t.references :assigned_user, type: :bigint, foreign_key: false, comment: '担当者ID'
       t.datetime   :assigned_at, comment: '担当日時'
+
+      t.text :memo, comment: 'メモ'
 
       t.references :last_updated_user, type: :bigint, foreign_key: false, comment: '最終更新者ID'
       t.timestamps

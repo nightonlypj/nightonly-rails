@@ -33,11 +33,12 @@ class TasksController < ApplicationAuthController
 
   # POST /tasks/:space_code/update/:id(.json) タスク設定変更API(処理)
   def update
-    if @task.changed? || @insert_task_cycles.present? || @delete_task_cycle_ids.present?
+    if @task.changed? || @insert_task_cycles.present? || @delete_task_cycle_ids.present? || @revert_delete_task_cycle_ids.present?
       ActiveRecord::Base.transaction do
         @task.update!(last_updated_user: current_user, updated_at: @now)
         TaskCycle.insert_all!(@insert_task_cycles) if @insert_task_cycles.present?
-        TaskCycle.where(id: @delete_task_cycle_ids).update_all(deleted_at: @now, updated_at: @now) if @delete_task_cycle_ids.present? # TODO: 未使用なら物理削除
+        TaskCycle.where(id: @delete_task_cycle_ids).update_all(deleted_at: @now, updated_at: @now) if @delete_task_cycle_ids.present?
+        TaskCycle.where(id: @revert_delete_task_cycle_ids).update_all(deleted_at: nil, updated_at: @now) if @revert_delete_task_cycle_ids.present?
       end
     end
 
@@ -55,19 +56,21 @@ class TasksController < ApplicationAuthController
     set_task(@task.id)
     return render :show_index, locals: { notice: t(notice) }, status: status if @months.blank?
 
-    set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
+    tomorrow = Time.current.to_date.tomorrow
+    set_holidays(tomorrow, tomorrow + 1.month) # NOTE: 1ヶ月以上の休みはない前提
+    next_business_date = handling_holiday_date(tomorrow, :after)
 
-    business_date = handling_holiday_date(Time.current.to_date.tomorrow, :after)
-    if @start_date <= business_date
-      @task_events = TaskEvent.joins(:task_cycle).where(space: @space, task_cycle: { task_id: @task.id }).by_month(@months, business_date).order(:id)
+    if @start_date <= next_business_date
+      @task_events = TaskEvent.joins(:task_cycle).where(space: @space, task_cycle: { task_id: @task.id }).by_month(@months, next_business_date).order(:id)
     else
       @task_events = []
     end
 
     @next_events = []
-    @task_event_exists = @task_events.map { |task_event| [{ task_cycle_id: task_event.task_cycle_id, ended_date: task_event.ended_date }, true] }.to_h
-    logger.debug("@task_event_exists: #{@task_event_exists}")
+    @exist_task_events = @task_events.map { |task_event| [{ task_cycle_id: task_event.task_cycle_id, ended_date: task_event.ended_date }, true] }.to_h
+    logger.debug("@exist_task_events: #{@exist_task_events}")
 
+    set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
     next_start_date = [@start_date, Time.current.to_date].max
     @task.task_cycles_active.each do |task_cycle|
       cycle_set_next_events(task_cycle, @task, next_start_date, @end_date)
@@ -98,11 +101,14 @@ class TasksController < ApplicationAuthController
   end
 
   def check_validation_cycles(cycles, target)
+    active_task_cycles = target == :create ? {} : @task.task_cycles_active.index_by { |task_cycle| task_cycle_key(task_cycle) }
+    inactive_task_cycles = target == :create ? {} : @task.task_cycles_inactive.index_by { |task_cycle| task_cycle_key(task_cycle) }
+
     cycle_error = 0
-    use_task_cycle_keys = {}
-    exist_task_cycles = target == :create ? {} : @task.task_cycles_active.index_by { |task_cycle| task_cycle_key(task_cycle) }
-    @insert_task_cycles = []
+    @used_task_cycle_keys = {} # NOTE: used_task_cycle_targetで使用
     active_task_cycle_ids = []
+    @revert_delete_task_cycle_ids = []
+    @insert_task_cycles = []
     cycles.each.with_index(1) do |task_cycle, index|
       next if task_cycle[:delete].present? && task_cycle[:delete] == true
 
@@ -115,21 +121,27 @@ class TasksController < ApplicationAuthController
         next
       end
 
-      key = task_cycle_key(task_cycle)
-      if use_task_cycle_keys[key].present?
-        @task.errors.add("cycle#{index}_cycle", t('errors.messages.task_cycles.not_unique'))
+      target = used_task_cycle_target(task_cycle)
+      if target.present?
+        @task.errors.add("cycle#{index}_#{target}", t("activerecord.errors.models.task_cycle.attributes.#{target}.taken"))
         cycle_error += 1
         next
       end
-      use_task_cycle_keys[key] = index
 
-      if exist_task_cycles[key].blank?
-        @insert_task_cycles.push(task_cycle.attributes.symbolize_keys.merge(created_at: @now, updated_at: @now))
+      key = task_cycle_key(task_cycle)
+      if active_task_cycles[key].present?
+        active_task_cycle_ids.push(active_task_cycles[key].id)
+      elsif inactive_task_cycles[key].present?
+        @revert_delete_task_cycle_ids.push(inactive_task_cycles[key].id)
       else
-        active_task_cycle_ids.push(exist_task_cycles[key].id)
+        @insert_task_cycles.push(task_cycle.attributes.symbolize_keys.merge(created_at: @now, updated_at: @now))
       end
     end
-    @delete_task_cycle_ids = exist_task_cycles.values.pluck(:id) - active_task_cycle_ids
+    logger.debug("@insert_task_cycles: #{@insert_task_cycles}")
+    logger.debug("@revert_delete_task_cycle_ids: #{@revert_delete_task_cycle_ids}")
+
+    @delete_task_cycle_ids = active_task_cycles.values.pluck(:id) - active_task_cycle_ids
+    logger.debug("@delete_task_cycle_ids: #{@delete_task_cycle_ids}")
 
     if cycle_error.zero?
       count = @insert_task_cycles.count + active_task_cycle_ids.count
@@ -149,6 +161,41 @@ class TasksController < ApplicationAuthController
       handling_holiday: task_cycle.handling_holiday,
       period: task_cycle.period
     }
+  end
+
+  def used_task_cycle_target(task_cycle)
+    target, keys = task_cycle_target_keys(task_cycle)
+    keys.each do |key|
+      return target if @used_task_cycle_keys[key].present?
+
+      @used_task_cycle_keys[key] = true
+    end
+
+    nil
+  end
+
+  def task_cycle_target_keys(task_cycle)
+    case task_cycle.cycle.to_sym
+    when :weekly
+      [:wday, TaskCycle.weeks.keys.map { |week| { week: week, wday: task_cycle.wday } }]
+    when :monthly, :yearly
+      case task_cycle.target.to_sym
+      when :day
+        [:day, [{ day: task_cycle.day }]]
+      when :business_day
+        [:business_day, [{ business_day: task_cycle.business_day }]]
+      when :week
+        [:wday, [{ week: task_cycle.week, wday: task_cycle.wday }]]
+      else
+        # :nocov:
+        raise "task_cycle.target not found.(#{task_cycle.target})[id: #{task_cycle.id}]"
+        # :nocov:
+      end
+    else
+      # :nocov:
+      raise "task_cycle.cycle not found.(#{task_cycle.cycle})[id: #{task_cycle.id}]"
+      # :nocov:
+    end
   end
 
   def check_validation_months(months)

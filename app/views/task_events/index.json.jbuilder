@@ -16,7 +16,7 @@ json.space do
 end
 
 json.events do
-  json.partial! 'events', task_events: @task_events, next_events: @next_events
+  json.partial! 'events', task_events: @task_events, next_events: @next_events, task: nil
 end
 
 json.tasks do

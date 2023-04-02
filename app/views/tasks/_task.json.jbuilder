@@ -1,7 +1,6 @@
 json.id task.id
 json.priority task.priority
 json.priority_i18n task.priority_i18n
-json.priority_sort task.priority_before_type_cast
 json.title task.title
 if use_add_info
   json.summary task.summary

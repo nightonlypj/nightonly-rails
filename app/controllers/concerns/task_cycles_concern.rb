@@ -3,12 +3,6 @@ module TaskCyclesConcern
 
   private
 
-  def set_task(id = params[:id])
-    @task = Task.where(id: id).eager_load(:task_cycles_active, :created_user, :last_updated_user)
-                .merge(TaskCycle.order(:updated_at, :id)).first
-    response_not_found if @task.blank?
-  end
-
   def set_holidays(start_date, end_date)
     @holidays = Holiday.where(date: start_date..end_date).index_by(&:date)
   end
@@ -123,11 +117,11 @@ module TaskCyclesConcern
     return unless @months.blank? || @months.include?(event_end_date.strftime('%Y%m'))
 
     event_start_date = end_to_start_date(event_end_date, task_cycle.period)
-    if event_start_date >= task_start_date && !@task_event_exists.key?(task_cycle_id: task_cycle.id, ended_date: event_end_date)
+    if @exist_task_events.key?(task_cycle_id: task_cycle.id, ended_date: event_end_date)
+      false
+    else
       @next_events.push([task_cycle, event_start_date, event_end_date])
       true
-    else
-      false
     end
   end
 
