@@ -1,0 +1,27 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Task Send Settings</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Space</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @task_send_settings.each do |task_send_setting| %>
+      <tr>
+        <td><%= task_send_setting.space_id %></td>
+        <td><%= link_to 'Show', task_send_setting %></td>
+        <td><%= link_to 'Edit', edit_task_send_setting_path(task_send_setting) %></td>
+        <td><%= link_to 'Destroy', task_send_setting, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Task Send Setting', new_task_send_setting_path %>

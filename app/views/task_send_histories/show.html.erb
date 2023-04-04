@@ -1,0 +1,14 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Space:</strong>
+  <%= @task_send_history.space_id %>
+</p>
+
+<p>
+  <strong>Task send setting:</strong>
+  <%= @task_send_history.task_send_setting_id %>
+</p>
+
+<%= link_to 'Edit', edit_task_send_history_path(@task_send_history) %> |
+<%= link_to 'Back', task_send_histories_path %>
