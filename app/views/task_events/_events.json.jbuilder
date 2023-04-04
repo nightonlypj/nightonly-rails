@@ -1,5 +1,5 @@
 json.array! task_events.each do |task_event|
-  json.event_id task_event.id
+  json.code task_event.code
   json.cycle_id task_event.task_cycle_id
   json.task_id task_event.task_cycle.task_id
   json.priority_order Settings.priority_order[task.present? ? task.priority : task_event.task_cycle.task.priority]

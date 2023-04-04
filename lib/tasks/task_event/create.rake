@@ -66,8 +66,11 @@ namespace :task_event do
         logger.info("insert: #{insert_events.count}")
         next if insert_events.count.zero?
 
+        index = -1
+        codes = create_unique_codes(insert_events.count)
         insert_datas = insert_events.map do |task_cycle, event_start_date, event_end_date|
-          { space_id: space.id, task_cycle_id: task_cycle.id, started_date: event_start_date, ended_date: event_end_date, created_at: now, updated_at: now }
+          index += 1
+          { code: codes[index], space_id: space.id, task_cycle_id: task_cycle.id, started_date: event_start_date, ended_date: event_end_date, created_at: now, updated_at: now }
         end
         logger.debug("insert_datas: #{insert_datas}")
         next if dry_run
@@ -78,5 +81,26 @@ namespace :task_event do
 
     logger.info("Total insert: #{total_insert_count}")
     logger.info("=== END #{task.name} ===")
+  end
+
+  def create_unique_codes(count)
+    unique_codes = []
+    try_count = 1
+    loop do
+      codes = (count - unique_codes.count).times.map { Digest::MD5.hexdigest(SecureRandom.uuid).to_i(16).to_s(36).rjust(25, '0') }
+      unique_codes += codes - TaskEvent.where(code: codes).pluck(:code)
+      return unique_codes if unique_codes.count >= count
+
+      # :nocov:
+      if try_count < 10
+        logger.warn("[WARN](#{try_count})Not unique code(#{codes})")
+      elsif try_count >= 10
+        message = "[ERROR](#{try_count})Not unique code(#{codes})"
+        logger.error(message)
+        raise message
+      end
+      try_count += 1
+      # :nocov:
+    end
   end
 end

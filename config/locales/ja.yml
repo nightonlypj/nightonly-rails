@@ -134,6 +134,7 @@ ja:
         updated_at: '更新日時'
       task_event:
         id: 'ID'
+        code: 'コード'
         space: 'スペース'
         task_cycle: 'タスク周期'
         started_date: '開始日'

@@ -9,17 +9,6 @@ json.search_params do
   json.desc @desc ? 1 : 0
 end
 
-json.space do
-  json.partial! './spaces/space', space: @space
-
-  if @current_member.present?
-    json.current_member do
-      json.power @current_member.power
-      json.power_i18n @current_member.power_i18n
-    end
-  end
-end
-
 json.task do
   json.total_count @tasks.total_count
   json.current_page @tasks.current_page
@@ -28,7 +17,7 @@ json.task do
 end
 json.tasks do
   json.array! @tasks do |task|
-    json.partial! 'task', task: task, use_add_info: false
+    json.partial! 'task', task: task, detail: false
 
     json.cycles do
       json.array! task.task_cycles_active do |task_cycle|

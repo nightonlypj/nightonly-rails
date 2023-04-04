@@ -45,7 +45,7 @@ class TaskEventsController < ApplicationAuthController
     end
   end
 
-  # GET /task_events/:space_code/detail/:id(.json) タスクイベント詳細API
+  # GET /task_events/:space_code/detail/:code(.json) タスクイベント詳細API
   def show
     set_task(@task_event.task_cycle.task_id)
   end
@@ -69,7 +69,7 @@ class TaskEventsController < ApplicationAuthController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_task_event
-    @task_event = TaskEvent.where(id: params[:id]).eager_load(:task_cycle, :assigned_user, :last_updated_user).first
+    @task_event = TaskEvent.where(space: @space, code: params[:code]).eager_load(:task_cycle, :assigned_user, :last_updated_user).first
     response_not_found if @task_event.blank?
   end
 
@@ -105,6 +105,7 @@ class TaskEventsController < ApplicationAuthController
 
   def validate_params_update
     @task_event.assign_attributes(task_event_params.merge(last_updated_user: current_user))
+    @detail = params[:detail]
     return if @task_event.valid?
 
     render './failure', locals: { errors: @task_event.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity

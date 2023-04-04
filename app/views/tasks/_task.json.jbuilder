@@ -2,7 +2,7 @@ json.id task.id
 json.priority task.priority
 json.priority_i18n task.priority_i18n
 json.title task.title
-if use_add_info
+if detail
   json.summary task.summary
   json.premise task.premise
   json.process task.process

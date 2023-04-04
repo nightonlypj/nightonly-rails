@@ -7,5 +7,5 @@ json.events do
 end
 
 json.task do
-  json.partial! 'task', task: @task, use_add_info: false
+  json.partial! 'task', task: @task, detail: @detail
 end

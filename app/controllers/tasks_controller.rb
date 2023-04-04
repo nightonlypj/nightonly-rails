@@ -91,6 +91,7 @@ class TasksController < ApplicationAuthController
   end
 
   def check_validation(target)
+    @detail = params[:detail]
     @task.valid?
 
     @now = Time.current
@@ -144,7 +145,7 @@ class TasksController < ApplicationAuthController
     logger.debug("@delete_task_cycle_ids: #{@delete_task_cycle_ids}")
 
     if cycle_error.zero?
-      count = @insert_task_cycles.count + active_task_cycle_ids.count
+      count = active_task_cycle_ids.count + @revert_delete_task_cycle_ids.count + @insert_task_cycles.count
       @task.errors.add(:cycles, t('errors.messages.task_cycles.zero')) if count.zero?
       @task.errors.add(:cycles, t('errors.messages.task_cycles.max_count', count: Settings.task_cycles_max_count)) if count > Settings.task_cycles_max_count
     end

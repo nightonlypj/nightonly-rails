@@ -1,6 +1,8 @@
 class CreateTaskEvents < ActiveRecord::Migration[6.1]
   def change
     create_table :task_events do |t|
+      t.string :code, null: false, comment: 'コード'
+
       t.references :space,      null: false, type: :bigint, foreign_key: true, comment: 'スペースID'
       t.references :task_cycle, null: false, type: :bigint, foreign_key: true, comment: 'タスク周期ID'
 
@@ -17,7 +19,8 @@ class CreateTaskEvents < ActiveRecord::Migration[6.1]
       t.references :last_updated_user, type: :bigint, foreign_key: false, comment: '最終更新者ID'
       t.timestamps
     end
-    add_index :task_events, [:task_cycle_id, :ended_date], unique: true, name: 'index_task_events1'
-    add_index :task_events, [:space_id, :ended_date],                    name: 'index_task_events2'
+    add_index :task_events, :code,                         unique: true, name: 'index_task_events1'
+    add_index :task_events, [:task_cycle_id, :ended_date], unique: true, name: 'index_task_events2'
+    add_index :task_events, [:space_id, :started_date, :ended_date],     name: 'index_task_events3'
   end
 end

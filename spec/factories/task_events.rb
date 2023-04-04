@@ -1,5 +1,6 @@
 FactoryBot.define do
   factory :task_event do
+    code         { Digest::MD5.hexdigest(SecureRandom.uuid).to_i(16).to_s(36).rjust(25, '0') }
     started_date { Time.current.to_date }
     ended_date   { (Time.current + 1.day).to_date }
     # status       { :untreated }

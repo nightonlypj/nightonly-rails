@@ -3,7 +3,7 @@ json.alert alert if alert.present?
 json.notice notice if notice.present?
 
 json.task do
-  json.partial! './tasks/task', task: @task, use_add_info: true
+  json.partial! './tasks/task', task: @task, detail: true
 
   json.cycles do
     json.array! @task.task_cycles_active do |task_cycle|
@@ -13,7 +13,7 @@ json.task do
 end
 
 json.event do
-  json.partial! 'task_event', task_event: @task_event, use_add_info: true
+  json.partial! 'task_event', task_event: @task_event, detail: true
 end
 
 if @task_event.task_cycle.deleted_at.present?

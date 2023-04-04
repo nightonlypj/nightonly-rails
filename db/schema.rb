@@ -189,6 +189,7 @@ ActiveRecord::Schema.define(version: 2023_03_24_125734) do
   end
 
   create_table "task_events", charset: "utf8", collation: "utf8_bin", force: :cascade do |t|
+    t.string "code", null: false, comment: "コード"
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "task_cycle_id", null: false, comment: "タスク周期ID"
     t.date "started_date", null: false, comment: "開始日"
@@ -201,10 +202,11 @@ ActiveRecord::Schema.define(version: 2023_03_24_125734) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["assigned_user_id"], name: "index_task_events_on_assigned_user_id"
+    t.index ["code"], name: "index_task_events1", unique: true
     t.index ["last_updated_user_id"], name: "index_task_events_on_last_updated_user_id"
-    t.index ["space_id", "ended_date"], name: "index_task_events2"
+    t.index ["space_id", "started_date", "ended_date"], name: "index_task_events3"
     t.index ["space_id"], name: "index_task_events_on_space_id"
-    t.index ["task_cycle_id", "ended_date"], name: "index_task_events1", unique: true
+    t.index ["task_cycle_id", "ended_date"], name: "index_task_events2", unique: true
     t.index ["task_cycle_id"], name: "index_task_events_on_task_cycle_id"
   end
 
