@@ -2,36 +2,39 @@ require 'rails_helper'
 
 RSpec.describe TaskSendHistoriesController, type: :routing do
   describe 'routing' do
-    it 'routes to #index' do
-      expect(get: '/task_send_histories').to route_to('task_send_histories#index')
-    end
+    let(:space_code) { 'code0001' }
 
-    it 'routes to #new' do
-      expect(get: '/task_send_histories/new').to route_to('task_send_histories#new')
+    it 'routes to #index' do
+      expect(get: '/task_send_histories').not_to be_routable
+      expect(get: "/task_send_histories/#{space_code}").to route_to('task_send_histories#index', space_code: space_code)
+      expect(get: "/task_send_histories/#{space_code}.json").to route_to('task_send_histories#index', space_code: space_code, format: 'json')
     end
 
     it 'routes to #show' do
-      expect(get: '/task_send_histories/1').to route_to('task_send_histories#show', id: '1')
+      # expect(get: '/task_send_histories/1').not_to be_routable # NOTE: task_send_histories#index
+      expect(get: "/task_send_histories/#{space_code}/detail").to route_to('task_send_histories#show', space_code: space_code)
+      expect(get: "/task_send_histories/#{space_code}/detail.json").to route_to('task_send_histories#show', space_code: space_code, format: 'json')
     end
 
-    it 'routes to #edit' do
-      expect(get: '/task_send_histories/1/edit').to route_to('task_send_histories#edit', id: '1')
+    it 'routes to #new' do
+      # expect(get: '/task_send_histories/new').not_to be_routable # NOTE: task_send_histories#index
     end
 
     it 'routes to #create' do
-      expect(post: '/task_send_histories').to route_to('task_send_histories#create')
+      expect(post: '/task_send_histories').not_to be_routable
     end
 
-    it 'routes to #update via PUT' do
-      expect(put: '/task_send_histories/1').to route_to('task_send_histories#update', id: '1')
+    it 'routes to #edit' do
+      expect(get: '/task_send_histories/1/edit').not_to be_routable
     end
 
-    it 'routes to #update via PATCH' do
-      expect(patch: '/task_send_histories/1').to route_to('task_send_histories#update', id: '1')
+    it 'routes to #update' do
+      expect(put: '/task_send_histories/1').not_to be_routable
+      expect(patch: '/task_send_histories/1').not_to be_routable
     end
 
     it 'routes to #destroy' do
-      expect(delete: '/task_send_histories/1').to route_to('task_send_histories#destroy', id: '1')
+      expect(delete: '/task_send_histories/1').not_to be_routable
     end
   end
 end

@@ -1,57 +1,13 @@
-class TaskSendSettingsController < ApplicationController
-  before_action :set_task_send_setting, only: %i[show edit update destroy]
+class TaskSendSettingsController < ApplicationAuthController
+  before_action :set_task_send_setting, only: %i[show update]
 
-  # GET /task_send_settings or /task_send_settings.json
-  def index
-    @task_send_settings = TaskSendSetting.all
-  end
-
-  # GET /task_send_settings/1 or /task_send_settings/1.json
+  # GET /task_send_settings/:space_code/detail(.json) タスク通知詳細API
   def show; end
+  # TODO
 
-  # GET /task_send_settings/new
-  def new
-    @task_send_setting = TaskSendSetting.new
-  end
-
-  # GET /task_send_settings/1/edit
-  def edit; end
-
-  # POST /task_send_settings or /task_send_settings.json
-  def create
-    @task_send_setting = TaskSendSetting.new(task_send_setting_params)
-
-    respond_to do |format|
-      if @task_send_setting.save
-        format.html { redirect_to @task_send_setting, notice: 'Task send setting was successfully created.' }
-        format.json { render :show, status: :created, location: @task_send_setting }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @task_send_setting.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # PATCH/PUT /task_send_settings/1 or /task_send_settings/1.json
+  # POST /task_send_settings/:space_code/update(.json) タスク通知設定変更API(処理)
   def update
-    respond_to do |format|
-      if @task_send_setting.update(task_send_setting_params)
-        format.html { redirect_to @task_send_setting, notice: 'Task send setting was successfully updated.' }
-        format.json { render :show, status: :ok, location: @task_send_setting }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @task_send_setting.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # DELETE /task_send_settings/1 or /task_send_settings/1.json
-  def destroy
-    @task_send_setting.destroy
-    respond_to do |format|
-      format.html { redirect_to task_send_settings_url, notice: 'Task send setting was successfully destroyed.' }
-      format.json { head :no_content }
-    end
+    # TODO
   end
 
   private

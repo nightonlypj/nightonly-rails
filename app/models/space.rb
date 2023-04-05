@@ -9,6 +9,8 @@ class Space < ApplicationRecord
   has_many :downloads, dependent: :destroy
   has_many :invitations, dependent: :destroy
   has_many :tasks, dependent: :destroy
+  has_many :task_send_setting, dependent: :destroy
+  has_many :task_send_history, dependent: :destroy
 
   validates :code, presence: true
   validates :code, uniqueness: { case_sensitive: true }

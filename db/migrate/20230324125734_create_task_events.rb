@@ -1,6 +1,6 @@
 class CreateTaskEvents < ActiveRecord::Migration[6.1]
   def change
-    create_table :task_events do |t|
+    create_table :task_events, comment: 'タスクイベント' do |t|
       t.string :code, null: false, comment: 'コード'
 
       t.references :space,      null: false, type: :bigint, foreign_key: true, comment: 'スペースID'

@@ -23,5 +23,5 @@ class CreateTasks < ActiveRecord::Migration[6.1]
     add_index :tasks, [:last_updated_user_id, :id],            name: 'index_tasks5'
     add_index :tasks, [:created_at, :id],                      name: 'index_tasks6'
     add_index :tasks, [:updated_at, :id],                      name: 'index_tasks7'
-end
+  end
 end
