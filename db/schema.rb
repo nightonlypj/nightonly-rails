@@ -233,19 +233,19 @@ ActiveRecord::Schema.define(version: 2023_04_04_234446) do
 
   create_table "task_send_settings", charset: "utf8", collation: "utf8_bin", comment: "タスク通知設定", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
-    t.string "email", comment: "[Email]メールアドレス"
+    t.boolean "slack_enabled", default: false, null: false, comment: "[Slack]使用"
     t.string "slack_webhook_url", comment: "[Slack]Webhook URL"
-    t.string "slack_team_mention", comment: "[Slack]チームのメンション"
+    t.string "slack_mention", comment: "[Slack]メンション"
+    t.boolean "email_enabled", default: false, null: false, comment: "[メール]使用"
+    t.string "email_address", comment: "[メール]アドレス"
     t.integer "before_notice_start_hour", comment: "[事前通知]開始時間"
-    t.integer "today_notice_start_hour", comment: "[当日通知]開始時間"
     t.boolean "before_notice_required", default: false, null: false, comment: "[事前通知]必須"
+    t.integer "today_notice_start_hour", comment: "[当日通知]開始時間"
     t.boolean "today_notice_required", default: false, null: false, comment: "[当日通知]必須"
-    t.bigint "created_user_id", null: false, comment: "作成者ID"
     t.bigint "last_updated_user_id", comment: "最終更新者ID"
     t.datetime "deleted_at", comment: "削除日時"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["created_user_id"], name: "index_task_send_settings_on_created_user_id"
     t.index ["deleted_at"], name: "task_send_settings2"
     t.index ["last_updated_user_id"], name: "index_task_send_settings_on_last_updated_user_id"
     t.index ["space_id", "deleted_at"], name: "task_send_settings1"

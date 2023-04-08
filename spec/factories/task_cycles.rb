@@ -5,7 +5,7 @@ FactoryBot.define do
     # day              { nil }
     # business_day     { nil }
     # week             { nil }
-    wday             { Time.current.wday }
+    wday             { [0, 6].include?(Time.current.wday) ? 1 : Time.current.wday } # NOTE: 土・日曜日をコメントアウトしている為
     handling_holiday { %i[before after][rand(2)] }
     period           { rand(1..3) }
 

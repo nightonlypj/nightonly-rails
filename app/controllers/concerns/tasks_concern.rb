@@ -3,10 +3,6 @@ module TasksConcern
 
   private
 
-  def check_power
-    response_forbidden unless @current_member.power_admin? || @current_member.power_writer?
-  end
-
   def set_task(id = params[:id])
     @task = Task.where(space: @space, id: id).eager_load(:task_cycles_active, :created_user, :last_updated_user)
                 .merge(TaskCycle.order(:updated_at, :id)).first

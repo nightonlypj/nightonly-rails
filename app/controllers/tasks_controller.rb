@@ -4,7 +4,7 @@ class TasksController < ApplicationAuthController
   before_action :response_not_acceptable_for_not_api
   before_action :set_space_current_member_auth_private
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy]
-  before_action :check_power, only: %i[create update destroy]
+  before_action :check_power_writer, only: %i[create update destroy]
   before_action :set_task, only: %i[show update]
   before_action :set_params_index, only: :index
   before_action :validate_params_create, only: :create

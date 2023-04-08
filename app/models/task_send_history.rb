@@ -10,8 +10,8 @@ class TaskSendHistory < ApplicationRecord
 
   # 送信対象
   enum send_target: {
-    email: 1,
-    slack: 2
+    slack: 1, # Slack
+    email: 2  # メール
   }, _prefix: true
 
   # 通知対象

@@ -8,10 +8,10 @@ class Task < ApplicationRecord
 
   validates :priority, presence: true
   validates :title, presence: true
-  validates :title, length: { maximum: Settings.task_title_maximum }, if: proc { |task| task.title.present? }
-  validates :summary, length: { maximum: Settings.task_summary_maximum }, if: proc { |task| task.summary.present? }
-  validates :premise, length: { maximum: Settings.task_premise_maximum }, if: proc { |task| task.premise.present? }
-  validates :process, length: { maximum: Settings.task_process_maximum }, if: proc { |task| task.process.present? }
+  validates :title, length: { maximum: Settings.task_title_maximum }, allow_blank: true
+  validates :summary, length: { maximum: Settings.task_summary_maximum }, allow_blank: true
+  validates :premise, length: { maximum: Settings.task_premise_maximum }, allow_blank: true
+  validates :process, length: { maximum: Settings.task_process_maximum }, allow_blank: true
   validates :started_date, presence: true
   validate :validate_started_date
   validate :validate_ended_date

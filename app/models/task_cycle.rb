@@ -4,18 +4,18 @@ class TaskCycle < ApplicationRecord
   has_many :task_events, dependent: :destroy
 
   validates :cycle, presence: true
-  validates :month, presence: true, if: proc { |task_cycle| task_cycle.cycle_yearly? }
-  validates :month, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 12 }, if: proc { |task_cycle| task_cycle.month.present? }
-  validates :target, presence: true, if: proc { |task_cycle| task_cycle.cycle_monthly_or_yearly? }
-  validates :day, presence: true, if: proc { |task_cycle| task_cycle.cycle_monthly_or_yearly? && task_cycle.target_day? }
-  validates :day, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 31 }, if: proc { |task_cycle| task_cycle.day.present? }
-  validates :business_day, presence: true, if: proc { |task_cycle| task_cycle.cycle_monthly_or_yearly? && task_cycle.target_business_day? }
-  validates :business_day, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 31 }, if: proc { |task_cycle| task_cycle.business_day.present? }
-  validates :week, presence: true, if: proc { |task_cycle| task_cycle.cycle_monthly_or_yearly? && task_cycle.target_week? }
-  validates :wday, presence: true, if: proc { |task_cycle| task_cycle.cycle_weekly? || (task_cycle.cycle_monthly_or_yearly? && task_cycle.target_week?) }
-  validates :handling_holiday, presence: true, if: proc { |task_cycle| task_cycle.cycle_weekly? || (task_cycle.cycle_monthly_or_yearly? && task_cycle.target_day_or_week?) }
+  validates :month, presence: true, if: proc { |cycle| cycle.cycle_yearly? }
+  validates :month, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 12 }, allow_blank: true
+  validates :target, presence: true, if: proc { |cycle| cycle.cycle_monthly_or_yearly? }
+  validates :day, presence: true, if: proc { |cycle| cycle.cycle_monthly_or_yearly? && cycle.target_day? }
+  validates :day, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 31 }, allow_blank: true
+  validates :business_day, presence: true, if: proc { |cycle| cycle.cycle_monthly_or_yearly? && cycle.target_business_day? }
+  validates :business_day, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 31 }, allow_blank: true
+  validates :week, presence: true, if: proc { |cycle| cycle.cycle_monthly_or_yearly? && cycle.target_week? }
+  validates :wday, presence: true, if: proc { |cycle| cycle.cycle_weekly? || (cycle.cycle_monthly_or_yearly? && cycle.target_week?) }
+  validates :handling_holiday, presence: true, if: proc { |cycle| cycle.cycle_weekly? || (cycle.cycle_monthly_or_yearly? && cycle.target_day_or_week?) }
   validates :period, presence: true
-  validates :period, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 20 }, if: proc { |task_cycle| task_cycle.period.present? }
+  validates :period, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 20 }, allow_blank: true
 
   scope :active, -> { where(deleted_at: nil) }
   scope :by_month, lambda { |months|

@@ -4,7 +4,7 @@ class TaskEventsController < ApplicationAuthController
   before_action :response_not_acceptable_for_not_api
   before_action :set_space_current_member_auth_private
   before_action :response_api_for_user_destroy_reserved, only: :update
-  before_action :check_power, only: :update
+  before_action :check_power_writer, only: :update
   before_action :set_task_event, only: %i[show update]
   before_action :set_params_index, only: :index
   before_action :validate_params_update, only: :update
@@ -113,6 +113,7 @@ class TaskEventsController < ApplicationAuthController
 
   # Only allow a list of trusted parameters through.
   def task_event_params
+    params[:task_event] = TaskEvent.new.attributes if params[:task_event].blank? # NOTE: 変更なしで成功する為
     params[:task_event][:status] = nil if TaskEvent.statuses[params[:task_event][:status]].blank? # NOTE: ArgumentError対策
 
     params.require(:task_event).permit(:status, :assign_myself, :assign_delete, :memo)

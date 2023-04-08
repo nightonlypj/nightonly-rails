@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :task_send_history do
     sended_at     { Time.current }
-    send_target   { :email }
+    send_target   { :slack }
     notice_target { :before }
     send_result   { :success }
     sended_data   { '送信内容' }
@@ -33,11 +33,11 @@ FactoryBot.define do
     end
 
     # 送信対象
+    trait :slack do
+      # send_target { :slack }
+    end
     trait :email do
       send_target { :email }
-    end
-    trait :slack do
-      send_target { :slack }
     end
 
     # 通知対象
