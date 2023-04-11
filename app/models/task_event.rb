@@ -6,6 +6,8 @@ class TaskEvent < ApplicationRecord
   belongs_to :assigned_user, class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
   belongs_to :last_updated_user, class_name: 'User', optional: true
 
+  validates :code, presence: true
+  validates :code, uniqueness: { case_sensitive: true }, allow_blank: true
   validates :status, presence: true
   validates :memo, length: { maximum: Settings.task_event_memo_maximum }, allow_blank: true
 

@@ -4,10 +4,12 @@ class CreateTaskSendHistories < ActiveRecord::Migration[6.1]
       t.references :space,             null: false, type: :bigint, foreign_key: true, comment: 'スペースID'
       t.references :task_send_setting, null: false, type: :bigint, foreign_key: true, comment: 'タスク通知設定ID'
 
+      t.integer  :notice_target, null: false, comment: '通知対象'
+      t.integer  :send_target,   null: false, comment: '送信対象'
+      t.date     :target_date,   null: false, comment: '対象日'
+
       t.datetime :sended_at,     null: false, comment: '送信日時'
       t.integer  :send_result,   null: false, comment: '送信結果'
-      t.integer  :send_target,   null: false, comment: '送信対象'
-      t.integer  :notice_target, null: false, comment: '通知対象'
 
       t.text :error_message, comment: 'エラーメッセージ'
       t.text :sended_data,   comment: '送信データ'
@@ -19,6 +21,7 @@ class CreateTaskSendHistories < ActiveRecord::Migration[6.1]
 
       t.timestamps
     end
-    add_index :task_send_histories, [:space_id, :sended_at, :id], name: 'task_send_histories1'
+    add_index :task_send_histories, [:space_id, :notice_target, :target_date, :id], name: 'task_send_histories1'
+    add_index :task_send_histories, [:target_date, :sended_at, :id],                name: 'task_send_histories2'
   end
 end

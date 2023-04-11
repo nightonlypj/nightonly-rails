@@ -49,6 +49,7 @@ ja:
         last_updated_user: '最終更新者'
         created_at: '作成日時'
         updated_at: '更新日時'
+        process_priority: '処理優先度'
       invitation:
         id: 'ID'
         code: 'コード'
@@ -151,15 +152,15 @@ ja:
       task_send_setting:
         id: 'ID'
         space: 'スペース'
-        slack_enabled: '[Slack]使用'
+        slack_enabled: '[Slack]通知する'
         slack_webhook_url: '[Slack]Webhook URL'
         slack_mention: '[Slack]メンション'
-        email_enabled: '[メール]使用'
+        email_enabled: '[メール]通知する'
         email_address: '[メール]アドレス'
-        before_notice_start_hour: '[事前通知]開始時間'
-        before_notice_required: '[事前通知]必須'
         today_notice_start_hour: '[当日通知]開始時間'
         today_notice_required: '[当日通知]必須'
+        next_notice_start_hour: '[事前通知]開始時間'
+        next_notice_required: '[事前通知]必須'
         last_updated_user: '最終更新者'
         deleted_at: '削除日時'
         created_at: '作成日時'
@@ -167,10 +168,11 @@ ja:
       task_send_history:
         id: 'ID'
         space: 'スペース'
+        notice_target: '通知対象'
+        send_target: '送信対象'
+        target_date: '対象日'
         sended_at: '送信日時'
         send_result: '送信結果'
-        send_target: '送信対象'
-        notice_target: '通知対象'
         error_message: 'エラーメッセージ'
         sended_data: '送信データ'
         next_task_event_ids: '翌営業日開始のタスクイベントIDs'
@@ -310,19 +312,19 @@ ja:
             email_address:
               blank: '入力してください。'
               invalid: '形式が正しくありません。'
-            before_notice_start_hour:
-              blank: '入力してください。'
-              greater_than_or_equal_to: '%{count}以上の値を入力してください。'
-              less_than_or_equal_to: '%{count}以下の値を入力してください。'
-            before_notice_required:
-              inclusion: '選択してください。'
             today_notice_start_hour:
               blank: '入力してください。'
               greater_than_or_equal_to: '%{count}以上の値を入力してください。'
               less_than_or_equal_to: '%{count}以下の値を入力してください。'
-              invalid: '事前通知よりも前の時間を入力してください。'
             today_notice_required:
               inclusion: '選択してください。'
+            next_notice_start_hour:
+              blank: '入力してください。'
+              greater_than_or_equal_to: '%{count}以上の値を入力してください。'
+              less_than_or_equal_to: '%{count}以下の値を入力してください。'
+            next_notice_required:
+              inclusion: '選択してください。'
+              invalid: '当日通知よりも後の時間を入力してください。'
   items:
     member:
       user.name: 'メンバー'
@@ -423,15 +425,15 @@ ja:
         complete: '完了'
         unnecessary: '対応不要'
     task_send_history:
-      send_result:
-        success: '成功'
-        failure: '失敗'
+      notice_target:
+        today: '当日'
+        next: '事前'
       send_target:
         slack: 'Slack'
         email: 'メール'
-      notice_target:
-        before: '事前'
-        today: '当日'
+      send_result:
+        success: '成功'
+        failure: '失敗'
   errors:
     messages:
       default: 'エラーが発生しました。しばらく時間をあけてから、やり直してください。'
@@ -516,3 +518,26 @@ ja:
         subject: '%{env_name}【%{app_name}】アカウント削除取り消し完了のお知らせ'
       destroy_completed:
         subject: '%{env_name}【%{app_name}】アカウント削除完了のお知らせ'
+  notifier:
+    task_event:
+      message: '%{name} の未完了のタスクをお知らせします。'
+      notice_target:
+        today: '当日通知'
+        next: '事前通知'
+      list:
+        notfound: 'なし'
+      assigned:
+        notfound: '担当を決めましょう！'
+      type:
+        next:
+          title: '翌営業日開始のタスク'
+          slack_color: 'good'
+        expired:
+          title: '期限切れのタスク'
+          slack_color: 'danger'
+        end_today:
+          title: '本日期限のタスク'
+          slack_color: 'warning'
+        date_include:
+          title: '期限内のタスク'
+          slack_color: 'good'

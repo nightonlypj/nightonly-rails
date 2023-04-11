@@ -1,16 +1,16 @@
 FactoryBot.define do
   factory :task_send_setting do
-    before_notice_start_hour { 17 }
-    # before_notice_required   { false }
     today_notice_start_hour  { 10 }
     # today_notice_required    { false }
+    next_notice_start_hour { 17 }
+    # next_notice_required   { false }
     association :space
 
     # Slack
     trait :slack do
       slack_enabled      { true }
       slack_webhook_url  { Faker::Internet.url }
-      slack_mention      { '@here' }
+      slack_mention      { '!here' }
     end
 
     # メール

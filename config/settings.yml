@@ -104,9 +104,9 @@ task_event_memo_maximum: 10240
 slack_webhook_url_maximum: 128
 # [Slack]メンションの最大文字数
 slack_mention_maximum: 64
-# [事前通知]デフォルト開始時間/必須
-default_before_notice_start_hour: 17
-default_before_notice_required: false
 # [当日通知]デフォルト開始時間/必須
 default_today_notice_start_hour: 10
 default_today_notice_required: false
+# [事前通知]デフォルト開始時間/必須
+default_next_notice_start_hour: 17
+default_next_notice_required: false

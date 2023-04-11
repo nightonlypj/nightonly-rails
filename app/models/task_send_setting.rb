@@ -10,12 +10,12 @@ class TaskSendSetting < ApplicationRecord
   validates :email_enabled, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validates :email_address, presence: true, if: proc { |setting| setting.email_enabled }
   validates :email_address, email: true, allow_blank: true, if: proc { |setting| setting.email_enabled }
-  validates :before_notice_start_hour, presence: true
-  validates :before_notice_start_hour, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 23 }, allow_blank: true
-  validates :before_notice_required, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validates :today_notice_start_hour, presence: true
   validates :today_notice_start_hour, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 22 }, allow_blank: true
   validates :today_notice_required, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
+  validates :next_notice_start_hour, presence: true
+  validates :next_notice_start_hour, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 23 }, allow_blank: true
+  validates :next_notice_required, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validate :validate_start_hour
 
   scope :active, -> { where(deleted_at: nil) }
@@ -23,8 +23,8 @@ class TaskSendSetting < ApplicationRecord
   private
 
   def validate_start_hour
-    return if errors[:today_notice_start_hour].present? || errors[:before_notice_start_hour].present?
+    return if errors[:today_notice_start_hour].present? || errors[:next_notice_start_hour].present?
 
-    errors.add(:today_notice_start_hour, :invalid) if today_notice_start_hour >= before_notice_start_hour
+    errors.add(:next_notice_start_hour, :invalid) if today_notice_start_hour >= next_notice_start_hour
   end
 end

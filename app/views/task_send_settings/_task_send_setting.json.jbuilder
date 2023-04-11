@@ -10,13 +10,13 @@ json.email do
   json.address task_send_setting.email_address if @current_member.present?
 end
 
-json.before_notice do
-  json.start_hour task_send_setting.before_notice_start_hour
-  json.required task_send_setting.before_notice_required
-end
 json.today_notice do
   json.start_hour task_send_setting.today_notice_start_hour
   json.required task_send_setting.today_notice_required
+end
+json.next_notice do
+  json.start_hour task_send_setting.next_notice_start_hour
+  json.required task_send_setting.next_notice_required
 end
 
 if task_send_setting.last_updated_user_id.present?

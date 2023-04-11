@@ -2,6 +2,7 @@ debug: false
 env_name: null
 base_domain: 'localhost.test'
 base_image_url: 'http://localhost.test'
+front_url: 'http://front.localhost.test'
 redirect_whitelist: ['http://front.localhost.test/*']
 default_confirm_success_url: null
 default_password_reset_url: null

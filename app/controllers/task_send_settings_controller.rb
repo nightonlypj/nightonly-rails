@@ -11,7 +11,7 @@ class TaskSendSettingsController < ApplicationAuthController
 
   # POST /task_send_settings/:space_code/update(.json) タスク通知設定変更API(処理)
   def update
-    exist_task_send_setting = TaskSendSetting.where(task_send_setting_params.merge(space: @space)).order(id: :desc).first
+    exist_task_send_setting = TaskSendSetting.where(task_send_setting_params.merge(space: @space)).order(updated_at: :desc, id: :desc).first
     now = Time.current
     ActiveRecord::Base.transaction do
       if exist_task_send_setting.present?
@@ -31,7 +31,7 @@ class TaskSendSettingsController < ApplicationAuthController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_task_send_setting
-    @task_send_setting = TaskSendSetting.active.where(space: @space).eager_load(:last_updated_user).order(id: :desc).first
+    @task_send_setting = TaskSendSetting.active.where(space: @space).eager_load(:last_updated_user).order(updated_at: :desc, id: :desc).first
   end
 
   def validate_params_update
@@ -46,18 +46,18 @@ class TaskSendSettingsController < ApplicationAuthController
     task_send_setting = params[:task_send_setting] || {}
     slack = task_send_setting[:slack] || {}
     email = task_send_setting[:email] || {}
-    before_notice = task_send_setting[:before_notice] || {}
-    today_notice  = task_send_setting[:today_notice] || {}
+    today_notice = task_send_setting[:today_notice] || {}
+    next_notice  = task_send_setting[:next_notice] || {}
     {
       slack_enabled: slack[:enabled],
       slack_webhook_url: slack[:webhook_url].present? ? slack[:webhook_url] : nil,
       slack_mention: slack[:mention].present? ? slack[:mention] : nil,
       email_enabled: email[:enabled],
       email_address: email[:address].present? ? email[:address] : nil,
-      before_notice_start_hour: before_notice[:start_hour],
-      before_notice_required: before_notice[:required],
       today_notice_start_hour: today_notice[:start_hour],
-      today_notice_required: today_notice[:required]
+      today_notice_required: today_notice[:required],
+      next_notice_start_hour: next_notice[:start_hour],
+      next_notice_required: next_notice[:required]
     }
   end
 end
