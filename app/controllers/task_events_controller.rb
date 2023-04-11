@@ -85,9 +85,7 @@ class TaskEventsController < ApplicationAuthController
 
     if @start_date.present? && @end_date.present?
       month_count = ((@end_date.year - @start_date.year) * 12) + @end_date.month - @start_date.month + 1
-      if month_count > Settings.task_events_max_month_count
-        errors.push(end_date: t('errors.messages.task_events.max_month_count', count: Settings.task_events_max_month_count))
-      end
+      errors.push(end_date: t('errors.messages.task_events.max_month_count', count: Settings.task_events_max_month_count)) if month_count > Settings.task_events_max_month_count
     end
 
     render './failure', locals: { errors: errors, alert: t('errors.messages.default') }, status: :unprocessable_entity if errors.present?

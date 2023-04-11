@@ -1,0 +1,24 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Slack domain:</strong>
+  <%= @slack_user.slack_domain_id %>
+</p>
+
+<p>
+  <strong>User:</strong>
+  <%= @slack_user.user_id %>
+</p>
+
+<p>
+  <strong>Memberid:</strong>
+  <%= @slack_user.memberid %>
+</p>
+
+<p>
+  <strong>String:</strong>
+  <%= @slack_user.string %>
+</p>
+
+<%= link_to 'Edit', edit_slack_user_path(@slack_user) %> |
+<%= link_to 'Back', slack_users_path %>

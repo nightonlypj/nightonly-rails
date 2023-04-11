@@ -1,0 +1,2 @@
+class SlackDomain < ApplicationRecord
+end
