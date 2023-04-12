@@ -147,6 +147,52 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["user_id"], name: "index_members_on_user_id"
   end
 
+  create_table "send_histories", charset: "utf8", collation: "utf8_bin", comment: "通知履歴", force: :cascade do |t|
+    t.bigint "space_id", null: false, comment: "スペースID"
+    t.bigint "send_setting_id", null: false, comment: "通知設定ID"
+    t.integer "notice_target", null: false, comment: "通知対象"
+    t.integer "send_target", null: false, comment: "送信対象"
+    t.date "target_date", null: false, comment: "対象日"
+    t.datetime "sended_at", null: false, comment: "送信日時"
+    t.integer "send_result", null: false, comment: "送信結果"
+    t.text "error_message", comment: "エラーメッセージ"
+    t.text "sended_data", comment: "送信データ"
+    t.text "next_task_event_ids", comment: "翌開始のタスクイベントIDs"
+    t.text "expired_task_event_ids", comment: "期限切れのタスクイベントIDs"
+    t.text "end_today_task_event_ids", comment: "本日までのタスクイベントIDs"
+    t.text "date_include_task_event_ids", comment: "期間内のタスクイベントIDs"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["send_setting_id"], name: "index_send_histories_on_send_setting_id"
+    t.index ["space_id", "notice_target", "target_date", "id"], name: "send_histories1"
+    t.index ["space_id"], name: "index_send_histories_on_space_id"
+    t.index ["target_date", "sended_at", "id"], name: "send_histories2"
+  end
+
+  create_table "send_settings", charset: "utf8", collation: "utf8_bin", comment: "通知設定", force: :cascade do |t|
+    t.bigint "space_id", null: false, comment: "スペースID"
+    t.bigint "slack_domain_id", comment: "SlackドメインID"
+    t.boolean "slack_enabled", default: false, null: false, comment: "[Slack]通知する"
+    t.string "slack_webhook_url", comment: "[Slack]Webhook URL"
+    t.string "slack_mention", comment: "[Slack]メンション"
+    t.boolean "email_enabled", default: false, null: false, comment: "[メール]通知する"
+    t.string "email_address", comment: "[メール]アドレス"
+    t.integer "start_notice_start_hour", comment: "[開始確認]開始時間"
+    t.boolean "start_notice_required", default: false, null: false, comment: "[開始確認]必須"
+    t.integer "next_notice_start_hour", comment: "[翌開始・終了確認]開始時間"
+    t.boolean "next_notice_required", default: false, null: false, comment: "[翌開始・終了確認]必須"
+    t.bigint "last_updated_user_id", comment: "最終更新者ID"
+    t.datetime "deleted_at", comment: "削除日時"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["deleted_at", "id"], name: "send_settings3"
+    t.index ["last_updated_user_id"], name: "index_send_settings_on_last_updated_user_id"
+    t.index ["slack_domain_id"], name: "index_send_settings_on_slack_domain_id"
+    t.index ["space_id", "deleted_at", "id"], name: "send_settings1"
+    t.index ["space_id"], name: "index_send_settings_on_space_id"
+    t.index ["updated_at", "id"], name: "send_settings2"
+  end
+
   create_table "slack_domains", charset: "utf8", collation: "utf8_bin", comment: "Slackドメイン", force: :cascade do |t|
     t.string "name", null: false, comment: "ドメイン名"
     t.datetime "created_at", precision: 6, null: false
@@ -232,52 +278,6 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["task_cycle_id"], name: "index_task_events_on_task_cycle_id"
   end
 
-  create_table "task_send_histories", charset: "utf8", collation: "utf8_bin", comment: "タスク通知履歴", force: :cascade do |t|
-    t.bigint "space_id", null: false, comment: "スペースID"
-    t.bigint "task_send_setting_id", null: false, comment: "タスク通知設定ID"
-    t.integer "notice_target", null: false, comment: "通知対象"
-    t.integer "send_target", null: false, comment: "送信対象"
-    t.date "target_date", null: false, comment: "対象日"
-    t.datetime "sended_at", null: false, comment: "送信日時"
-    t.integer "send_result", null: false, comment: "送信結果"
-    t.text "error_message", comment: "エラーメッセージ"
-    t.text "sended_data", comment: "送信データ"
-    t.text "next_task_event_ids", comment: "翌営業日開始のタスクイベントIDs"
-    t.text "expired_task_event_ids", comment: "期限切れのタスクイベントIDs"
-    t.text "end_today_task_event_ids", comment: "本日までのタスクイベントIDs"
-    t.text "date_include_task_event_ids", comment: "期間内のタスクイベントIDs"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["space_id", "notice_target", "target_date", "id"], name: "task_send_histories1"
-    t.index ["space_id"], name: "index_task_send_histories_on_space_id"
-    t.index ["target_date", "sended_at", "id"], name: "task_send_histories2"
-    t.index ["task_send_setting_id"], name: "index_task_send_histories_on_task_send_setting_id"
-  end
-
-  create_table "task_send_settings", charset: "utf8", collation: "utf8_bin", comment: "タスク通知設定", force: :cascade do |t|
-    t.bigint "space_id", null: false, comment: "スペースID"
-    t.bigint "slack_domain_id", comment: "SlackドメインID"
-    t.boolean "slack_enabled", default: false, null: false, comment: "[Slack]通知する"
-    t.string "slack_webhook_url", comment: "[Slack]Webhook URL"
-    t.string "slack_mention", comment: "[Slack]メンション"
-    t.boolean "email_enabled", default: false, null: false, comment: "[メール]通知する"
-    t.string "email_address", comment: "[メール]アドレス"
-    t.integer "today_notice_start_hour", comment: "[当日通知]開始時間"
-    t.boolean "today_notice_required", default: false, null: false, comment: "[当日通知]必須"
-    t.integer "next_notice_start_hour", comment: "[事前通知]開始時間"
-    t.boolean "next_notice_required", default: false, null: false, comment: "[事前通知]必須"
-    t.bigint "last_updated_user_id", comment: "最終更新者ID"
-    t.datetime "deleted_at", comment: "削除日時"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["deleted_at", "id"], name: "task_send_settings3"
-    t.index ["last_updated_user_id"], name: "index_task_send_settings_on_last_updated_user_id"
-    t.index ["slack_domain_id"], name: "index_task_send_settings_on_slack_domain_id"
-    t.index ["space_id", "deleted_at", "id"], name: "task_send_settings1"
-    t.index ["space_id"], name: "index_task_send_settings_on_space_id"
-    t.index ["updated_at", "id"], name: "task_send_settings2"
-  end
-
   create_table "tasks", charset: "utf8", collation: "utf8_bin", comment: "タスク", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.integer "priority", default: 0, null: false, comment: "優先度"
@@ -358,15 +358,15 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
   add_foreign_key "invitations", "spaces"
   add_foreign_key "members", "spaces"
   add_foreign_key "members", "users"
+  add_foreign_key "send_histories", "send_settings"
+  add_foreign_key "send_histories", "spaces"
+  add_foreign_key "send_settings", "slack_domains"
+  add_foreign_key "send_settings", "spaces"
   add_foreign_key "slack_users", "slack_domains"
   add_foreign_key "slack_users", "users"
   add_foreign_key "task_cycles", "spaces"
   add_foreign_key "task_cycles", "tasks"
   add_foreign_key "task_events", "spaces"
   add_foreign_key "task_events", "task_cycles"
-  add_foreign_key "task_send_histories", "spaces"
-  add_foreign_key "task_send_histories", "task_send_settings"
-  add_foreign_key "task_send_settings", "slack_domains"
-  add_foreign_key "task_send_settings", "spaces"
   add_foreign_key "tasks", "spaces"
 end

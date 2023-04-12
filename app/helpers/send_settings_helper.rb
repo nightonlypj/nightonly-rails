@@ -1,0 +1,2 @@
+module SendSettingsHelper
+end

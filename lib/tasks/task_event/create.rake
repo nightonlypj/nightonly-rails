@@ -1,11 +1,11 @@
 namespace :task_event do
   namespace :create_send_notice do
-    desc '今日が期間内のタスクイベント作成＋当日通知（通知は開始時間以降）'
-    task(:today, [:dry_run] => :environment) do |_, args|
-      Rake::Task['task_event:create_send_notice'].invoke(Time.current.to_date, args.dry_run, 'today', 'true')
+    desc '今日が期間内のタスクイベント作成＋開始確認を通知（通知は開始時間以降）'
+    task(:start, [:dry_run] => :environment) do |_, args|
+      Rake::Task['task_event:create_send_notice'].invoke(Time.current.to_date, args.dry_run, 'start', 'true')
     end
 
-    desc '翌営業日が期間内のタスクイベント作成＋事前通知（作成・通知は開始時間以降）'
+    desc '翌営業日が期間内のタスクイベント作成＋翌開始・終了確認を通知（作成・通知は開始時間以降）'
     task(:next, [:dry_run] => :environment) do |_, args|
       Rake::Task['task_event:create_send_notice'].invoke(Time.current.to_date, args.dry_run, 'next', 'true')
     end
@@ -51,15 +51,15 @@ namespace :task_event do
       set_holidays(start_date, end_date)
       @logger.info("next_business_date: #{next_business_date}, next_start_date: #{next_start_date}, start_date: #{start_date}, end_date: #{end_date}")
 
-      spaces = Space.active.eager_load(:task_send_setting_active).order(:process_priority, :id).merge(TaskSendSetting.order(updated_at: :desc, id: :desc))
+      spaces = Space.active.eager_load(:send_setting_active).order(:process_priority, :id).merge(SendSetting.order(updated_at: :desc, id: :desc))
       count = spaces.count
       spaces.each.with_index(1) do |space, index|
         logger_message = nil
-        task_send_setting = %i[today next].include?(notice_target) ? space.task_send_setting_active.first : nil
+        send_setting = %i[start next].include?(notice_target) ? space.send_setting_active.first : nil
         if notice_target == :next
-          next_notice_start = task_send_setting&.next_notice_start_hour || Settings.default_next_notice_start_hour
-          logger_message = ", next_notice_start: #{next_notice_start}#{'(default)' if task_send_setting.blank?}"
-          if target_date + next_notice_start.hours > Time.current # NOTE: [事前通知]開始時間以降に作成
+          next_notice_start = send_setting&.next_notice_start_hour || Settings.default_next_notice_start_hour
+          logger_message = ", next_notice_start: #{next_notice_start}#{'(default)' if send_setting.blank?}"
+          if target_date + next_notice_start.hours > Time.current # NOTE: [翌開始・終了確認]開始時間以降に作成
             @logger.info("[#{index}/#{count}] space.id: #{space.id}#{logger_message} ...Skip")
             next
           end
@@ -69,16 +69,16 @@ namespace :task_event do
         @logger.info("[#{index}/#{count}] space.id: #{space.id}#{logger_message}")
         total_insert_count += create_task_events(dry_run, space, next_business_date, next_start_date, start_date, end_date)
 
-        next if !send_notice || task_send_setting.blank? || (!task_send_setting.slack_enabled && !task_send_setting.email_enabled)
+        next if !send_notice || send_setting.blank? || (!send_setting.slack_enabled && !send_setting.email_enabled)
 
         # タスクイベント通知
-        if notice_target == :today
-          today_notice_start = task_send_setting.today_notice_start_hour
-          @logger.info("today_notice_start: #{today_notice_start}")
-          next if target_date + today_notice_start.hours > Time.current # NOTE: [当日通知]開始時間以降に通知
+        if notice_target == :start
+          start_notice_start = send_setting.start_notice_start_hour
+          @logger.info("start_notice_start: #{start_notice_start}")
+          next if target_date + start_notice_start.hours > Time.current # NOTE: [開始確認]開始時間以降に通知
         end
 
-        success_count, failure_count = send_notice_task_events(dry_run, notice_target, space, task_send_setting, target_date)
+        success_count, failure_count = send_notice_task_events(dry_run, notice_target, space, send_setting, target_date)
         total_notice_success_count += success_count
         total_notice_failure_count += failure_count
       end
@@ -145,14 +145,14 @@ namespace :task_event do
   end
 
   # タスクイベント通知
-  def send_notice_task_events(dry_run, notice_target, space, task_send_setting, target_date)
-    enable_send_target = get_enable_send_target(notice_target, space, task_send_setting, target_date)
+  def send_notice_task_events(dry_run, notice_target, space, send_setting, target_date)
+    enable_send_target = get_enable_send_target(notice_target, space, send_setting, target_date)
     return 0, 0 unless enable_send_target.values.any?
 
     # REVIEW: dry_runでは今回作成分が対象にならない
     task_events = TaskEvent.where(space: space).where.not(status: %i[complete unnecessary])
                            .eager_load(task_cycle: :task).order(:status).merge(Task.order(:priority)).order(:id)
-    notice_required = task_send_setting["#{notice_target}_notice_required"]
+    notice_required = send_setting["#{notice_target}_notice_required"]
     return 0, 0 if !notice_required && task_events.count.zero?
 
     @next_task_events = {}
@@ -173,24 +173,24 @@ namespace :task_event do
 
     success_count = 0
     failure_count = 0
-    history_params = task_send_history_params(space, task_send_setting, notice_target, target_date)
-    TaskSendHistory.send_targets.each do |send_target, _|
+    history_params = send_history_params(space, send_setting, notice_target, target_date)
+    SendHistory.send_targets.each do |send_target, _|
       next unless enable_send_target[send_target]
 
-      task_send_history = TaskSendHistory.new(history_params.merge(send_target: send_target, sended_at: Time.current))
+      send_history = SendHistory.new(history_params.merge(send_target: send_target, sended_at: Time.current))
       case send_target.to_sym
       when :slack
-        task_send_history = send_notice_slack(dry_run, task_send_history)
+        send_history = send_notice_slack(dry_run, send_history)
       when :email
-        task_send_history = send_notice_email(dry_run, task_send_history)
+        send_history = send_notice_email(dry_run, send_history)
       else
         # :nocov:
         raise "send_target not found.(#{send_target})"
         # :nocov:
       end
-      task_send_history.send_result.to_sym == :success ? success_count += 1 : failure_count += 1
+      send_history.send_result.to_sym == :success ? success_count += 1 : failure_count += 1
 
-      task_send_history.save! unless dry_run
+      send_history.save! unless dry_run
     end
 
     @logger.info("notice_success: #{success_count}, notice_failure: #{failure_count}")
@@ -198,18 +198,18 @@ namespace :task_event do
   end
 
   # 送信対象毎の通知有無 # NOTE: 最終送信結果が失敗の場合は再通知。他の送信対象に通知後に通知するに変更した送信対象には通知しない
-  def get_enable_send_target(notice_target, space, task_send_setting, target_date)
+  def get_enable_send_target(notice_target, space, send_setting, target_date)
     last_send_results = {}
-    task_send_histories = TaskSendHistory.where(space: space, notice_target: notice_target, target_date: target_date).order(id: :desc)
-    task_send_histories.each do |task_send_history|
-      last_send_results[task_send_history.send_target] = task_send_history.send_result unless last_send_results.key?(task_send_history.send_target)
-      break if TaskSendHistory.send_targets.keys - last_send_results.keys == []
+    send_histories = SendHistory.where(space: space, notice_target: notice_target, target_date: target_date).order(id: :desc)
+    send_histories.each do |send_history|
+      last_send_results[send_history.send_target] = send_history.send_result unless last_send_results.key?(send_history.send_target)
+      break if SendHistory.send_targets.keys - last_send_results.keys == []
     end
     @logger.debug("last_send_results: #{last_send_results}")
 
     enable_send_target = {}
-    TaskSendHistory.send_targets.each do |send_target, _|
-      enabled = task_send_setting["#{send_target}_enabled"]
+    SendHistory.send_targets.each do |send_target, _|
+      enabled = send_setting["#{send_target}_enabled"]
       enabled = false if enabled && last_send_results.count.positive? && last_send_results[send_target]&.to_sym != :failure
 
       enable_send_target[send_target] = enabled
@@ -219,10 +219,10 @@ namespace :task_event do
     enable_send_target
   end
 
-  def task_send_history_params(space, task_send_setting, notice_target, target_date)
+  def send_history_params(space, send_setting, notice_target, target_date)
     {
       space: space,
-      task_send_setting: task_send_setting,
+      send_setting: send_setting,
       notice_target: notice_target,
       target_date: target_date,
       next_task_event_ids: @next_task_events.keys,
@@ -232,15 +232,15 @@ namespace :task_event do
     }
   end
 
-  def send_notice_slack(dry_run, task_send_history)
+  def send_notice_slack(dry_run, send_history)
     username = "#{I18n.t('app_name')}#{Settings.env_name}"
-    default_mention = task_send_history.task_send_setting.slack_mention
+    default_mention = send_history.send_setting.slack_mention
     default_mention = "<#{html_escape(default_mention)}>" if default_mention.present?
-    code = task_send_history.space.code
-    notice_target = task_send_history.notice_target.to_sym
+    code = send_history.space.code
+    notice_target = send_history.notice_target.to_sym
     sended_data = {
-      text: "[#{I18n.t("notifier.task_event.notice_target.#{notice_target}")}] " +
-            I18n.t('notifier.task_event.message', name: "<#{Settings.front_url}/-/#{code}|#{html_escape(task_send_history.space.name)}>"),
+      text: "[#{I18n.t("enums.send_history.notice_target.#{notice_target}")}] " +
+            I18n.t('notifier.task_event.message', name: "<#{Settings.front_url}/-/#{code}|#{html_escape(send_history.space.name)}>"),
       attachments: [
         notice_target == :next ? slack_attachment(:next, @next_task_events, default_mention, code) : nil,
         slack_attachment(:expired, @expired_task_events, default_mention, code),
@@ -248,17 +248,17 @@ namespace :task_event do
         slack_attachment(:date_include, @date_include_task_events, default_mention, code)
       ].compact
     }
-    task_send_history.sended_data = sended_data.to_s
+    send_history.sended_data = sended_data.to_s
     begin
-      notifier = Slack::Notifier.new(task_send_history.task_send_setting.slack_webhook_url, username: username, icon_emoji: ':alarm_clock:')
+      notifier = Slack::Notifier.new(send_history.send_setting.slack_webhook_url, username: username, icon_emoji: ':alarm_clock:')
       notifier.post(sended_data) unless dry_run
-      task_send_history.send_result = :success
+      send_history.send_result = :success
     rescue StandardError => e
-      task_send_history.send_result = :failure
-      task_send_history.error_message = e.message
+      send_history.send_result = :failure
+      send_history.error_message = e.message
     end
 
-    task_send_history
+    send_history
   end
 
   def slack_attachment(type, task_events, default_mention, code)
@@ -321,11 +321,11 @@ namespace :task_event do
     end
   end
 
-  def send_notice_email(_dry_run, task_send_history)
-    task_send_history.send_result = :failure
+  def send_notice_email(_dry_run, send_history)
+    send_history.send_result = :failure
 
     # TODO: メール送信
 
-    task_send_history
+    send_history
   end
 end

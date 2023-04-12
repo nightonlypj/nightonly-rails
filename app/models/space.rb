@@ -9,9 +9,9 @@ class Space < ApplicationRecord
   has_many :downloads, dependent: :destroy
   has_many :invitations, dependent: :destroy
   has_many :tasks, dependent: :destroy
-  has_many :task_send_setting, dependent: :destroy
-  has_many :task_send_setting_active, -> { where(deleted_at: nil) }, class_name: 'TaskSendSetting'
-  has_many :task_send_history, dependent: :destroy
+  has_many :send_setting, dependent: :destroy
+  has_many :send_setting_active, -> { where(deleted_at: nil) }, class_name: 'SendSetting'
+  has_many :send_history, dependent: :destroy
 
   validates :code, presence: true
   validates :code, uniqueness: { case_sensitive: true }, allow_blank: true

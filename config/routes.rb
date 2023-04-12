@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   draw :slack_users
-  draw :task_send_histories
-  draw :task_send_settings
+  draw :send_histories
+  draw :send_settings
   draw :task_events
   draw :tasks
   draw :downloads
