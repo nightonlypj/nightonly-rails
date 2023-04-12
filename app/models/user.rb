@@ -15,6 +15,7 @@ class User < ApplicationRecord
   has_many :members, dependent: :destroy
   has_many :spaces, -> { order(:name) }, through: :members
   has_many :downloads, dependent: :destroy
+  has_many :slack_users, dependent: :destroy
 
   validates :code, presence: true
   validates :code, uniqueness: { case_sensitive: true }, allow_blank: true

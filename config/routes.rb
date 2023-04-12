@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  resources :slack_users
+  draw :slack_users
   draw :task_send_histories
   draw :task_send_settings
   draw :task_events

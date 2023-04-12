@@ -147,6 +147,24 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["user_id"], name: "index_members_on_user_id"
   end
 
+  create_table "slack_domains", charset: "utf8", collation: "utf8_bin", comment: "Slackドメイン", force: :cascade do |t|
+    t.string "name", null: false, comment: "ドメイン名"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["name"], name: "index_slack_domains1", unique: true
+  end
+
+  create_table "slack_users", charset: "utf8", collation: "utf8_bin", comment: "Slackユーザー", force: :cascade do |t|
+    t.bigint "slack_domain_id", null: false, comment: "SlackドメインID"
+    t.bigint "user_id", null: false, comment: "ユーザーID"
+    t.string "memberid", comment: "SlackのメンバーID"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["slack_domain_id", "user_id"], name: "index_slack_users1", unique: true
+    t.index ["slack_domain_id"], name: "index_slack_users_on_slack_domain_id"
+    t.index ["user_id"], name: "index_slack_users_on_user_id"
+  end
+
   create_table "spaces", charset: "utf8", collation: "utf8_bin", comment: "スペース", force: :cascade do |t|
     t.string "code", null: false, comment: "コード"
     t.string "image", comment: "画像"
@@ -207,7 +225,8 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["assigned_user_id"], name: "index_task_events_on_assigned_user_id"
     t.index ["code"], name: "index_task_events1", unique: true
     t.index ["last_updated_user_id"], name: "index_task_events_on_last_updated_user_id"
-    t.index ["space_id", "started_date", "ended_date"], name: "index_task_events3"
+    t.index ["space_id", "started_date", "ended_date", "id"], name: "index_task_events3"
+    t.index ["space_id", "status", "id"], name: "index_task_events4"
     t.index ["space_id"], name: "index_task_events_on_space_id"
     t.index ["task_cycle_id", "ended_date"], name: "index_task_events2", unique: true
     t.index ["task_cycle_id"], name: "index_task_events_on_task_cycle_id"
@@ -237,6 +256,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
 
   create_table "task_send_settings", charset: "utf8", collation: "utf8_bin", comment: "タスク通知設定", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
+    t.bigint "slack_domain_id", comment: "SlackドメインID"
     t.boolean "slack_enabled", default: false, null: false, comment: "[Slack]通知する"
     t.string "slack_webhook_url", comment: "[Slack]Webhook URL"
     t.string "slack_mention", comment: "[Slack]メンション"
@@ -252,7 +272,8 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.datetime "updated_at", precision: 6, null: false
     t.index ["deleted_at", "id"], name: "task_send_settings3"
     t.index ["last_updated_user_id"], name: "index_task_send_settings_on_last_updated_user_id"
-    t.index ["space_id", "deleted_at"], name: "task_send_settings1"
+    t.index ["slack_domain_id"], name: "index_task_send_settings_on_slack_domain_id"
+    t.index ["space_id", "deleted_at", "id"], name: "task_send_settings1"
     t.index ["space_id"], name: "index_task_send_settings_on_space_id"
     t.index ["updated_at", "id"], name: "task_send_settings2"
   end
@@ -337,12 +358,15 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
   add_foreign_key "invitations", "spaces"
   add_foreign_key "members", "spaces"
   add_foreign_key "members", "users"
+  add_foreign_key "slack_users", "slack_domains"
+  add_foreign_key "slack_users", "users"
   add_foreign_key "task_cycles", "spaces"
   add_foreign_key "task_cycles", "tasks"
   add_foreign_key "task_events", "spaces"
   add_foreign_key "task_events", "task_cycles"
   add_foreign_key "task_send_histories", "spaces"
   add_foreign_key "task_send_histories", "task_send_settings"
+  add_foreign_key "task_send_settings", "slack_domains"
   add_foreign_key "task_send_settings", "spaces"
   add_foreign_key "tasks", "spaces"
 end

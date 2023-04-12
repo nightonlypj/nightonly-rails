@@ -1,5 +1,5 @@
 FactoryBot.define do
   factory :slack_domain do
-    name { 'MyString' }
+    name { Faker::Internet.domain_name }
   end
 end

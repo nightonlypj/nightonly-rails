@@ -1,5 +1,6 @@
 class TaskSendSetting < ApplicationRecord
   belongs_to :space
+  belongs_to :slack_domain, optional: true
   belongs_to :last_updated_user, class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
 
   validates :slack_enabled, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為

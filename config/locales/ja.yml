@@ -15,6 +15,8 @@ ja:
       task: 'タスク'
       task_cycle: 'タスク周期'
       task_event: 'タスクイベント'
+      slack_domain: 'Slackドメイン'
+      slack_user: 'Slackユーザー'
       task_send_setting: 'タスク通知設定'
       task_send_history: 'タスク通知履歴'
     attributes:
@@ -149,9 +151,22 @@ ja:
         last_updated_user: '最終更新者'
         created_at: '作成日時'
         updated_at: '更新日時'
+      slack_domain:
+        id: 'ID'
+        name: 'ドメイン名'
+        created_at: '作成日時'
+        updated_at: '更新日時'
+      slack_user:
+        id: 'ID'
+        slack_domain: 'Slackドメイン'
+        user: 'ユーザー'
+        memberid: 'SlackのメンバーID'
+        created_at: '作成日時'
+        updated_at: '更新日時'
       task_send_setting:
         id: 'ID'
         space: 'スペース'
+        slack_domain: 'Slackドメイン'
         slack_enabled: '[Slack]通知する'
         slack_webhook_url: '[Slack]Webhook URL'
         slack_mention: '[Slack]メンション'

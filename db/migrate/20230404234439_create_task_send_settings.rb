@@ -2,6 +2,7 @@ class CreateTaskSendSettings < ActiveRecord::Migration[6.1]
   def change
     create_table :task_send_settings, comment: 'タスク通知設定' do |t|
       t.references :space, null: false, type: :bigint, foreign_key: true, comment: 'スペースID'
+      t.references :slack_domain,       type: :bigint, foreign_key: true, comment: 'SlackドメインID'
 
       t.boolean :slack_enabled, null: false, default: false, comment: '[Slack]通知する'
       t.string  :slack_webhook_url,                          comment: '[Slack]Webhook URL'
