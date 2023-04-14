@@ -4,3 +4,4 @@
   description: 'サービスを維持する為に必要なタスクを登録しています。'
   private: false
   created_user_id: 0
+  process_priority: 0 # NOTE: 最初に処理

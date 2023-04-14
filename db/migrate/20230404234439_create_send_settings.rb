@@ -14,8 +14,8 @@ class CreateSendSettings < ActiveRecord::Migration[6.1]
       t.integer :start_notice_start_hour,                             comment: '[開始確認]開始時間'
       t.boolean :start_notice_required,  null: false, default: false, comment: '[開始確認]必須'
 
-      t.integer :next_notice_start_hour,                            comment: '[翌開始・終了確認]開始時間'
-      t.boolean :next_notice_required, null: false, default: false, comment: '[翌開始・終了確認]必須'
+      t.integer :next_notice_start_hour,                            comment: '[翌営業日・終了確認]開始時間'
+      t.boolean :next_notice_required, null: false, default: false, comment: '[翌営業日・終了確認]必須'
 
       t.references :last_updated_user, type: :bigint, foreign_key: false, comment: '最終更新者ID'
       t.datetime :deleted_at, comment: '削除日時'

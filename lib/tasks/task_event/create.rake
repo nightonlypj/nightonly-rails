@@ -5,7 +5,7 @@ namespace :task_event do
       Rake::Task['task_event:create_send_notice'].invoke(Time.current.to_date, args.dry_run, 'start', 'true')
     end
 
-    desc '翌営業日が期間内のタスクイベント作成＋翌開始・終了確認を通知（作成・通知は開始時間以降）'
+    desc '翌営業日が期間内のタスクイベント作成＋翌営業日・終了確認を通知（作成・通知は開始時間以降）'
     task(:next, [:dry_run] => :environment) do |_, args|
       Rake::Task['task_event:create_send_notice'].invoke(Time.current.to_date, args.dry_run, 'next', 'true')
     end
@@ -59,7 +59,7 @@ namespace :task_event do
         if notice_target == :next
           next_notice_start = send_setting&.next_notice_start_hour || Settings.default_next_notice_start_hour
           logger_message = ", next_notice_start: #{next_notice_start}#{'(default)' if send_setting.blank?}"
-          if target_date + next_notice_start.hours > Time.current # NOTE: [翌開始・終了確認]開始時間以降に作成
+          if target_date + next_notice_start.hours > Time.current # NOTE: [翌営業日・終了確認]開始時間以降に作成
             @logger.info("[#{index}/#{count}] space.id: #{space.id}#{logger_message} ...Skip")
             next
           end
@@ -67,7 +67,7 @@ namespace :task_event do
 
         # タスクイベント作成
         @logger.info("[#{index}/#{count}] space.id: #{space.id}#{logger_message}")
-        total_insert_count += create_task_events(dry_run, space, next_business_date, next_start_date, start_date, end_date)
+        total_insert_count += create_task_events(dry_run, space, next_start_date, start_date, end_date)
 
         next if !send_notice || send_setting.blank? || (!send_setting.slack_enabled && !send_setting.email_enabled)
 
@@ -89,13 +89,13 @@ namespace :task_event do
   end
 
   # タスクイベント作成
-  def create_task_events(dry_run, space, next_business_date, next_start_date, start_date, end_date)
+  def create_task_events(dry_run, space, next_start_date, start_date, end_date)
     task_cycles = TaskCycle.active.where(space: space).by_month(cycle_months(start_date, end_date) + [nil])
                            .eager_load(:task).by_task_period(next_start_date, next_start_date).merge(Task.order(:priority)).order(:id)
     @logger.info("task_cycles.count: #{task_cycles.count}")
     return 0 if task_cycles.count.zero?
 
-    task_events = TaskEvent.where(space: space, started_date: start_date.., ended_date: ..next_business_date)
+    task_events = TaskEvent.where(space: space, started_date: start_date..)
                            .eager_load(task_cycle: :task).merge(Task.order(:priority)).order(:id)
     @exist_task_events = task_events.map { |task_event| [{ task_cycle_id: task_event.task_cycle_id, ended_date: task_event.ended_date }, true] }.to_h
     @logger.debug("@exist_task_events: #{@exist_task_events}")
@@ -150,16 +150,72 @@ namespace :task_event do
     return 0, 0 unless enable_send_target.values.any?
 
     # REVIEW: dry_runでは今回作成分が対象にならない
-    task_events = TaskEvent.where(space: space).where.not(status: %i[complete unnecessary])
-                           .eager_load(task_cycle: :task).order(:status).merge(Task.order(:priority)).order(:id)
-    notice_required = send_setting["#{notice_target}_notice_required"]
-    return 0, 0 if !notice_required && task_events.count.zero?
+    @task_events = TaskEvent.where(space: space).where.not(status: %i[complete unnecessary])
+                            .eager_load(task_cycle: :task).order(:status).merge(Task.order(:priority)).order(:id)
+    set_data_task_events(notice_target, target_date, space.send_setting_active.first.slack_domain_id, enable_send_target['slack'])
 
+    success_count = 0
+    failure_count = 0
+    history_params = send_history_params(space, send_setting, notice_target, target_date)
+    space_url = "#{Settings.front_url}/-/#{space.code}"
+    SendHistory.send_targets.each do |send_target, _|
+      next unless enable_send_target[send_target]
+
+      send_history = SendHistory.new(history_params.merge(send_target: send_target, started_at: Time.current))
+      if !send_setting["#{notice_target}_notice_required"] && @task_events.count.zero?
+        send_history.status = :skip
+        send_history.completed_at = Time.current
+        send_history.save! unless dry_run
+        next
+      end
+
+      case send_target.to_sym
+      when :slack
+        send_history = send_notice_slack(dry_run, space, send_history, space_url)
+        send_history.save! unless dry_run
+      when :email
+        send_history = send_notice_email(dry_run, space, send_history, space_url)
+      else
+        # :nocov:
+        raise "send_target not found.(#{send_target})"
+        # :nocov:
+      end
+      send_history.status.to_sym == :failure ? failure_count += 1 : success_count += 1
+    end
+
+    @logger.info("notice_success: #{success_count}, notice_failure: #{failure_count}")
+    [success_count, failure_count]
+  end
+
+  # 送信対象毎の通知有無 # NOTE: 最終ステータスが失敗の場合は再通知。他の送信対象に通知後に通知するに変更した送信対象には通知しない
+  def get_enable_send_target(notice_target, space, send_setting, target_date)
+    last_statuss = {}
+    send_histories = SendHistory.where(space: space, notice_target: notice_target, target_date: target_date).order(id: :desc)
+    send_histories.each do |send_history|
+      last_statuss[send_history.send_target] = send_history.status unless last_statuss.key?(send_history.send_target)
+      break if SendHistory.send_targets.keys - last_statuss.keys == []
+    end
+    @logger.debug("last_statuss: #{last_statuss}")
+
+    enable_send_target = {}
+    SendHistory.send_targets.each do |send_target, _|
+      enabled = send_setting["#{send_target}_enabled"]
+      enabled = false if enabled && last_statuss.count.positive? && last_statuss[send_target]&.to_sym != :failure
+
+      enable_send_target[send_target] = enabled
+    end
+    @logger.debug("enable_send_target: #{enable_send_target}")
+
+    enable_send_target
+  end
+
+  def set_data_task_events(notice_target, target_date, slack_domain_id, enable_slack)
     @next_task_events = {}
     @expired_task_events = {}
     @end_today_task_events = {}
     @date_include_task_events = {}
-    task_events.each do |task_event|
+    assigned_user_ids = {}
+    @task_events.each do |task_event|
       if task_event.started_date > target_date
         @next_task_events[task_event.id] = task_event if notice_target == :next
       elsif task_event.ended_date < target_date
@@ -169,54 +225,14 @@ namespace :task_event do
       else
         @date_include_task_events[task_event.id] = task_event
       end
+
+      assigned_user_ids[task_event.assigned_user.id] = true if enable_slack && task_event.assigned_user.present?
     end
-
-    success_count = 0
-    failure_count = 0
-    history_params = send_history_params(space, send_setting, notice_target, target_date)
-    SendHistory.send_targets.each do |send_target, _|
-      next unless enable_send_target[send_target]
-
-      send_history = SendHistory.new(history_params.merge(send_target: send_target, sended_at: Time.current))
-      case send_target.to_sym
-      when :slack
-        send_history = send_notice_slack(dry_run, send_history)
-      when :email
-        send_history = send_notice_email(dry_run, send_history)
-      else
-        # :nocov:
-        raise "send_target not found.(#{send_target})"
-        # :nocov:
-      end
-      send_history.send_result.to_sym == :success ? success_count += 1 : failure_count += 1
-
-      send_history.save! unless dry_run
+    if assigned_user_ids.present?
+      @assigned_slack_users = SlackUser.where(slack_domain_id: slack_domain_id, user: assigned_user_ids.keys).index_by(&:user_id)
+    else
+      @assigned_slack_users = {}
     end
-
-    @logger.info("notice_success: #{success_count}, notice_failure: #{failure_count}")
-    [success_count, failure_count]
-  end
-
-  # 送信対象毎の通知有無 # NOTE: 最終送信結果が失敗の場合は再通知。他の送信対象に通知後に通知するに変更した送信対象には通知しない
-  def get_enable_send_target(notice_target, space, send_setting, target_date)
-    last_send_results = {}
-    send_histories = SendHistory.where(space: space, notice_target: notice_target, target_date: target_date).order(id: :desc)
-    send_histories.each do |send_history|
-      last_send_results[send_history.send_target] = send_history.send_result unless last_send_results.key?(send_history.send_target)
-      break if SendHistory.send_targets.keys - last_send_results.keys == []
-    end
-    @logger.debug("last_send_results: #{last_send_results}")
-
-    enable_send_target = {}
-    SendHistory.send_targets.each do |send_target, _|
-      enabled = send_setting["#{send_target}_enabled"]
-      enabled = false if enabled && last_send_results.count.positive? && last_send_results[send_target]&.to_sym != :failure
-
-      enable_send_target[send_target] = enabled
-    end
-    @logger.debug("enable_send_target: #{enable_send_target}")
-
-    enable_send_target
   end
 
   def send_history_params(space, send_setting, notice_target, target_date)
@@ -232,47 +248,46 @@ namespace :task_event do
     }
   end
 
-  def send_notice_slack(dry_run, send_history)
-    username = "#{I18n.t('app_name')}#{Settings.env_name}"
+  def send_notice_slack(dry_run, space, send_history, space_url)
     default_mention = send_history.send_setting.slack_mention
     default_mention = "<#{html_escape(default_mention)}>" if default_mention.present?
-    code = send_history.space.code
-    notice_target = send_history.notice_target.to_sym
     sended_data = {
-      text: "[#{I18n.t("enums.send_history.notice_target.#{notice_target}")}] " +
-            I18n.t('notifier.task_event.message', name: "<#{Settings.front_url}/-/#{code}|#{html_escape(send_history.space.name)}>"),
+      text: "[#{I18n.t("enums.send_history.notice_target.#{send_history.notice_target}")}] " +
+            I18n.t('notifier.task_event.message', name: "<#{space_url}|#{html_escape(space.name)}>"),
       attachments: [
-        notice_target == :next ? slack_attachment(:next, @next_task_events, default_mention, code) : nil,
-        slack_attachment(:expired, @expired_task_events, default_mention, code),
-        slack_attachment(:end_today, @end_today_task_events, default_mention, code),
-        slack_attachment(:date_include, @date_include_task_events, default_mention, code)
+        send_history.notice_target.to_sym == :next ? slack_task_events(:next, @next_task_events, default_mention, space_url) : nil,
+        slack_task_events(:expired, @expired_task_events, default_mention, space_url),
+        slack_task_events(:end_today, @end_today_task_events, default_mention, space_url),
+        slack_task_events(:date_include, @date_include_task_events, default_mention, space_url)
       ].compact
     }
     send_history.sended_data = sended_data.to_s
     begin
-      notifier = Slack::Notifier.new(send_history.send_setting.slack_webhook_url, username: username, icon_emoji: ':alarm_clock:')
+      slack_webhook_url = send_history.send_setting.slack_webhook_url
+      notifier = Slack::Notifier.new(slack_webhook_url, username: "#{I18n.t('app_name')}#{Settings.env_name}", icon_emoji: ':alarm_clock:')
       notifier.post(sended_data) unless dry_run
-      send_history.send_result = :success
+      send_history.status = :success
     rescue StandardError => e
-      send_history.send_result = :failure
+      send_history.status = :failure
       send_history.error_message = e.message
     end
+    send_history.completed_at = Time.current
 
     send_history
   end
 
-  def slack_attachment(type, task_events, default_mention, code)
+  def slack_task_events(type, task_events, default_mention, space_url)
     text = ''
     task_events.each do |_, task_event|
       if task_event.assigned_user.blank?
         assigned_user = "#{I18n.t('notifier.task_event.assigned.notfound')} #{default_mention}"
       else
-        assigned_user = html_escape(task_event.assigned_user.name) # TODO: メンション
+        slack_user = @assigned_slack_users[task_event.assigned_user_id]
+        assigned_user = slack_user.present? ? "<@#{html_escape(slack_user.memberid)}>" : html_escape(task_event.assigned_user.name)
       end
-      url = "#{Settings.front_url}/-/#{code}?code=#{task_event.code}"
       priority = task_event.task_cycle.task.priority.to_sym == :none ? '' : "[#{task_event.task_cycle.task.priority_i18n}]"
       text += "#{slack_status_icon(type, task_event.status.to_sym, task_event.assigned_user)} [#{task_event.status_i18n}] #{assigned_user}\n" \
-              "<#{url}|#{priority}#{html_escape(task_event.task_cycle.task.title)}>\n\n"
+              "<#{space_url}?code=#{task_event.code}|#{priority}#{html_escape(task_event.task_cycle.task.title)}>\n\n"
     end
 
     {
@@ -321,10 +336,18 @@ namespace :task_event do
     end
   end
 
-  def send_notice_email(_dry_run, send_history)
-    send_history.send_result = :failure
-
-    # TODO: メール送信
+  def send_notice_email(dry_run, space, send_history, space_url)
+    unless dry_run
+      NoticeMailer.with(
+        space: space,
+        send_history: send_history,
+        space_url: space_url,
+        next_task_events: @next_task_events.values,
+        expired_task_events: @expired_task_events.values,
+        end_today_task_events: @end_today_task_events.values,
+        date_include_task_events: @date_include_task_events.values
+      ).incomplete_task.deliver_now
+    end
 
     send_history
   end

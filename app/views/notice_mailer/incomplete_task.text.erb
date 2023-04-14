@@ -1,0 +1,9 @@
+[<%= t("enums.send_history.notice_target.#{@send_history.notice_target}") %>] <%= t('notifier.task_event.message', name: @space.name) %>
+<%= @space_url %>
+
+<% if @send_history.notice_target.to_sym == :next %>
+<%= render 'task_events', type: :next, task_events: @next_task_events, space_url: @space_url %>
+<% end %>
+<%= render 'task_events', type: :expired, task_events: @expired_task_events, space_url: @space_url %>
+<%= render 'task_events', type: :end_today, task_events: @end_today_task_events, space_url: @space_url %>
+<%= render 'task_events', type: :date_include, task_events: @date_include_task_events, space_url: @space_url %>

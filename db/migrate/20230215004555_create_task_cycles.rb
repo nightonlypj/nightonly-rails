@@ -20,7 +20,7 @@ class CreateTaskCycles < ActiveRecord::Migration[6.1]
       t.datetime :deleted_at, comment: '削除日時'
       t.timestamps
     end
-    add_index :task_cycles, [:space_id, :cycle, :month, :deleted_at], name: 'index_task_cycles1'
+    add_index :task_cycles, [:deleted_at, :space_id, :cycle, :month], name: 'index_task_cycles1'
     add_index :task_cycles, [:updated_at, :id],                       name: 'index_task_cycles2'
     add_index :task_cycles, [:deleted_at, :id],                       name: 'index_task_cycles3'
   end

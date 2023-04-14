@@ -150,23 +150,24 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
   create_table "send_histories", charset: "utf8", collation: "utf8_bin", comment: "通知履歴", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "send_setting_id", null: false, comment: "通知設定ID"
+    t.integer "status", default: 0, null: false, comment: "ステータス"
+    t.datetime "started_at", null: false, comment: "開始日時"
+    t.datetime "completed_at", comment: "完了日時"
+    t.text "error_message", comment: "エラーメッセージ"
     t.integer "notice_target", null: false, comment: "通知対象"
     t.integer "send_target", null: false, comment: "送信対象"
     t.date "target_date", null: false, comment: "対象日"
-    t.datetime "sended_at", null: false, comment: "送信日時"
-    t.integer "send_result", null: false, comment: "送信結果"
-    t.text "error_message", comment: "エラーメッセージ"
-    t.text "sended_data", comment: "送信データ"
-    t.text "next_task_event_ids", comment: "翌開始のタスクイベントIDs"
+    t.text "next_task_event_ids", comment: "翌営業日開始のタスクイベントIDs"
     t.text "expired_task_event_ids", comment: "期限切れのタスクイベントIDs"
     t.text "end_today_task_event_ids", comment: "本日までのタスクイベントIDs"
     t.text "date_include_task_event_ids", comment: "期間内のタスクイベントIDs"
+    t.text "sended_data", comment: "送信データ"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["send_setting_id"], name: "index_send_histories_on_send_setting_id"
-    t.index ["space_id", "notice_target", "target_date", "id"], name: "send_histories1"
+    t.index ["space_id", "notice_target", "target_date"], name: "send_histories1"
     t.index ["space_id"], name: "index_send_histories_on_space_id"
-    t.index ["target_date", "sended_at", "id"], name: "send_histories2"
+    t.index ["target_date", "completed_at", "id"], name: "send_histories2"
   end
 
   create_table "send_settings", charset: "utf8", collation: "utf8_bin", comment: "通知設定", force: :cascade do |t|
@@ -179,8 +180,8 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.string "email_address", comment: "[メール]アドレス"
     t.integer "start_notice_start_hour", comment: "[開始確認]開始時間"
     t.boolean "start_notice_required", default: false, null: false, comment: "[開始確認]必須"
-    t.integer "next_notice_start_hour", comment: "[翌開始・終了確認]開始時間"
-    t.boolean "next_notice_required", default: false, null: false, comment: "[翌開始・終了確認]必須"
+    t.integer "next_notice_start_hour", comment: "[翌営業日・終了確認]開始時間"
+    t.boolean "next_notice_required", default: false, null: false, comment: "[翌営業日・終了確認]必須"
     t.bigint "last_updated_user_id", comment: "最終更新者ID"
     t.datetime "deleted_at", comment: "削除日時"
     t.datetime "created_at", precision: 6, null: false
@@ -208,6 +209,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.datetime "updated_at", precision: 6, null: false
     t.index ["slack_domain_id", "user_id"], name: "index_slack_users1", unique: true
     t.index ["slack_domain_id"], name: "index_slack_users_on_slack_domain_id"
+    t.index ["user_id", "id"], name: "index_slack_users2"
     t.index ["user_id"], name: "index_slack_users_on_user_id"
   end
 
@@ -249,7 +251,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["deleted_at", "id"], name: "index_task_cycles3"
-    t.index ["space_id", "cycle", "month", "deleted_at"], name: "index_task_cycles1"
+    t.index ["deleted_at", "space_id", "cycle", "month"], name: "index_task_cycles1"
     t.index ["space_id"], name: "index_task_cycles_on_space_id"
     t.index ["task_id"], name: "index_task_cycles_on_task_id"
     t.index ["updated_at", "id"], name: "index_task_cycles2"
@@ -291,16 +293,17 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.bigint "last_updated_user_id", comment: "最終更新者ID"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["created_at", "id"], name: "index_tasks6"
-    t.index ["created_user_id", "id"], name: "index_tasks4"
+    t.index ["created_at", "id"], name: "index_tasks7"
+    t.index ["created_user_id", "id"], name: "index_tasks5"
     t.index ["created_user_id"], name: "index_tasks_on_created_user_id"
-    t.index ["last_updated_user_id", "id"], name: "index_tasks5"
+    t.index ["last_updated_user_id", "id"], name: "index_tasks6"
     t.index ["last_updated_user_id"], name: "index_tasks_on_last_updated_user_id"
-    t.index ["space_id", "ended_date"], name: "index_tasks3"
-    t.index ["space_id", "priority"], name: "index_tasks1"
-    t.index ["space_id", "started_date", "ended_date"], name: "index_tasks2"
+    t.index ["priority"], name: "index_tasks2"
+    t.index ["space_id", "ended_date"], name: "index_tasks4"
+    t.index ["space_id", "id"], name: "index_tasks1"
+    t.index ["space_id", "started_date", "ended_date"], name: "index_tasks3"
     t.index ["space_id"], name: "index_tasks_on_space_id"
-    t.index ["updated_at", "id"], name: "index_tasks7"
+    t.index ["updated_at", "id"], name: "index_tasks8"
   end
 
   create_table "users", charset: "utf8", collation: "utf8_bin", comment: "ユーザー", force: :cascade do |t|

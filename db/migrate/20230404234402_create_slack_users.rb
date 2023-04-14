@@ -9,5 +9,6 @@ class CreateSlackUsers < ActiveRecord::Migration[6.1]
       t.timestamps
     end
     add_index :slack_users, [:slack_domain_id, :user_id], unique: true, name: 'index_slack_users1'
+    add_index :slack_users, [:user_id, :id],                            name: 'index_slack_users2'
   end
 end

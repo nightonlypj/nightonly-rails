@@ -1,13 +1,9 @@
 class SendSetting < ApplicationRecord
-  # TODO: attr_accessor :slack_domain
-
   belongs_to :space
   belongs_to :slack_domain, optional: true
   belongs_to :last_updated_user, class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
 
   validates :slack_enabled, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
-  # TODO: validates :slack_domain, presence: true, if: proc { |setting| setting.slack_enabled }
-  # TODO: 英字（小文字）・数字・ハイフンのみ
   validates :slack_webhook_url, presence: true, if: proc { |setting| setting.slack_enabled }
   validates :slack_webhook_url, length: { maximum: Settings.slack_webhook_url_maximum }, allow_blank: true
   validates :slack_webhook_url, format: { with: %r{\Ahttps?://[^(\s|　)]+\.[^(\s|　)]+\Z} }, if: proc { |setting| setting.slack_enabled && errors[:slack_webhook_url].blank? }

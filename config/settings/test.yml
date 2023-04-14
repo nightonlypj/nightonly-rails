@@ -99,3 +99,19 @@ task_events_max_month_count: 2
 ## タスクイベント
 # メモの最大文字数
 task_event_memo_maximum: 14 # NOTE: (6+8?)以上 = "memo(#{n})"
+
+## Slackユーザー
+# SlackのメンバーIDの最大文字数
+slack_user_memberid_maximum: 11 # NOTE: Faker::Number.hexadecimal(digits: 11).upcase
+
+## 通知設定
+# [Slack]Webhook URLの最大文字数
+slack_webhook_url_maximum: 64 # NOTE: Faker::Internet.url
+# [Slack]メンションの最大文字数
+slack_mention_maximum: 8 # NOTE: '!here'
+# [開始確認]デフォルト開始時間/必須
+# default_start_notice_start_hour: 10
+# default_start_notice_required: false
+# [翌営業日・終了確認]デフォルト開始時間/必須
+# default_next_notice_start_hour: 17
+# default_next_notice_required: false

@@ -16,12 +16,13 @@ class CreateTasks < ActiveRecord::Migration[6.1]
       t.references :last_updated_user,         type: :bigint, foreign_key: false, comment: '最終更新者ID'
       t.timestamps
     end
-    add_index :tasks, [:space_id, :priority],                  name: 'index_tasks1'
-    add_index :tasks, [:space_id, :started_date, :ended_date], name: 'index_tasks2'
-    add_index :tasks, [:space_id, :ended_date],                name: 'index_tasks3'
-    add_index :tasks, [:created_user_id, :id],                 name: 'index_tasks4'
-    add_index :tasks, [:last_updated_user_id, :id],            name: 'index_tasks5'
-    add_index :tasks, [:created_at, :id],                      name: 'index_tasks6'
-    add_index :tasks, [:updated_at, :id],                      name: 'index_tasks7'
+    add_index :tasks, [:space_id, :id],                        name: 'index_tasks1'
+    add_index :tasks, :priority,                               name: 'index_tasks2'
+    add_index :tasks, [:space_id, :started_date, :ended_date], name: 'index_tasks3'
+    add_index :tasks, [:space_id, :ended_date],                name: 'index_tasks4'
+    add_index :tasks, [:created_user_id, :id],                 name: 'index_tasks5'
+    add_index :tasks, [:last_updated_user_id, :id],            name: 'index_tasks6'
+    add_index :tasks, [:created_at, :id],                      name: 'index_tasks7'
+    add_index :tasks, [:updated_at, :id],                      name: 'index_tasks8'
   end
 end

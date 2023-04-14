@@ -1,7 +1,7 @@
 json.slack do
   json.enabled send_setting.slack_enabled
   if @current_member.present?
-    json.domain @send_setting.slack_domain&.name
+    json.name @send_setting.slack_domain&.name
     json.webhook_url send_setting.slack_webhook_url
     json.mention send_setting.slack_mention
   end
