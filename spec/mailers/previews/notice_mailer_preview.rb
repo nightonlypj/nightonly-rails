@@ -12,6 +12,7 @@ class NoticeMailerPreview < ActionMailer::Preview
     date_include_task_events = FactoryBot.build_stubbed_list(:task_event, rand(3), space: space, task_cycle: task_cycle)
     NoticeMailer.with(
       space: space,
+      target_date: [nil, Time.current.to_date][rand(2)],
       send_history: send_history,
       space_url: "#{Settings.front_url}/-/#{space.code}",
       next_task_events: next_task_events,

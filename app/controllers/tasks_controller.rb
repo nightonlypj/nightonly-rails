@@ -178,15 +178,20 @@ class TasksController < ApplicationAuthController
   def task_cycle_target_keys(task_cycle)
     case task_cycle.cycle.to_sym
     when :weekly
-      [:wday, TaskCycle.weeks.keys.map { |week| { week: week, wday: task_cycle.wday } }]
+      keys = []
+      [*1..12].each do |month|
+        keys += TaskCycle.weeks.keys.map { |week| { month: month, week: week, wday: task_cycle.wday } }
+      end
+      [:wday, keys]
     when :monthly, :yearly
+      months = task_cycle.cycle.to_sym == :yearly ? [task_cycle.month] : [*1..12]
       case task_cycle.target.to_sym
       when :day
-        [:day, [{ day: task_cycle.day }]]
+        [:day, months.map { |month| { month: month, day: task_cycle.day } }]
       when :business_day
-        [:business_day, [{ business_day: task_cycle.business_day }]]
+        [:business_day, months.map { |month| { month: month, business_day: task_cycle.business_day } }]
       when :week
-        [:wday, [{ week: task_cycle.week, wday: task_cycle.wday }]]
+        [:wday, months.map { |month| { month: month, week: task_cycle.week, wday: task_cycle.wday } }]
       else
         # :nocov:
         raise "task_cycle.target not found.(#{task_cycle.target})[id: #{task_cycle.id}]"

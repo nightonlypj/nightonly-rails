@@ -2,6 +2,7 @@ class NoticeMailer < ApplicationMailer
   # 未完了タスクのお知らせ
   def incomplete_task
     @space = params[:space]
+    @target_date = params[:target_date]
     @send_history = params[:send_history]
     @space_url = params[:space_url]
     @next_task_events = params[:next_task_events]

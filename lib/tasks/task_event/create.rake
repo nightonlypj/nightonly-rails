@@ -1,18 +1,13 @@
 namespace :task_event do
   namespace :create_send_notice do
-    desc '今日が期間内のタスクイベント作成＋開始確認を通知（通知は開始時間以降）'
-    task(:start, [:dry_run] => :environment) do |_, args|
-      Rake::Task['task_event:create_send_notice'].invoke(Time.current.to_date, args.dry_run, 'start', 'true')
-    end
-
-    desc '翌営業日が期間内のタスクイベント作成＋翌営業日・終了確認を通知（作成・通知は開始時間以降）'
-    task(:next, [:dry_run] => :environment) do |_, args|
-      Rake::Task['task_event:create_send_notice'].invoke(Time.current.to_date, args.dry_run, 'next', 'true')
+    desc '期間内のタスクイベント作成＋通知（作成・通知は開始時間以降）'
+    task(:now, [:dry_run] => :environment) do |_, args|
+      Rake::Task['task_event:create_send_notice'].invoke(Time.current.to_date, args.dry_run, 'true')
     end
   end
 
-  desc '対象日が期間内のタスクイベント作成＋通知（当日に実行できなかった場合に手動実行）'
-  task(:create_send_notice, %i[target_date dry_run notice_target send_notice] => :environment) do |task, args|
+  desc '期間内のタスクイベント作成＋通知（当日に実行できなかった場合に手動実行）'
+  task(:create_send_notice, %i[target_date dry_run send_notice] => :environment) do |task, args|
     include ERB::Util
     include TaskCyclesConcern
     @months = nil
@@ -26,56 +21,50 @@ namespace :task_event do
     end
     args.with_defaults(dry_run: 'true', send_notice: 'false')
     dry_run = (args.dry_run != 'false')
-    notice_target = args.notice_target&.to_sym || :blank
     send_notice = args.send_notice == 'true'
 
     @logger = new_logger(task.name)
     @logger.info("=== START #{task.name} ===")
-    @logger.info("#{notice_target}, target_date: #{target_date}, dry_run: #{dry_run}, send_notice: #{send_notice}")
+    @logger.info("target_date: #{target_date}, dry_run: #{dry_run}, send_notice: #{send_notice}")
 
     total_insert_count = 0
     total_notice_success_count = 0
     total_notice_failure_count = 0
     ActiveRecord::Base.connection_pool.with_connection do # NOTE: 念の為（PG::UnableToSend: no connection to the server対策）
       set_holidays(target_date, target_date + 1.month) # NOTE: 1ヶ月以上の休みはない前提
-      business_date = handling_holiday_date(target_date, :after)
-      if business_date != target_date # NOTE: 休日は作成・通知しない
-        @logger.info("business_date: #{business_date} ...Skip")
-        next
-      end
-
+      before_business_date = handling_holiday_date(target_date, :before)
+      after_business_date = handling_holiday_date(target_date, :after)
       next_business_date = handling_holiday_date(target_date.tomorrow, :after)
-      next_start_date = notice_target == :next ? next_business_date : target_date
       start_date = target_date - 31.days # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
       end_date = target_date + 31.days
       set_holidays(start_date, end_date)
-      @logger.info("next_business_date: #{next_business_date}, next_start_date: #{next_start_date}, start_date: #{start_date}, end_date: #{end_date}")
+      @logger.info("business_date: #{before_business_date}, #{after_business_date}, #{next_business_date}, start_date: #{start_date}, end_date: #{end_date}")
 
-      spaces = Space.active.eager_load(:send_setting_active).order(:process_priority, :id).merge(SendSetting.order(updated_at: :desc, id: :desc))
+      spaces = Space.active.eager_load(:send_setting_active).merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:process_priority, :id)
       count = spaces.count
       spaces.each.with_index(1) do |space, index|
-        logger_message = nil
-        send_setting = %i[start next].include?(notice_target) ? space.send_setting_active.first : nil
-        if notice_target == :next
-          next_notice_start = send_setting&.next_notice_start_hour || Settings.default_next_notice_start_hour
-          logger_message = ", next_notice_start: #{next_notice_start}#{'(default)' if send_setting.blank?}"
-          if target_date + next_notice_start.hours > Time.current # NOTE: [翌営業日・終了確認]開始時間以降に作成
-            @logger.info("[#{index}/#{count}] space.id: #{space.id}#{logger_message} ...Skip")
-            next
-          end
-        end
+        send_setting = space.send_setting_active.first
+        next_notice_start_hour = send_setting&.next_notice_start_hour || Settings.default_next_notice_start_hour
+        next_notice = before_business_date + next_notice_start_hour.hours <= Time.current
+        next_start_date = next_notice ? next_business_date : target_date # NOTE: 翌営業日分は開始時間以降に作成
+
+        next_notice_start = "#{next_notice_start_hour}#{'(default)' if send_setting.blank?}"
+        @logger.info("[#{index}/#{count}] space.id: #{space.id}, next_notice_start: #{next_notice_start}, next_start_date: #{next_start_date}")
 
         # タスクイベント作成
-        @logger.info("[#{index}/#{count}] space.id: #{space.id}#{logger_message}")
-        total_insert_count += create_task_events(dry_run, space, next_start_date, start_date, end_date)
-
-        next if !send_notice || send_setting.blank? || (!send_setting.slack_enabled && !send_setting.email_enabled)
+        total_insert_count += create_task_events(dry_run, space, target_date, next_start_date, start_date, end_date)
 
         # タスクイベント通知
-        if notice_target == :start
-          start_notice_start = send_setting.start_notice_start_hour
-          @logger.info("start_notice_start: #{start_notice_start}")
-          next if target_date + start_notice_start.hours > Time.current # NOTE: [開始確認]開始時間以降に通知
+        next if !send_notice || send_setting.blank? || (!send_setting.slack_enabled && !send_setting.email_enabled)
+        next if target_date != after_business_date # NOTE: 営業日のみ通知
+
+        if next_notice
+          notice_target = :next
+        else
+          @logger.info("start_notice_start: #{send_setting.start_notice_start_hour}")
+          next if target_date + send_setting.start_notice_start_hour.hours > Time.current # NOTE: [開始確認]開始時間以降に通知
+
+          notice_target = :start
         end
 
         success_count, failure_count = send_notice_task_events(dry_run, notice_target, space, send_setting, target_date)
@@ -89,9 +78,9 @@ namespace :task_event do
   end
 
   # タスクイベント作成
-  def create_task_events(dry_run, space, next_start_date, start_date, end_date)
+  def create_task_events(dry_run, space, target_date, next_start_date, start_date, end_date)
     task_cycles = TaskCycle.active.where(space: space).by_month(cycle_months(start_date, end_date) + [nil])
-                           .eager_load(:task).by_task_period(next_start_date, next_start_date).merge(Task.order(:priority)).order(:id)
+                           .eager_load(:task).by_task_period(target_date, next_start_date).merge(Task.order(:priority)).order(:id)
     @logger.info("task_cycles.count: #{task_cycles.count}")
     return 0 if task_cycles.count.zero?
 
@@ -104,7 +93,7 @@ namespace :task_event do
     task_cycles.each do |task_cycle|
       cycle_set_next_events(task_cycle, task_cycle.task, start_date, end_date)
     end
-    insert_events = @next_events.filter { |_, event_start_date, event_end_date| event_start_date <= next_start_date && event_end_date >= next_start_date }
+    insert_events = @next_events.filter { |_, event_start_date, event_end_date| event_start_date <= next_start_date && event_end_date >= target_date }
     @logger.info("insert: #{insert_events.count}")
     return 0 if insert_events.count.zero?
 
@@ -171,10 +160,11 @@ namespace :task_event do
 
       case send_target.to_sym
       when :slack
-        send_history = send_notice_slack(dry_run, space, send_history, space_url)
+        send_history = send_notice_slack(dry_run, space, target_date, send_history, space_url)
         send_history.save! unless dry_run
       when :email
-        send_history = send_notice_email(dry_run, space, send_history, space_url)
+        send_history = send_notice_email(dry_run, space, target_date, send_history, space_url)
+        # NOTE: saveはNoticeMailerで実施
       else
         # :nocov:
         raise "send_target not found.(#{send_target})"
@@ -187,7 +177,7 @@ namespace :task_event do
     [success_count, failure_count]
   end
 
-  # 送信対象毎の通知有無 # NOTE: 最終ステータスが失敗の場合は再通知。他の送信対象に通知後に通知するに変更した送信対象には通知しない
+  # 送信対象毎の通知有無 # NOTE: 最終ステータスが失敗の場合は再通知
   def get_enable_send_target(notice_target, space, send_setting, target_date)
     last_statuss = {}
     send_histories = SendHistory.where(space: space, notice_target: notice_target, target_date: target_date).order(id: :desc)
@@ -200,7 +190,7 @@ namespace :task_event do
     enable_send_target = {}
     SendHistory.send_targets.each do |send_target, _|
       enabled = send_setting["#{send_target}_enabled"]
-      enabled = false if enabled && last_statuss.count.positive? && last_statuss[send_target]&.to_sym != :failure
+      enabled = false if enabled && last_statuss[send_target].present? && last_statuss[send_target].to_sym != :failure
 
       enable_send_target[send_target] = enabled
     end
@@ -248,11 +238,12 @@ namespace :task_event do
     }
   end
 
-  def send_notice_slack(dry_run, space, send_history, space_url)
+  def send_notice_slack(dry_run, space, target_date, send_history, space_url)
+    add_target_date = target_date == Time.current.to_date ? nil : "(#{I18n.l(target_date)})"
     default_mention = send_history.send_setting.slack_mention
     default_mention = "<#{html_escape(default_mention)}>" if default_mention.present?
     sended_data = {
-      text: "[#{I18n.t("enums.send_history.notice_target.#{send_history.notice_target}")}] " +
+      text: "[#{I18n.t("enums.send_history.notice_target.#{send_history.notice_target}")}]#{add_target_date} " +
             I18n.t('notifier.task_event.message', name: "<#{space_url}|#{html_escape(space.name)}>"),
       attachments: [
         send_history.notice_target.to_sym == :next ? slack_task_events(:next, @next_task_events, default_mention, space_url) : nil,
@@ -336,10 +327,11 @@ namespace :task_event do
     end
   end
 
-  def send_notice_email(dry_run, space, send_history, space_url)
+  def send_notice_email(dry_run, space, target_date, send_history, space_url)
     unless dry_run
       NoticeMailer.with(
         space: space,
+        target_date: target_date,
         send_history: send_history,
         space_url: space_url,
         next_task_events: @next_task_events.values,
