@@ -1,2 +1,37 @@
-json.extract! send_history, :id, :space_id, :send_setting_id, :created_at, :updated_at
-json.url send_history_url(send_history, format: :json)
+json.target_date l(send_history.target_date, format: :json)
+
+json.notice_target send_history.notice_target
+json.notice_target_i18n send_history.notice_target_i18n
+if send_history.notice_target_start?
+  json.notice_start_hour send_history.send_setting.start_notice_start_hour
+  json.notice_required send_history.send_setting.start_notice_required
+end
+if send_history.notice_target_next?
+  json.notice_start_hour send_history.send_setting.next_notice_start_hour
+  json.notice_required send_history.send_setting.next_notice_required
+end
+
+json.send_target send_history.send_target
+json.send_target_i18n send_history.send_target_i18n
+if detail && @current_member.present?
+  if send_history.send_target_slack?
+    json.slack do
+      json.name send_history.send_setting.slack_domain.name
+      json.webhook_url send_history.send_setting.slack_webhook_url
+      json.mention send_history.send_setting.slack_mention
+    end
+  end
+  if send_history.send_target_email?
+    json.email do
+      json.address send_history.send_setting.email_address
+    end
+  end
+end
+
+json.status send_history.status
+json.status_i18n send_history.status_i18n
+json.started_at l(send_history.started_at, format: :json)
+json.completed_at l(send_history.completed_at, format: :json, default: nil)
+
+json.target_count send_history.target_count
+json.error_message send_history.error_message if detail && @current_member.present?

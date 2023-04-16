@@ -10,7 +10,7 @@ class NoticeMailer < ApplicationMailer
     @end_today_task_events = params[:end_today_task_events]
     @date_include_task_events = params[:date_include_task_events]
     begin
-      @send_history.sended_data = mail(
+      @send_history.send_data = mail(
         from: "\"#{Settings.mailer_from.name.gsub(/%{app_name}/, t('app_name'))}\" <#{Settings.mailer_from.email}>",
         to: @send_history.send_setting.email_address,
         subject: t('mailer.notice.incomplete_task.subject', app_name: I18n.t('app_name'), env_name: Settings.env_name || '', space_name: @space.name)

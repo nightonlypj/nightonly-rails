@@ -115,3 +115,7 @@ slack_mention_maximum: 8 # NOTE: '!here'
 # [翌営業日・終了確認]デフォルト開始時間/必須
 # default_next_notice_start_hour: 17
 # default_next_notice_required: false
+
+## 通知履歴
+# 一覧のデフォルト最大表示件数
+default_send_histories_limit: 2

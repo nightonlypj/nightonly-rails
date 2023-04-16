@@ -1,9 +1,9 @@
 FactoryBot.define do
   factory :send_history do
-    # status        { :waiting }
-    started_at    { Time.current }
     notice_target { :start }
     send_target   { :slack }
+    # status        { :waiting }
+    started_at    { Time.current }
     target_date   { Time.current.to_date }
 
     after(:build) do |send_history|
@@ -23,28 +23,6 @@ FactoryBot.define do
       end
     end
 
-    # ステータス
-    trait :waiting do
-      # status { :waiting }
-    end
-    trait :processing do
-      status { :processing }
-    end
-    trait :success do
-      status       { :success }
-      completed_at { Time.current }
-      sended_data  { '送信内容' }
-    end
-    trait :skip do
-      status       { :skip }
-      completed_at { Time.current }
-    end
-    trait :failure do
-      status        { :failure }
-      completed_at  { Time.current }
-      error_message { 'エラー内容' }
-    end
-
     # 通知対象
     trait :start do
       # notice_target { :start }
@@ -59,6 +37,28 @@ FactoryBot.define do
     end
     trait :email do
       send_target { :email }
+    end
+
+    # ステータス
+    trait :waiting do
+      # status { :waiting }
+    end
+    trait :processing do
+      status { :processing }
+    end
+    trait :success do
+      status       { :success }
+      completed_at { Time.current }
+      send_data    { '送信内容' }
+    end
+    trait :skip do
+      status       { :skip }
+      completed_at { Time.current }
+    end
+    trait :failure do
+      status        { :failure }
+      completed_at  { Time.current }
+      error_message { 'エラー内容' }
     end
   end
 end
