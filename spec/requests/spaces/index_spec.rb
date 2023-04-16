@@ -17,11 +17,7 @@ RSpec.describe 'Spaces', type: :request do
           expect(response_json_spaces[index]['name']).to eq(space.name)
         end
 
-        if Settings.enable_public_space
-          default_params = { text: nil, public: 1, private: 1, join: 1, nojoin: 1, active: 1, destroy: 0 }
-        else
-          default_params = { text: nil, active: 1, destroy: 0 }
-        end
+        default_params = { text: nil, public: 1, private: 1, join: 1, nojoin: 1, active: 1, destroy: 0 }
         expect(response_json['search_params']).to eq(default_params.merge(params).stringify_keys)
       else
         # HTML
@@ -56,11 +52,7 @@ RSpec.describe 'Spaces', type: :request do
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
         expect(response_json['success']).to eq(true)
-        if Settings.enable_public_space
-          search_params = { text: nil, public: 1, private: 1, join: 1, nojoin: 1, active: 1, destroy: 0 }
-        else
-          search_params = { text: nil, active: 1, destroy: 0 }
-        end
+        search_params = { text: nil, public: 1, private: 1, join: 1, nojoin: 1, active: 1, destroy: 0 }
         expect(response_json['search_params']).to eq(search_params.stringify_keys)
         expect(response_json_space['total_count']).to eq(spaces.count)
         expect(response_json_space['current_page']).to eq(subject_page)
@@ -171,10 +163,14 @@ RSpec.describe 'Spaces', type: :request do
     # テストケース
     shared_examples_for '[*]スペースが存在しない' do
       include_context 'スペース一覧作成', 0, 0, 0, 0
-      it_behaves_like 'ToOK(html)', 1
-      it_behaves_like 'ページネーション非表示', 1, 2
-      it_behaves_like 'リスト表示（0件）'
-      it_behaves_like 'リダイレクト', 2, 1
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToOK(html)', 1
+        it_behaves_like 'ページネーション非表示', 1, 2
+        it_behaves_like 'リスト表示（0件）'
+        it_behaves_like 'リダイレクト', 2, 1
+      end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
       it_behaves_like 'リダイレクト(json)', 2
@@ -182,10 +178,14 @@ RSpec.describe 'Spaces', type: :request do
     shared_examples_for '[未ログイン]スペースが最大表示数と同じ' do
       count = Settings.test_spaces_count
       include_context 'スペース一覧作成', 0, count.public_admin + count.public_none + count.private_admin + count.private_reader, 0, 0
-      it_behaves_like 'ToOK(html)', 1
-      it_behaves_like 'ページネーション非表示', 1, 2
-      it_behaves_like 'リスト表示', 1
-      it_behaves_like 'リダイレクト', 2, 1
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToOK(html)', 1
+        it_behaves_like 'ページネーション非表示', 1, 2
+        it_behaves_like 'リスト表示', 1
+        it_behaves_like 'リダイレクト', 2, 1
+      end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
       it_behaves_like 'リダイレクト(json)', 2
@@ -193,10 +193,14 @@ RSpec.describe 'Spaces', type: :request do
     shared_examples_for '[ログイン中/削除予約済み]スペースが最大表示数と同じ' do
       count = Settings.test_spaces_count
       include_context 'スペース一覧作成', count.public_admin, count.public_none, count.private_admin, count.private_reader
-      it_behaves_like 'ToOK(html)', 1
-      it_behaves_like 'ページネーション非表示', 1, 2
-      it_behaves_like 'リスト表示', 1
-      it_behaves_like 'リダイレクト', 2, 1
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToOK(html)', 1
+        it_behaves_like 'ページネーション非表示', 1, 2
+        it_behaves_like 'リスト表示', 1
+        it_behaves_like 'リダイレクト', 2, 1
+      end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
       it_behaves_like 'リダイレクト(json)', 2
@@ -204,10 +208,14 @@ RSpec.describe 'Spaces', type: :request do
     shared_examples_for '[APIログイン中/削除予約済み]スペースが最大表示数と同じ' do
       count = Settings.test_spaces_count
       include_context 'スペース一覧作成', count.public_admin, count.public_none, count.private_admin, count.private_reader
-      it_behaves_like 'ToOK(html)', 1
-      it_behaves_like 'ページネーション非表示', 1, 2
-      it_behaves_like 'リスト表示', 1
-      it_behaves_like 'リダイレクト', 2, 1
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToOK(html)', 1
+        it_behaves_like 'ページネーション非表示', 1, 2
+        it_behaves_like 'リスト表示', 1
+        it_behaves_like 'リダイレクト', 2, 1
+      end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
       it_behaves_like 'リダイレクト(json)', 2
@@ -216,13 +224,17 @@ RSpec.describe 'Spaces', type: :request do
       count = Settings.test_spaces_count
       all = count.public_admin + count.public_none + count.private_admin + count.private_reader
       include_context 'スペース一覧作成', 0, all + 1, 0, 0
-      it_behaves_like 'ToOK(html)', 1
-      it_behaves_like 'ToOK(html)', 2
-      it_behaves_like 'ページネーション表示', 1, 2
-      it_behaves_like 'ページネーション表示', 2, 1
-      it_behaves_like 'リスト表示', 1
-      it_behaves_like 'リスト表示', 2
-      it_behaves_like 'リダイレクト', 3, 2
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToOK(html)', 1
+        it_behaves_like 'ToOK(html)', 2
+        it_behaves_like 'ページネーション表示', 1, 2
+        it_behaves_like 'ページネーション表示', 2, 1
+        it_behaves_like 'リスト表示', 1
+        it_behaves_like 'リスト表示', 2
+        it_behaves_like 'リダイレクト', 3, 2
+      end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'ToOK(json)', 2
       it_behaves_like 'リスト表示(json)', 1
@@ -232,13 +244,17 @@ RSpec.describe 'Spaces', type: :request do
     shared_examples_for '[ログイン中/削除予約済み]スペースが最大表示数より多い' do
       count = Settings.test_spaces_count
       include_context 'スペース一覧作成', count.public_admin, count.public_none + 1, count.private_admin, count.private_reader
-      it_behaves_like 'ToOK(html)', 1
-      it_behaves_like 'ToOK(html)', 2
-      it_behaves_like 'ページネーション表示', 1, 2
-      it_behaves_like 'ページネーション表示', 2, 1
-      it_behaves_like 'リスト表示', 1
-      it_behaves_like 'リスト表示', 2
-      it_behaves_like 'リダイレクト', 3, 2
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToOK(html)', 1
+        it_behaves_like 'ToOK(html)', 2
+        it_behaves_like 'ページネーション表示', 1, 2
+        it_behaves_like 'ページネーション表示', 2, 1
+        it_behaves_like 'リスト表示', 1
+        it_behaves_like 'リスト表示', 2
+        it_behaves_like 'リダイレクト', 3, 2
+      end
       # it_behaves_like 'ToOK(json)', 1 # NOTE: APIは未ログイン扱いの為
       # it_behaves_like 'ToOK(json)', 2
       # it_behaves_like 'リスト表示(json)', 1
@@ -248,13 +264,17 @@ RSpec.describe 'Spaces', type: :request do
     shared_examples_for '[APIログイン中/削除予約済み]スペースが最大表示数より多い' do
       count = Settings.test_spaces_count
       include_context 'スペース一覧作成', count.public_admin, count.public_none + 1, count.private_admin, count.private_reader
-      it_behaves_like 'ToOK(html)', 1
-      it_behaves_like 'ToOK(html)', 2
-      it_behaves_like 'ページネーション表示', 1, 2
-      it_behaves_like 'ページネーション表示', 2, 1
-      it_behaves_like 'リスト表示', 1
-      it_behaves_like 'リスト表示', 2
-      it_behaves_like 'リダイレクト', 3, 2
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToOK(html)', 1
+        it_behaves_like 'ToOK(html)', 2
+        it_behaves_like 'ページネーション表示', 1, 2
+        it_behaves_like 'ページネーション表示', 2, 1
+        it_behaves_like 'リスト表示', 1
+        it_behaves_like 'リスト表示', 2
+        it_behaves_like 'リダイレクト', 3, 2
+      end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'ToOK(json)', 2
       it_behaves_like 'リスト表示(json)', 1
@@ -322,6 +342,8 @@ RSpec.describe 'Spaces', type: :request do
     end
 
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
+      next if Settings.api_only_mode
+
       include_context 'ログイン処理'
       before_all { FactoryBot.create(:member, :admin, space: join_space, user: user) }
       let(:subject_format) { nil }
@@ -352,67 +374,67 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '公開・非公開が1と0' do
-      let(:params) { { public: 1, private: 0, join: 1, nojoin: 1, active: 1, destroy: 1 } }
-      let(:spaces) { (@public_spaces + @public_nojoin_spaces + @public_nojoin_destroy_spaces).reverse }
+      let(:params) { { public: 1, private: 0 } }
+      let(:spaces) { (@public_spaces + @public_nojoin_spaces).reverse }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '公開・非公開が0と1' do
-      let(:params) { { public: 0, private: 1, join: 1, nojoin: 1, active: 1, destroy: 1 } }
+      let(:params) { { public: 0, private: 1 } }
       let(:spaces) { @private_spaces.reverse }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '公開・非公開が0と0' do
-      let(:params) { { public: 0, private: 0, join: 1, nojoin: 1, active: 1, destroy: 1 } }
+      let(:params) { { public: 0, private: 0 } }
       let(:spaces) { [] }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '参加・未参加が1と0' do
-      let(:params) { { public: 1, private: 1, join: 1, nojoin: 0, active: 1, destroy: 1 } }
+      let(:params) { { join: 1, nojoin: 0 } }
       let(:spaces) { (@public_spaces + @private_spaces).reverse }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '参加・未参加が0と1' do
-      let(:params) { { public: 1, private: 1, join: 0, nojoin: 1, active: 1, destroy: 1 } }
-      let(:spaces) { (@public_nojoin_spaces + @public_nojoin_destroy_spaces).reverse }
+      let(:params) { { join: 0, nojoin: 1 } }
+      let(:spaces) { @public_nojoin_spaces }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '参加・未参加が0と0' do
-      let(:params) { { public: 1, private: 1, join: 0, nojoin: 0, active: 1, destroy: 1 } }
+      let(:params) { { join: 0, nojoin: 0 } }
       let(:spaces) { [] }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '有効・削除予定が1と0' do
-      let(:params) { { public: 1, private: 1, join: 1, nojoin: 1, active: 1, destroy: 0 } }
+      let(:params) { { active: 1, destroy: 0 } }
       let(:spaces) { (@public_spaces + @public_nojoin_spaces + @private_spaces).reverse }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '有効・削除予定が0と1' do
-      let(:params) { { public: 1, private: 1, join: 1, nojoin: 1, active: 0, destroy: 1 } }
+      let(:params) { { active: 0, destroy: 1 } }
       let(:spaces) { @public_nojoin_destroy_spaces.reverse }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '有効・削除予定が0と0' do
-      let(:params) { { public: 1, private: 1, join: 1, nojoin: 1, active: 0, destroy: 0 } }
+      let(:params) { { active: 0, destroy: 0 } }
       let(:spaces) { [] }
       it_behaves_like 'ToOK[名称]'
     end
 
     shared_examples_for 'オプション' do
       it_behaves_like '全て1'
-      if Settings.enable_public_space
-        it_behaves_like '公開・非公開が1と0'
-        it_behaves_like '公開・非公開が0と1'
-        it_behaves_like '公開・非公開が0と0'
-        it_behaves_like '参加・未参加が1と0'
-        it_behaves_like '参加・未参加が0と1'
-        it_behaves_like '参加・未参加が0と0'
-      end
+      it_behaves_like '公開・非公開が1と0'
+      it_behaves_like '公開・非公開が0と1'
+      it_behaves_like '公開・非公開が0と0'
+      it_behaves_like '参加・未参加が1と0'
+      it_behaves_like '参加・未参加が0と1'
+      it_behaves_like '参加・未参加が0と0'
       it_behaves_like '有効・削除予定が1と0'
       it_behaves_like '有効・削除予定が0と1'
       it_behaves_like '有効・削除予定が0と0'
     end
 
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
+      next if Settings.api_only_mode
+
       include_context 'ログイン処理'
       include_context 'スペース一覧作成', 1, 1, 1, 1
       let(:subject_format) { nil }

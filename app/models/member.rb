@@ -1,5 +1,5 @@
 class Member < ApplicationRecord
-  attr_accessor :emails # NOTE: メンバー招待で使用
+  attr_accessor :emails
 
   belongs_to :space
   belongs_to :user
@@ -7,13 +7,6 @@ class Member < ApplicationRecord
   belongs_to :last_updated_user, class_name: 'User', optional: true
 
   validates :power, presence: true
-
-  # 権限
-  enum power: {
-    admin: 1, # 管理者
-    writer: 2, # 投稿者
-    reader: 3 # 閲覧者
-  }, _prefix: true
 
   scope :search, lambda { |text, current_member|
     return if text&.strip.blank?
@@ -35,6 +28,19 @@ class Member < ApplicationRecord
 
     member
   }
+  scope :by_power, lambda { |power|
+    return none if power.count.zero?
+    return if power.count >= Member.powers.count
+
+    where(power: power)
+  }
+
+  # 権限
+  enum power: {
+    admin: 1,  # 管理者
+    writer: 2, # 投稿者
+    reader: 3  # 閲覧者
+  }, _prefix: true
 
   # 最終更新日時
   def last_updated_at

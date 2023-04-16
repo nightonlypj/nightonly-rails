@@ -8,16 +8,20 @@ class Space < ApplicationRecord
   has_many :users, through: :members
   has_many :downloads, dependent: :destroy
   has_many :invitations, dependent: :destroy
+  has_many :tasks, dependent: :destroy
+  has_many :send_setting, dependent: :destroy
+  has_many :send_setting_active, -> { where(deleted_at: nil) }, class_name: 'SendSetting'
+  has_many :send_history, dependent: :destroy
 
   validates :code, presence: true
-  validates :code, uniqueness: { case_sensitive: true }
+  validates :code, uniqueness: { case_sensitive: true }, allow_blank: true
   validates :name, presence: true
-  validates :name, length: { in: Settings.space_name_minimum..Settings.space_name_maximum }, if: proc { errors[:name].blank? }
-  validates :description, length: { maximum: Settings.space_description_maximum }, if: proc { |space| space.description.present? }
+  validates :name, length: { in: Settings.space_name_minimum..Settings.space_name_maximum }, allow_blank: true
+  validates :description, length: { maximum: Settings.space_description_maximum }, allow_blank: true
   validates :private, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
 
   scope :by_target, lambda { |current_user, checked|
-    return where(id: []) if (!checked[:public] && !checked[:private]) || (!checked[:join] && !checked[:nojoin]) || (!checked[:active] && !checked[:destroy])
+    return none if (!checked[:public] && !checked[:private]) || (!checked[:join] && !checked[:nojoin]) || (!checked[:active] && !checked[:destroy])
 
     if checked[:public] && checked[:private] && current_user.present?
       space = where(private: false).left_joins(:members).or(where(members: { user: current_user }))

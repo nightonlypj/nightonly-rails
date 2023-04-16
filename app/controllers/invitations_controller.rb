@@ -2,10 +2,10 @@ class InvitationsController < ApplicationAuthController
   before_action :response_not_acceptable_for_not_api, only: :show
   before_action :response_not_acceptable_for_not_html, only: %i[new edit]
   before_action :authenticate_user!
-  before_action :set_space
+  before_action :set_space_current_member
   before_action :redirect_invitations_for_user_destroy_reserved, only: %i[new create edit update], if: :format_html?
   before_action :response_api_for_user_destroy_reserved, only: %i[create update], unless: :format_html?
-  before_action :check_power
+  before_action :check_power_admin
   before_action :set_invitation, only: %i[show edit update]
   before_action :check_email_joined, only: %i[edit update]
   before_action :validate_params_create, only: :create
@@ -14,7 +14,8 @@ class InvitationsController < ApplicationAuthController
   # GET /invitations/:space_code 招待URL一覧
   # GET /invitations/:space_code(.json) 招待URL一覧API
   def index
-    @invitations = Invitation.where(space: @space).page(params[:page]).per(Settings.default_invitations_limit).order(created_at: :desc, id: :desc)
+    @invitations = Invitation.where(space: @space).order(created_at: :desc, id: :desc)
+                             .page(params[:page]).per(Settings.default_invitations_limit)
 
     if format_html? && @invitations.current_page > [@invitations.total_pages, 1].max
       redirect_to @invitations.total_pages <= 1 ? invitations_path : invitations_path(page: @invitations.total_pages)
@@ -50,11 +51,11 @@ class InvitationsController < ApplicationAuthController
   # POST /invitations/:space_code/update/:code(.json) 招待URL設定変更API(処理)
   def update
     @invitation.ended_at = @invitation.new_ended_at
-    if %w[1 true].include?(@invitation.delete.to_s) && @invitation.destroy_schedule_at.blank?
+    if @invitation.delete && @invitation.destroy_schedule_at.blank?
       @invitation.destroy_requested_at = Time.current
       @invitation.destroy_schedule_at  = Time.current + Settings.invitation_destroy_schedule_days.days
     end
-    if %w[1 true].include?(@invitation.undo_delete.to_s) && @invitation.destroy_schedule_at.present?
+    if @invitation.undo_delete && @invitation.destroy_schedule_at.present?
       @invitation.destroy_requested_at = nil
       @invitation.destroy_schedule_at  = nil
     end
@@ -74,20 +75,8 @@ class InvitationsController < ApplicationAuthController
   end
 
   # Use callbacks to share common setup or constraints between actions.
-  def set_space
-    @space = Space.find_by(code: params[:space_code])
-    return response_not_found if @space.blank?
-
-    @current_member = Member.where(space: @space, user: current_user).eager_load(:user)&.first
-    response_forbidden if @current_member.blank?
-  end
-
-  def check_power
-    response_forbidden unless @current_member.power_admin?
-  end
-
   def set_invitation
-    @invitation = Invitation.where(space: @space, code: params[:code])&.first
+    @invitation = Invitation.where(space: @space, code: params[:code]).first
     return response_not_found if @invitation.blank?
 
     if @invitation.ended_at.present?

@@ -1,3 +1,8 @@
+- id: 1
+  space_id: 100
+  user_id: 1
+  power: admin
+
 # NOTE: id = space_id + user_id(2桁)
 - id: 101
   space_id: 1

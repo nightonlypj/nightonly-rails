@@ -8,10 +8,12 @@ class ApplicationController < ActionController::Base
   def prepare_exception_notifier
     return if Rails.env.test?
 
+    # :nocov:
     request.env['exception_notifier.exception_data'] = {
       current_user: { id: current_user&.id },
       url: request.url
     }
+    # :nocov:
   end
 
   # リクエストのuidヘッダを[id+36**2](36進数)からuidに変更 # NOTE: uidがメールアドレスだと、メールアドレス確認後に認証に失敗する為
@@ -45,6 +47,11 @@ class ApplicationController < ActionController::Base
     request.headers[:ACCEPT].blank? ||
       !(%r{,text/html[,;]} =~ ",#{request.headers[:ACCEPT]},").nil? ||
       !(%r{,\*/\*[,;]} =~ ",#{request.headers[:ACCEPT]},").nil?
+  end
+
+  # APIのみモードでAPIリクエストでない場合、存在しない(404)を返却
+  def response_not_found_for_api_mode_not_api
+    head :not_found if Settings.api_only_mode && format_html?
   end
 
   # APIリクエストに不整合がある場合、HTTPステータス406を返却（明示的にAPIのみ対応にする場合に使用）
@@ -139,6 +146,7 @@ class ApplicationController < ActionController::Base
       code = code[0, length] if length.present?
       return code if model.where(key => code).blank?
 
+      # :nocov:
       if try_count < 10
         logger.warn("[WARN](#{try_count})Not unique code(#{code}): #{logger_message}")
       elsif try_count >= 10
@@ -146,6 +154,7 @@ class ApplicationController < ActionController::Base
         return code
       end
       try_count += 1
+      # :nocov:
     end
   end
 end

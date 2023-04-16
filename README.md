@@ -1,6 +1,6 @@
-# Ruby on Railsベースアプリケーション（Space）
+# nightonlyアプリケーション（Rails/API）
 
-運営元とユーザー同士が作成したスペース上で情報共有する（BtoC向け）  
+fork: https://dev.azure.com/nightonly/_git/rails-app-origin, space_develop
 (Ruby 3.0.0, Rails 6.1.4.1)
 
 ## コマンドメモ
@@ -32,7 +32,7 @@ https://hub.docker.com/editions/community/docker-ce-desktop-mac/
 ### コンテナ作成＆起動
 
 ```
-$ cd rails-app-origin
+$ cd nightonly-rails
 
 $ docker-compose build
 $ docker-compose up
@@ -178,12 +178,12 @@ $ nvm --version
 ```
 ```
 $ nvm ls-remote | grep 'Latest LTS'
-       v14.17.6   (Latest LTS: Fermium)
-$ nvm install v14.17.6
+       v16.19.0   (Latest LTS: Gallium)
+$ nvm install v16.19.0
 ※バージョンは異なっても良いが、本番の環境に合わせるのがベスト
 
 $ node -v
-v14.17.6
+v16.19.0
 ```
 
 ### yarnインストール
@@ -286,7 +286,7 @@ $ rm -f ~/.my.cnf
 ### 起動まで
 
 ```
-$ cd rails-app-origin
+$ cd nightonly-rails
 $ cp -a config/settings/development.yml,local config/settings/development.yml
 
 $ bundle install
@@ -296,6 +296,7 @@ Bundle complete!
 $ yarn install
 Done
 
+$ rails db:create
 $ rails db:migrate
 ※「Mysql2::Error: Specified key was too long; max key length is 767 bytes」の場合は「rails db:migrate:reset」で回避
 

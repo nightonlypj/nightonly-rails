@@ -3,10 +3,10 @@ class MembersController < ApplicationAuthController
   before_action :response_not_acceptable_for_not_api, only: :show
   before_action :response_not_acceptable_for_not_html, only: %i[new result edit]
   before_action :authenticate_user!
-  before_action :set_space
+  before_action :set_space_current_member
   before_action :redirect_members_for_user_destroy_reserved, only: %i[new create result edit update destroy], if: :format_html?
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy], unless: :format_html?
-  before_action :check_power, only: %i[new create result edit update destroy]
+  before_action :check_power_admin, only: %i[new create result edit update destroy]
   before_action :set_member, only: %i[show edit update]
   before_action :check_current_member, only: %i[edit update]
   before_action :set_params_index, only: :index
@@ -39,7 +39,7 @@ class MembersController < ApplicationAuthController
     exist_users = User.joins(:members).where(members: { space: @space, user: users })
     create_users = users - exist_users
     create_users.each do |user|
-      insert_datas.push(@member.attributes.merge({ user_id: user.id }))
+      insert_datas.push(@member.attributes.symbolize_keys.merge(user_id: user.id))
     end
     Member.insert_all!(insert_datas) if insert_datas.present?
 
@@ -110,20 +110,8 @@ class MembersController < ApplicationAuthController
   end
 
   # Use callbacks to share common setup or constraints between actions.
-  def set_space
-    @space = Space.find_by(code: params[:space_code])
-    return response_not_found if @space.blank?
-
-    @current_member = Member.where(space: @space, user: current_user).eager_load(:user)&.first
-    response_forbidden if @current_member.blank?
-  end
-
-  def check_power
-    response_forbidden unless @current_member.power_admin?
-  end
-
   def set_member
-    @member = Member.where(space: @space).joins(:user).where(user: { code: params[:user_code] })&.first
+    @member = Member.where(space: @space).joins(:user).where(user: { code: params[:user_code] }).first
     response_not_found if @member.blank?
   end
 
@@ -189,13 +177,12 @@ class MembersController < ApplicationAuthController
       @members = Member.where(space: @space).joins(:user).where(user: { code: delete_codes })
       alert = 'alert.member.destroy.codes.notfound' if @members.empty?
     end
+    return if alert.blank?
 
-    if alert.present?
-      if format_html?
-        redirect_to members_path, alert: t(alert)
-      else
-        render './failure', locals: { alert: t(alert) }, status: :unprocessable_entity
-      end
+    if format_html?
+      redirect_to members_path, alert: t(alert)
+    else
+      render './failure', locals: { alert: t(alert) }, status: :unprocessable_entity
     end
   end
 

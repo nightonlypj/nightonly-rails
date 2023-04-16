@@ -14,6 +14,18 @@
       - 'password'
   env:
     development: true
+- file: 'seed/holidays.yml'
+  model: 'Holiday'
+  insert: true
+  update: true
+  # delete: true
+  option:
+    bulk_insert: true
+    bulk_update: true
+    destroy: true
+  env:
+    production: true
+    development: true
 - file: 'seed/infomations_development.yml'
   model: 'Infomation'
   insert: true
@@ -24,6 +36,16 @@
     bulk_update: true
     destroy: true
   env:
+    development: true
+- file: 'seed/spaces.yml'
+  model: 'Space'
+  insert: true
+  update: true
+  option:
+    bulk_insert: true
+    bulk_update: true
+  env:
+    production: true
     development: true
 - file: 'seed/spaces_development.yml'
   model: 'Space'
@@ -63,6 +85,24 @@
     development: true
 - file: 'seed/download_files_development.yml'
   model: 'DownloadFile'
+  insert: true
+  update: true
+  option:
+    bulk_insert: true
+    bulk_update: true
+  env:
+    development: true
+- file: 'seed/tasks_development.yml'
+  model: 'Task'
+  insert: true
+  update: true
+  option:
+    bulk_insert: true
+    bulk_update: true
+  env:
+    development: true
+- file: 'seed/task_cycles_development.yml'
+  model: 'TaskCycle'
   insert: true
   update: true
   option:

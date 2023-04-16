@@ -1,0 +1,11 @@
+■ <%= t("notifier.task_event.type.#{type}.title") %>
+<% if task_events.blank? %>
+<%= t('notifier.task_event.list.notfound') %>
+<% else %>
+<% task_events.each do |task_event| %>
+[<%= task_event.status_i18n %>] <%= task_event.assigned_user.blank? ? t('notifier.task_event.assigned.notfound') : task_event.assigned_user.name %>
+<%= task_event.task_cycle.task.priority.to_sym == :none ? '' : "[#{task_event.task_cycle.task.priority_i18n}]" %><%= task_event.task_cycle.task.title %>
+<%= "#{space_url}?code=#{task_event.code}" %>
+
+<% end %>
+<% end %>

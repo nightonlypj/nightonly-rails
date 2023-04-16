@@ -6,7 +6,9 @@ class ApplicationJob < ActiveJob::Base
   # discard_on ActiveJob::DeserializationError
 
   # 例外通知
-  rescue_from StandardError do |exception|
-    ExceptionNotifier.notify_exception(exception)
+  rescue_from StandardError do |error|
+    # :nocov:
+    ExceptionNotifier.notify_exception(error)
+    # :nocov:
   end
 end

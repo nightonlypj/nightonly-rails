@@ -10,6 +10,7 @@ RSpec.describe 'Spaces', type: :request do
   #   スペース: 存在しない, 公開, 非公開
   #   権限: ある（管理者）, ない（投稿者, 閲覧者, なし）
   #   パラメータなし, 有効なパラメータ（同名がない, ある）, 無効なパラメータ
+  # TODO: 有効なパラメータ（画像削除）
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #update' do
@@ -68,62 +69,96 @@ RSpec.describe 'Spaces', type: :request do
       let(:attributes) { nil }
       message = get_locale('activerecord.errors.models.space.attributes.name.blank')
       it_behaves_like 'NG(html)'
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToNG(html)', 422, [message]
+      end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(html)', 422, [message]
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある]パラメータなし' do
       let(:attributes) { nil }
       message = get_locale('activerecord.errors.models.space.attributes.name.blank')
       it_behaves_like 'NG(html)'
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+      end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 422, { name: [message] }
     end
     shared_examples_for '[ログイン中][*][ある]有効なパラメータ（同名がない）' do
       let(:attributes) { valid_attributes }
-      it_behaves_like 'OK(html)'
+      if Settings.api_only_mode
+        it_behaves_like 'NG(html)'
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'OK(html)'
+        it_behaves_like 'ToOK(html)'
+      end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToOK(html)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある]有効なパラメータ（同名がない）' do
       let(:attributes) { valid_attributes }
-      it_behaves_like 'OK(html)'
+      if Settings.api_only_mode
+        it_behaves_like 'NG(html)'
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'OK(html)'
+        it_behaves_like 'ToOK(html)' # NOTE: HTMLもログイン状態になる
+      end
       it_behaves_like 'OK(json)'
-      it_behaves_like 'ToOK(html)' # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToOK(json)'
     end
     shared_examples_for '[ログイン中][*][ある]有効なパラメータ（同名がある）' do
       let(:attributes) { exist_attributes }
       message = get_locale('activerecord.errors.models.space.attributes.name.taken')
       it_behaves_like 'NG(html)'
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToNG(html)', 422, [message]
+      end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(html)', 422, [message]
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある]有効なパラメータ（同名がある）' do
       let(:attributes) { exist_attributes }
       message = get_locale('activerecord.errors.models.space.attributes.name.taken')
       it_behaves_like 'NG(html)'
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+      end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 422, { name: [message] }
     end
     shared_examples_for '[ログイン中][*][ある]無効なパラメータ' do
       let(:attributes) { invalid_attributes }
       message = get_locale('activerecord.errors.models.space.attributes.name.blank')
       it_behaves_like 'NG(html)'
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToNG(html)', 422, [message]
+      end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(html)', 422, [message]
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある]無効なパラメータ' do
       let(:attributes) { invalid_attributes }
       message = get_locale('activerecord.errors.models.space.attributes.name.blank')
       it_behaves_like 'NG(html)'
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+      end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 422, { name: [message] }
     end
 
@@ -145,16 +180,16 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'set_member_power', power
       let(:attributes) { valid_attributes }
       it_behaves_like 'NG(html)'
+      it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(html)', 403
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
       include_context 'set_member_power', power
       let(:attributes) { valid_attributes }
       it_behaves_like 'NG(html)'
+      it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403 # NOTE: HTMLもログイン状態になる
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(html)', 403 # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 403
     end
 
@@ -162,16 +197,16 @@ RSpec.describe 'Spaces', type: :request do
       let_it_be(:space) { space_not }
       let(:attributes) { valid_attributes }
       # it_behaves_like 'NG(html)' # NOTE: 存在しない為
+      it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 404
       # it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(html)', 404
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中]スペースが存在しない' do
       let_it_be(:space) { space_not }
       let(:attributes) { valid_attributes }
       # it_behaves_like 'NG(html)' # NOTE: 存在しない為
+      it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 404 # NOTE: HTMLもログイン状態になる
       # it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(html)', 404 # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 404
     end
     shared_examples_for '[ログイン中]スペースが公開' do
@@ -207,36 +242,48 @@ RSpec.describe 'Spaces', type: :request do
       include_context '未ログイン処理'
       include_context 'valid_condition'
       it_behaves_like 'NG(html)'
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToLogin(html)'
+      end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToLogin(html)'
       it_behaves_like 'ToNG(json)', 401
     end
     context 'ログイン中' do
       include_context 'ログイン処理'
       it_behaves_like '[ログイン中]スペースが存在しない'
-      it_behaves_like '[ログイン中]スペースが公開'
+      it_behaves_like '[ログイン中]スペースが公開' if Settings.enable_public_space
       it_behaves_like '[ログイン中]スペースが非公開'
     end
     context 'ログイン中（削除予約済み）' do
       include_context 'ログイン処理', :destroy_reserved
       include_context 'valid_condition'
       it_behaves_like 'NG(html)'
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToSpace(html)', 'alert.user.destroy_reserved'
+      end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToSpace(html)', 'alert.user.destroy_reserved'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     context 'APIログイン中' do
       include_context 'APIログイン処理'
       it_behaves_like '[APIログイン中]スペースが存在しない'
-      it_behaves_like '[APIログイン中]スペースが公開'
+      it_behaves_like '[APIログイン中]スペースが公開' if Settings.enable_public_space
       it_behaves_like '[APIログイン中]スペースが非公開'
     end
     context 'APIログイン中（削除予約済み）' do
       include_context 'APIログイン処理', :destroy_reserved
       include_context 'valid_condition'
       it_behaves_like 'NG(html)'
+      if Settings.api_only_mode
+        it_behaves_like 'ToNG(html)', 406
+      else
+        it_behaves_like 'ToSpace(html)', 'alert.user.destroy_reserved' # NOTE: HTMLもログイン状態になる
+      end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToSpace(html)', 'alert.user.destroy_reserved' # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 422, nil, 'alert.user.destroy_reserved'
     end
   end

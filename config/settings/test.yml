@@ -2,6 +2,7 @@ debug: false
 env_name: null
 base_domain: 'localhost.test'
 base_image_url: 'http://localhost.test'
+front_url: 'http://front.localhost.test'
 redirect_whitelist: ['http://front.localhost.test/*']
 default_confirm_success_url: null
 default_password_reset_url: null
@@ -78,3 +79,39 @@ test_downloads_count:
   success: 1
   failure: 1
   downloaded: 1
+
+## タスク
+# 一覧のデフォルト最大表示件数
+default_tasks_limit: 2
+# タイトルの最大文字数
+task_title_maximum: 14 # NOTE: (6+8?)以上 = "task(#{n})"
+# 概要の最大文字数
+task_summary_maximum: 17 # NOTE: (6+8?+3)以上 = "#{title}の概要"
+# 前提の最大文字数
+task_premise_maximum: 17 # NOTE: (6+8?+3)以上 = "#{title}の前提"
+# 手順の最大文字数
+task_process_maximum: 17 # NOTE: (6+8?+3)以上 = "#{title}の手順"
+# 周期の最大件数
+task_cycles_max_count: 2
+# イベントの最大月数
+task_events_max_month_count: 2
+
+## タスクイベント
+# メモの最大文字数
+task_event_memo_maximum: 14 # NOTE: (6+8?)以上 = "memo(#{n})"
+
+## Slackユーザー
+# SlackのメンバーIDの最大文字数
+slack_user_memberid_maximum: 11 # NOTE: Faker::Number.hexadecimal(digits: 11).upcase
+
+## 通知設定
+# [Slack]Webhook URLの最大文字数
+slack_webhook_url_maximum: 64 # NOTE: Faker::Internet.url
+# [Slack]メンションの最大文字数
+slack_mention_maximum: 8 # NOTE: '!here'
+# [開始確認]デフォルト開始時間/必須
+# default_start_notice_start_hour: 10
+# default_start_notice_required: false
+# [翌営業日・終了確認]デフォルト開始時間/必須
+# default_next_notice_start_hour: 17
+# default_next_notice_required: false

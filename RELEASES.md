@@ -2,10 +2,19 @@
 
 ## 1.6.0 (Sprint 11)
 
+- 祝日データを持ちたい
+  - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/516/
+- 設定でHTMLを返さないようにできるようにしたい（APIのみモード）
+  - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/511/
 - Capistranoでデプロイできるようにしたい
   - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/308/
 - エラー時にメール/Slack送信して気付けるようにしたい
   - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/189/
+
+### spaceブランチ
+
+- トップに公開スペースを表示したい
+  - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/519/
 
 ## 1.5.0 (Sprint 10)
 

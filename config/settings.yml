@@ -1,3 +1,6 @@
+# APIのみモード  NOTE: Railsのフロントを使用しない場合はtrue
+api_only_mode: true # NOTE: APIのみ開発する
+
 # Devise Token Auth
 confirmation_success_url_not: '/auth/confirmation_success.html?not'
 confirmation_success_url_bad: '/auth/confirmation_success.html?bad'
@@ -31,7 +34,8 @@ default_infomations_limit: 25
 
 ## スペース
 # 公開スペース使用可否  ※後からfalseに変更しても作成済みの公開スペースは表示されます。
-enable_public_space: true
+enable_public_space: false # NOTE: 非公開のみ
+default_private_space: true
 # スペース削除の猶予期間（単位：日）
 space_destroy_schedule_days: 14
 # 一覧のデフォルト最大表示件数
@@ -68,3 +72,45 @@ member_emails_max_count: 100
 default_downloads_limit: 25
 # ダウンロード削除の猶予期間（単位：日）
 download_destroy_schedule_days: 7
+
+## タスク
+# 一覧のデフォルト最大表示件数
+default_tasks_limit: 25
+# 優先度の並び順
+priority_order:
+  high: 1   # 高
+  middle: 2 # 中
+  low: 3    # 低
+  none: 9   # 未設定
+# タイトルの最大文字数
+task_title_maximum: 128
+# 概要の最大文字数
+task_summary_maximum: 10240
+# 前提の最大文字数
+task_premise_maximum: 10240
+# 手順の最大文字数
+task_process_maximum: 10240
+# 周期の最大件数
+task_cycles_max_count: 5
+# イベントの最大月数
+task_events_max_month_count: 4
+
+## タスクイベント
+# メモの最大文字数
+task_event_memo_maximum: 10240
+
+## Slackユーザー
+# SlackのメンバーIDの最大文字数
+slack_user_memberid_maximum: 16
+
+## 通知設定
+# [Slack]Webhook URLの最大文字数
+slack_webhook_url_maximum: 128
+# [Slack]メンションの最大文字数
+slack_mention_maximum: 32
+# [開始確認]デフォルト開始時間/必須
+default_start_notice_start_hour: 10
+default_start_notice_required: false
+# [翌営業日・終了確認]デフォルト開始時間/必須
+default_next_notice_start_hour: 17
+default_next_notice_required: false

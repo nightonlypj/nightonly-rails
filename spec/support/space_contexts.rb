@@ -54,8 +54,8 @@ shared_context 'スペース一覧作成' do |public_admin_count, public_none_co
 end
 
 # テスト内容（共通）
-def expect_space_html(response, space, user_power = :admin, use_link = true)
-  expect(response.body).to include(space.image_url(:small))
+def expect_space_html(response, space, user_power = :admin, use_link = true, image_version = :small)
+  expect(response.body).to include(space.image_url(image_version))
   expect(response.body).to include("href=\"#{space_path(space.code)}\"") if use_link # スペーストップ
   expect(response.body).to include(space.name)
   expect(response.body).to include('非公開') if space.private
@@ -93,13 +93,15 @@ def expect_space_json(response_json_space, space, user_power, member_count)
 
   if user_power == :admin
     expect_user_json(response_json_space['created_user'], space.created_user, true, space.created_user_id.present?)
-    expect_user_json(response_json_space['last_updated_user'], space.last_updated_user, true, space.last_updated_user_id.present?)
     expect(response_json_space['created_at']).to eq(I18n.l(space.created_at, format: :json))
+
+    expect_user_json(response_json_space['last_updated_user'], space.last_updated_user, true, space.last_updated_user_id.present?)
     expect(response_json_space['last_updated_at']).to eq(I18n.l(space.last_updated_at, format: :json, default: nil))
   else
     expect(response_json_space['created_user']).to be_nil
-    expect(response_json_space['last_updated_user']).to be_nil
     expect(response_json_space['created_at']).to be_nil
+
+    expect(response_json_space['last_updated_user']).to be_nil
     expect(response_json_space['last_updated_at']).to be_nil
   end
 end

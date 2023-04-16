@@ -1,0 +1,509 @@
+# NOTE: id = task_id + 連番
+## 毎週
+# 毎週月曜日（前日）
+- id: 111
+  space_id: 1
+  task_id: 11
+  cycle: weekly
+  wday: mon
+  handling_holiday: before
+  period: 1
+# 毎週月曜日（翌日）
+- id: 121
+  space_id: 1
+  task_id: 12
+  cycle: weekly
+  wday: mon
+  handling_holiday: after
+  period: 1
+# 毎週金曜日（前日）
+- id: 131
+  space_id: 1
+  task_id: 13
+  cycle: weekly
+  wday: fri
+  handling_holiday: before
+  period: 1
+# 毎週金曜日（翌日）
+- id: 141
+  space_id: 1
+  task_id: 14
+  cycle: weekly
+  wday: fri
+  handling_holiday: after
+  period: 1
+# 毎週月曜日（前日）までの2日間
+- id: 151
+  space_id: 1
+  task_id: 15
+  cycle: weekly
+  wday: mon
+  handling_holiday: before
+  period: 2
+# 毎週月曜日（翌日）までの2日間
+- id: 161
+  space_id: 1
+  task_id: 16
+  cycle: weekly
+  wday: mon
+  handling_holiday: after
+  period: 2
+# 毎週金曜日（前日）までの2日間
+- id: 171
+  space_id: 1
+  task_id: 17
+  cycle: weekly
+  wday: fri
+  handling_holiday: before
+  period: 2
+# 毎週金曜日（翌日）までの2日間
+- id: 181
+  space_id: 1
+  task_id: 18
+  cycle: weekly
+  wday: fri
+  handling_holiday: after
+  period: 2
+
+## 毎月(日)
+# 毎月1日（前日）
+- id: 211
+  space_id: 1
+  task_id: 21
+  cycle: monthly
+  target: day
+  day: 1
+  handling_holiday: before
+  period: 1
+# 毎月1日（翌日）
+- id: 221
+  space_id: 1
+  task_id: 22
+  cycle: monthly
+  target: day
+  day: 1
+  handling_holiday: after
+  period: 1
+# 毎月末日（前日）
+- id: 231
+  space_id: 1
+  task_id: 23
+  cycle: monthly
+  target: day
+  day: 31
+  handling_holiday: before
+  period: 1
+# 毎月末日（翌日）
+- id: 241
+  space_id: 1
+  task_id: 24
+  cycle: monthly
+  target: day
+  day: 31
+  handling_holiday: after
+  period: 1
+# 毎月1日（前日）までの2日間
+- id: 251
+  space_id: 1
+  task_id: 25
+  cycle: monthly
+  target: day
+  day: 1
+  handling_holiday: before
+  period: 2
+# 毎月1日（翌日）までの2日間
+- id: 261
+  space_id: 1
+  task_id: 26
+  cycle: monthly
+  target: day
+  day: 1
+  handling_holiday: after
+  period: 2
+# 毎月末日（前日）までの2日間
+- id: 271
+  space_id: 1
+  task_id: 27
+  cycle: monthly
+  target: day
+  day: 31
+  handling_holiday: before
+  period: 2
+# 毎月末日（翌日）までの2日間
+- id: 281
+  space_id: 1
+  task_id: 28
+  cycle: monthly
+  target: day
+  day: 31
+  handling_holiday: after
+  period: 2
+
+## 毎月(営業日)
+# 毎月第1営業日
+- id: 311
+  space_id: 1
+  task_id: 31
+  cycle: monthly
+  target: business_day
+  business_day: 1
+  period: 1
+# 毎月最終営業日 = 毎月末日（前日）
+- id: 321
+  space_id: 1
+  task_id: 32
+  cycle: monthly
+  target: business_day
+  business_day: 31
+  period: 1
+# 毎月第1営業日までの2日間
+- id: 331
+  space_id: 1
+  task_id: 33
+  cycle: monthly
+  target: business_day
+  business_day: 1
+  period: 2
+# 毎月最終営業日までの2日間 = 毎月末日（前日）
+- id: 341
+  space_id: 1
+  task_id: 34
+  cycle: monthly
+  target: business_day
+  business_day: 31
+  period: 2
+
+## 毎月(週)
+# 毎月第1月曜日（前日）
+- id: 411
+  space_id: 1
+  task_id: 41
+  cycle: monthly
+  target: week
+  week: first
+  wday: mon
+  handling_holiday: before
+  period: 1
+# 毎月第1月曜日（翌日）
+- id: 421
+  space_id: 1
+  task_id: 42
+  cycle: monthly
+  target: week
+  week: first
+  wday: mon
+  handling_holiday: after
+  period: 1
+# 毎月最終金曜日（前日）
+- id: 431
+  space_id: 1
+  task_id: 43
+  cycle: monthly
+  target: week
+  week: last
+  wday: fri
+  handling_holiday: before
+  period: 1
+# 毎月最終金曜日（翌日）
+- id: 441
+  space_id: 1
+  task_id: 44
+  cycle: monthly
+  target: week
+  week: last
+  wday: fri
+  handling_holiday: after
+  period: 1
+# 毎月第1月曜日（前日）までの2日間
+- id: 451
+  space_id: 1
+  task_id: 45
+  cycle: monthly
+  target: week
+  week: first
+  wday: mon
+  handling_holiday: before
+  period: 2
+# 毎月第1月曜日（翌日）までの2日間
+- id: 461
+  space_id: 1
+  task_id: 46
+  cycle: monthly
+  target: week
+  week: first
+  wday: mon
+  handling_holiday: after
+  period: 2
+# 毎月最終金曜日（前日）までの2日間
+- id: 471
+  space_id: 1
+  task_id: 47
+  cycle: monthly
+  target: week
+  week: last
+  wday: fri
+  handling_holiday: before
+  period: 2
+# 毎月最終金曜日（翌日）までの2日間
+- id: 481
+  space_id: 1
+  task_id: 48
+  cycle: monthly
+  target: week
+  week: last
+  wday: fri
+  handling_holiday: after
+  period: 2
+
+## 毎年(日)
+# 毎年1月1日（前日）
+- id: 511
+  space_id: 1
+  task_id: 51
+  cycle: yearly
+  month: 1
+  target: day
+  day: 1
+  handling_holiday: before
+  period: 1
+# 毎年1月1日（翌日）
+- id: 521
+  space_id: 1
+  task_id: 52
+  cycle: yearly
+  month: 1
+  target: day
+  day: 1
+  handling_holiday: after
+  period: 1
+# 毎年12月末日（前日）
+- id: 531
+  space_id: 1
+  task_id: 53
+  cycle: yearly
+  month: 12
+  target: day
+  day: 31
+  handling_holiday: before
+  period: 1
+# 毎年12月末日（翌日）
+- id: 541
+  space_id: 1
+  task_id: 54
+  cycle: yearly
+  month: 12
+  target: day
+  day: 31
+  handling_holiday: after
+  period: 1
+# 毎年1月1日（前日）までの2日間
+- id: 551
+  space_id: 1
+  task_id: 55
+  cycle: yearly
+  month: 1
+  target: day
+  day: 1
+  handling_holiday: before
+  period: 2
+# 毎年1月1日（翌日）までの2日間
+- id: 561
+  space_id: 1
+  task_id: 56
+  cycle: yearly
+  month: 1
+  target: day
+  day: 1
+  handling_holiday: after
+  period: 2
+# 毎年12月末日（前日）までの2日間
+- id: 571
+  space_id: 1
+  task_id: 57
+  cycle: yearly
+  month: 12
+  target: day
+  day: 31
+  handling_holiday: before
+  period: 2
+# 毎年12月末日（翌日）までの2日間
+- id: 581
+  space_id: 1
+  task_id: 58
+  cycle: yearly
+  month: 12
+  target: day
+  day: 31
+  handling_holiday: after
+  period: 2
+
+## 毎年(営業日)
+# 毎年1月第1営業日
+- id: 611
+  space_id: 1
+  task_id: 61
+  cycle: yearly
+  month: 1
+  target: business_day
+  business_day: 1
+  period: 1
+# 毎年12月最終営業日 = 毎年12月末日（前日）
+- id: 621
+  space_id: 1
+  task_id: 62
+  cycle: yearly
+  month: 12
+  target: business_day
+  business_day: 31
+  period: 1
+# 毎年1月第1営業日までの2日間
+- id: 631
+  space_id: 1
+  task_id: 63
+  cycle: yearly
+  month: 1
+  target: business_day
+  business_day: 1
+  period: 2
+# 毎年12月最終営業日までの2日間 = 毎年12月末日（前日）
+- id: 641
+  space_id: 1
+  task_id: 64
+  cycle: yearly
+  month: 12
+  target: business_day
+  business_day: 31
+  period: 2
+
+## 毎年(週)
+# 毎年1月第1月曜日（前日）
+- id: 711
+  space_id: 1
+  task_id: 71
+  cycle: yearly
+  month: 1
+  target: week
+  week: first
+  wday: mon
+  handling_holiday: before
+  period: 1
+# 毎年1月第1月曜日（翌日）
+- id: 721
+  space_id: 1
+  task_id: 72
+  cycle: yearly
+  month: 1
+  target: week
+  week: first
+  wday: mon
+  handling_holiday: after
+  period: 1
+# 毎年12月最終金曜日（前日）
+- id: 731
+  space_id: 1
+  task_id: 73
+  cycle: yearly
+  month: 12
+  target: week
+  week: last
+  wday: fri
+  handling_holiday: before
+  period: 1
+# 毎年12月最終金曜日（翌日）
+- id: 741
+  space_id: 1
+  task_id: 74
+  cycle: yearly
+  month: 12
+  target: week
+  week: last
+  wday: fri
+  handling_holiday: after
+  period: 1
+# 毎年1月第1月曜日（前日）までの2日間
+- id: 751
+  space_id: 1
+  task_id: 75
+  cycle: yearly
+  month: 1
+  target: week
+  week: first
+  wday: mon
+  handling_holiday: before
+  period: 2
+# 毎年1月第1月曜日（翌日）までの2日間
+- id: 761
+  space_id: 1
+  task_id: 76
+  cycle: yearly
+  month: 1
+  target: week
+  week: first
+  wday: mon
+  handling_holiday: after
+  period: 2
+# 毎年12月最終金曜日（前日）までの2日間
+- id: 771
+  space_id: 1
+  task_id: 77
+  cycle: yearly
+  month: 12
+  target: week
+  week: last
+  wday: fri
+  handling_holiday: before
+  period: 2
+# 毎年12月最終金曜日（翌日）までの2日間
+- id: 781
+  space_id: 1
+  task_id: 78
+  cycle: yearly
+  month: 12
+  target: week
+  week: last
+  wday: fri
+  handling_holiday: after
+  period: 2
+
+
+## 対象外
+# （開始前）毎週月曜日（前日）
+- id: 911
+  space_id: 1
+  task_id: 91
+  cycle: weekly
+  wday: mon
+  handling_holiday: before
+  period: 1
+# （終了後）毎週月曜日（前日）
+- id: 921
+  space_id: 1
+  task_id: 92
+  cycle: weekly
+  wday: mon
+  handling_holiday: before
+  period: 1
+# （スペース3）毎週月曜日（前日）
+- id: 931
+  space_id: 3
+  task_id: 93
+  cycle: weekly
+  wday: mon
+  handling_holiday: before
+  period: 1
+# （スペース5）毎週月曜日（前日）
+- id: 941
+  space_id: 5
+  task_id: 94
+  cycle: weekly
+  wday: mon
+  handling_holiday: before
+  period: 1
+# （サンプル）毎週月曜日（前日）
+- id: 951
+  space_id: 100
+  task_id: 95
+  cycle: weekly
+  wday: mon
+  handling_holiday: before
+  period: 1

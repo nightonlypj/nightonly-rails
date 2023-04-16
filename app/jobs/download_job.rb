@@ -52,18 +52,20 @@ class DownloadJob < ApplicationJob
   def file_data(output_items)
     case @download.model.to_sym
     when :member
-      set_space
+      set_space_current_member
       member_file_data(output_items)
     else
+      # :nocov:
       raise "model not found.(#{model})"
+      # :nocov:
     end
   end
 
-  def set_space
+  def set_space_current_member
     @space = @download.space
     raise 'space not found.' if @space.blank?
 
-    @current_member = Member.where(space: @space, user: @download.user)&.first
+    @current_member = Member.where(space: @space, user: @download.user).first
     raise 'current_member not found.' if @current_member.blank?
     raise 'power not found.' unless @current_member.power_admin?
   end
@@ -77,7 +79,9 @@ class DownloadJob < ApplicationJob
     when :utf8
       result
     else
+      # :nocov:
       raise "char_code not found.(#{char_code})"
+      # :nocov:
     end
   end
 end
