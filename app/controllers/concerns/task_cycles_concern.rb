@@ -117,10 +117,10 @@ module TaskCyclesConcern
     return unless @months.blank? || @months.include?(event_end_date.strftime('%Y%m'))
 
     event_start_date = end_to_start_date(event_end_date, task_cycle.period)
-    if @exist_task_events.key?(task_cycle_id: task_cycle.id, ended_date: event_end_date)
+    if @exist_task_events.key?(task_id: task_cycle.task_id, ended_date: event_end_date)
       false
     else
-      @next_events.push([task_cycle, event_start_date, event_end_date])
+      @next_events[{ task_id: task_cycle.task_id, ended_date: event_end_date }] = [task_cycle, event_start_date, event_end_date]
       true
     end
   end

@@ -86,14 +86,14 @@ namespace :task_event do
 
     task_events = TaskEvent.where(space: space, started_date: start_date..)
                            .eager_load(task_cycle: :task).merge(Task.order(:priority)).order(:id)
-    @exist_task_events = task_events.map { |task_event| [{ task_cycle_id: task_event.task_cycle_id, ended_date: task_event.ended_date }, true] }.to_h
+    @exist_task_events = task_events.map { |task_event| [{ task_id: task_event.task_cycle.task_id, ended_date: task_event.ended_date }, true] }.to_h
     @logger.debug("@exist_task_events: #{@exist_task_events}")
 
-    @next_events = []
+    @next_events = {}
     task_cycles.each do |task_cycle|
       cycle_set_next_events(task_cycle, task_cycle.task, start_date, end_date)
     end
-    insert_events = @next_events.filter { |_, event_start_date, event_end_date| event_start_date <= next_start_date && event_end_date >= target_date }
+    insert_events = @next_events.values.filter { |_, event_start_date, event_end_date| event_start_date <= next_start_date && event_end_date >= target_date }
     @logger.info("insert: #{insert_events.count}")
     return 0 if insert_events.count.zero?
 

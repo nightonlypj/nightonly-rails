@@ -66,8 +66,8 @@ class TasksController < ApplicationAuthController
       @task_events = []
     end
 
-    @next_events = []
-    @exist_task_events = @task_events.map { |task_event| [{ task_cycle_id: task_event.task_cycle_id, ended_date: task_event.ended_date }, true] }.to_h
+    @next_events = {}
+    @exist_task_events = @task_events.map { |task_event| [{ task_id: task_event.task_cycle.task_id, ended_date: task_event.ended_date }, true] }.to_h
     logger.debug("@exist_task_events: #{@exist_task_events}")
 
     set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
