@@ -270,7 +270,7 @@ namespace :task_event do
 
   def slack_task_events(type, task_events, default_mention, space_url)
     text = ''
-    task_events.each do |_, task_event|
+    task_events.each_value do |task_event|
       if task_event.assigned_user.blank?
         assigned_user = "#{I18n.t('notifier.task_event.assigned.notfound')} #{default_mention}"
       else

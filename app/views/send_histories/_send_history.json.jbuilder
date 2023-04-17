@@ -1,3 +1,4 @@
+json.id send_history.id
 json.target_date l(send_history.target_date, format: :json)
 
 json.notice_target send_history.notice_target
@@ -34,4 +35,19 @@ json.started_at l(send_history.started_at, format: :json)
 json.completed_at l(send_history.completed_at, format: :json, default: nil)
 
 json.target_count send_history.target_count
-json.error_message send_history.error_message if detail && @current_member.present?
+if detail
+  json.error_message send_history.error_message if @current_member.present?
+
+  json.next_task_events do
+    json.partial! 'task_events', task_event_ids: @next_task_event_ids, task_events: @task_events
+  end
+  json.expired_task_events do
+    json.partial! 'task_events', task_event_ids: @expired_task_event_ids, task_events: @task_events
+  end
+  json.end_today_task_events do
+    json.partial! 'task_events', task_event_ids: @end_today_task_event_ids, task_events: @task_events
+  end
+  json.date_include_task_events do
+    json.partial! 'task_events', task_event_ids: @date_include_task_event_ids, task_events: @task_events
+  end
+end
