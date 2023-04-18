@@ -160,7 +160,7 @@ namespace :task_event do
 
       case send_target.to_sym
       when :slack
-        send_history = send_notice_slack(dry_run, space, target_date, send_history, space_url)
+        send_history = send_notice_slack(dry_run, space, target_date, notice_target, send_history, space_url)
         send_history.save! unless dry_run
       when :email
         send_history = send_notice_email(dry_run, space, target_date, send_history, space_url)
@@ -239,24 +239,26 @@ namespace :task_event do
     }
   end
 
-  def send_notice_slack(dry_run, space, target_date, send_history, space_url)
+  def send_notice_slack(dry_run, space, target_date, notice_target, send_history, space_url)
     add_target_date = target_date == Time.current.to_date ? nil : "(#{I18n.l(target_date)})"
     default_mention = send_history.send_setting.slack_mention
     default_mention = "<#{html_escape(default_mention)}>" if default_mention.present?
+    username = "#{I18n.t('app_name')}#{I18n.t('sub_title')}#{Settings.env_name}"
     send_data = {
       text: "[#{I18n.t("enums.send_history.notice_target.#{send_history.notice_target}")}]#{add_target_date} " +
             I18n.t('notifier.task_event.message', name: "<#{space_url}|#{html_escape(space.name)}>"),
       attachments: [
-        send_history.notice_target.to_sym == :next ? slack_task_events(:next, @next_task_events, default_mention, space_url) : nil,
-        slack_task_events(:expired, @expired_task_events, default_mention, space_url),
-        slack_task_events(:end_today, @end_today_task_events, default_mention, space_url),
-        slack_task_events(:date_include, @date_include_task_events, default_mention, space_url)
+        send_history.notice_target.to_sym == :next ? slack_task_events(:next, notice_target, @next_task_events, default_mention, space_url) : nil,
+        slack_task_events(:expired, notice_target, @expired_task_events, default_mention, space_url),
+        slack_task_events(:end_today, notice_target, @end_today_task_events, default_mention, space_url),
+        slack_task_events(:date_include, notice_target, @date_include_task_events, default_mention, space_url)
+          .merge(footer: username, footer_icon: Settings.logo_image_url)
       ].compact
     }
     send_history.send_data = send_data.to_s
     begin
       slack_webhook_url = send_history.send_setting.slack_webhook_url
-      notifier = Slack::Notifier.new(slack_webhook_url, username: "#{I18n.t('app_name')}#{Settings.env_name}", icon_emoji: ':alarm_clock:')
+      notifier = Slack::Notifier.new(slack_webhook_url, username: username, icon_emoji: ':alarm_clock:') # NOTE: icon_urlだと背景が透過にならない為
       notifier.post(send_data) unless dry_run
       send_history.status = :success
     rescue StandardError => e
@@ -268,7 +270,7 @@ namespace :task_event do
     send_history
   end
 
-  def slack_task_events(type, task_events, default_mention, space_url)
+  def slack_task_events(type, notice_target, task_events, default_mention, space_url)
     text = ''
     task_events.each_value do |task_event|
       if task_event.assigned_user.blank?
@@ -278,8 +280,9 @@ namespace :task_event do
         assigned_user = slack_user.present? ? "<@#{html_escape(slack_user.memberid)}>" : html_escape(task_event.assigned_user.name)
       end
       priority = task_event.task_cycle.task.priority.to_sym == :none ? '' : "[#{task_event.task_cycle.task.priority_i18n}]"
-      text += "#{slack_status_icon(type, task_event.status.to_sym, task_event.assigned_user)} [#{task_event.status_i18n}] #{assigned_user}\n" \
-              "<#{space_url}?code=#{task_event.code}|#{priority}#{html_escape(task_event.task_cycle.task.title)}>\n\n"
+      period = I18n.l(task_event.started_date) + (task_event.started_date == task_event.ended_date ? '' : "〜#{I18n.l(task_event.ended_date)}")
+      text += "#{slack_status_icon(type, notice_target, task_event.status.to_sym, task_event.assigned_user)} [#{task_event.status_i18n}] #{assigned_user}\n" \
+              "<#{space_url}?code=#{task_event.code}|#{priority}#{html_escape(task_event.task_cycle.task.title)}> (#{period})\n\n"
     end
 
     {
@@ -289,7 +292,7 @@ namespace :task_event do
     }
   end
 
-  def slack_status_icon(type, status, assigned_user)
+  def slack_status_icon(type, notice_target, status, assigned_user)
     case type
     when :next
       ':alarm_clock:'
@@ -298,7 +301,9 @@ namespace :task_event do
     when :end_today
       case status
       when :untreated, :waiting_premise, :confirmed_premise
-        assigned_user.blank? ? ':warning:' : ':umbrella:'
+        return ':warning:' if assigned_user.blank?
+
+        notice_target == :start ? ':cloud:' : ':umbrella:'
       when :processing, :pending
         ':cloud:'
       when :waiting_confirm
