@@ -533,7 +533,7 @@ ja:
       create: 'タスクを追加しました。'
       update: 'タスクの設定を変更しました。'
     task_event:
-      update: 'イベントの情報を変更しました。'
+      update: '通知イベントの情報を変更しました。'
     slack_user:
       update: 'メンバーIDを変更しました。'
     send_setting:
