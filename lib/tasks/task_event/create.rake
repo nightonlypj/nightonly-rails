@@ -243,9 +243,9 @@ namespace :task_event do
     add_target_date = target_date == Time.current.to_date ? nil : "(#{I18n.l(target_date)})"
     default_mention = send_history.send_setting.slack_mention
     default_mention = "<#{html_escape(default_mention)}>" if default_mention.present?
-    username = "#{I18n.t('app_name')}#{I18n.t('sub_title')}#{Settings.env_name}"
+    username = "#{I18n.t('app_name')}#{I18n.t('sub_title_short')}#{Settings.env_name}"
     send_data = {
-      text: "[#{I18n.t("enums.send_history.notice_target.#{send_history.notice_target}")}]#{add_target_date} " +
+      text: "#{add_target_date}[#{I18n.t("enums.send_history.notice_target.#{send_history.notice_target}")}] " +
             I18n.t('notifier.task_event.message', name: "<#{space_url}|#{html_escape(space.name)}>"),
       attachments: [
         send_history.notice_target.to_sym == :next ? slack_task_events(:next, notice_target, @next_task_events, default_mention, space_url) : nil,

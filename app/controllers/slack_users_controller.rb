@@ -27,38 +27,44 @@ class SlackUsersController < ApplicationAuthController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_slack_users
-    members = current_user.members.joins({ space: :send_setting_active })
-                          .merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:id)
-    slack_domain_ids = members.map { |member| member.space.send_setting_active.first.slack_domain_id }.uniq
+    slack_domain_ids = current_members.map { |member| member.space.send_setting_active.first.slack_domain_id }.uniq
     @slack_domains = SlackDomain.where(id: slack_domain_ids).order(:name)
     @slack_users = SlackUser.where(slack_domain_id: slack_domain_ids, user: current_user).index_by(&:slack_domain_id)
   end
 
+  MEMBERID_KEY = 'activerecord.errors.models.slack_user.attributes.memberid'.freeze
   def validate_params_update
     errors = {}
     @memberids = {}
     if params[:slack_users].blank?
-      errors[:memberid1] = [t('activerecord.errors.models.slack_user.attributes.memberid.blank')]
+      errors[:memberid1] = [t("#{MEMBERID_KEY}.blank")]
     else
-      members = current_user.members.joins({ space: { send_setting_active: :slack_domain } })
-                            .merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:id)
-      domain_names = members.map { |member| member.space.send_setting_active.first.slack_domain.name }.uniq
+      domain_names = current_members.map { |member| member.space.send_setting_active.first.slack_domain.name }.uniq
 
       params[:slack_users].each.with_index(1) do |slack_user, index|
-        next errors["name#{index}".to_sym] = [t('errors.messages.param.blank')] if slack_user[:name].blank?
-        next errors["name#{index}".to_sym] = [t('errors.messages.param.not_exist')] unless domain_names.include?(slack_user[:name])
+        key = "name#{index}".to_sym
+        next errors[key] = [t('errors.messages.param.blank')] if slack_user[:name].blank?
+        next errors[key] = [t('errors.messages.param.not_exist')] unless domain_names.include?(slack_user[:name])
 
-        if slack_user[:memberid].length > Settings.slack_user_memberid_maximum
-          key = 'activerecord.errors.models.slack_user.attributes.memberid.too_long'
-          next errors["memberid#{index}".to_sym] = [t(key, count: Settings.slack_user_memberid_maximum)]
+        if slack_user[:memberid].present?
+          key = "memberid#{index}".to_sym
+          minimum = Settings.slack_user_memberid_minimum
+          next errors[key] = [t("#{MEMBERID_KEY}.too_short", count: minimum)] if slack_user[:memberid].length < minimum
+
+          maximum = Settings.slack_user_memberid_maximum
+          next errors[key] = [t("#{MEMBERID_KEY}.too_long", count: maximum)] if slack_user[:memberid].length > maximum
+          next errors[key] = [t("#{MEMBERID_KEY}.invalid")] if (slack_user[:memberid] =~ /^[A-Z0-9]*$/).nil?
         end
-        # TODO: 英字（大文字）・数字のみ
 
         @memberids[slack_user[:name]] = slack_user[:memberid]
       end
     end
 
     render './failure', locals: { errors: errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if errors.present?
+  end
+
+  def current_members
+    current_user.members.joins({ space: { send_setting_active: :slack_domain } }).merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:id)
   end
 
   # Only allow a list of trusted parameters through.

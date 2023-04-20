@@ -1,4 +1,4 @@
-[<%= t("enums.send_history.notice_target.#{@send_history.notice_target}") %>]<%= "(#{I18n.l(@target_date)})" if @target_date.present? %> <%= t('notifier.task_event.message', name: link_to(html_escape(@space.name), @space_url)).html_safe %><br>
+<%= "(#{I18n.l(@target_date)})" if @target_date.present? %>[<%= t("enums.send_history.notice_target.#{@send_history.notice_target}") %>] <%= t('notifier.task_event.message', name: link_to(html_escape(@space.name), @space_url)).html_safe %><br>
 <br>
 <% if @send_history.notice_target.to_sym == :next %>
 <%= render 'task_events', type: :next, task_events: @next_task_events, space_url: @space_url, color: 'green' %>

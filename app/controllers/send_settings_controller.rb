@@ -49,13 +49,17 @@ class SendSettingsController < ApplicationAuthController
     end
   end
 
+  SLACK_NAME_KEY = 'activerecord.errors.models.send_setting.attributes.slack_name'.freeze
   def validate_params_update
     @new_send_setting = SendSetting.new(send_setting_params.merge(space: @space, last_updated_user: current_user))
     @new_send_setting.valid?
 
     @slack_name = param_slack_name
-    @new_send_setting.errors.add(:slack_name, t('activerecord.errors.models.send_setting.attributes.slack_name.blank')) if @new_send_setting.slack_enabled && @slack_name.blank?
-    # TODO: 英字（小文字）・数字・ハイフンのみ（slack_enabledがfalseでも）
+    if @new_send_setting.slack_enabled && @slack_name.blank?
+      @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.blank"))
+    elsif @slack_name.present? # NOTE: slack_enabledがfalseでもチェックする（INSERTする為）
+      @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.invalid")) if (@slack_name =~ /^[a-z0-9\-]*$/).nil?
+    end
     return unless @new_send_setting.errors.any?
 
     render './failure', locals: { errors: @new_send_setting.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity

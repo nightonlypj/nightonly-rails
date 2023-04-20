@@ -2,6 +2,8 @@ json.array! task_event_ids do |id|
   task_event = task_events[id.to_i]
 
   json.code task_event.code
+  json.start l(task_event.started_date, format: :json)
+  json.end l(task_event.ended_date, format: :json) if task_event.started_date != task_event.ended_date
   json.status task_event.status
   json.status_i18n task_event.status_i18n
 

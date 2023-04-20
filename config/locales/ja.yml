@@ -1,6 +1,7 @@
 ja:
   app_name: '忘れん坊（β版）'
   sub_title: ': 定期タスクの管理・リマインダー（Slack・メールに対応）'
+  sub_title_short: ': 定期タスクの管理・リマインダー'
   my_name: 'Night Only Project.'
   my_url: 'https://nightonly.com/'
   activerecord:
@@ -317,19 +318,23 @@ ja:
         slack_user:
           attributes:
             memberid:
+              too_short: '%{count}文字以上で入力してください。'
               too_long: '%{count}文字以下で入力してください。'
+              invalid: '英字（大文字）・数字のみで入力してください。'
         send_setting:
           attributes:
             slack_enabled:
               inclusion: '選択してください。'
             slack_name:
               blank: '入力してください。'
+              invalid: '英字（小文字）・数字・ハイフンのみで入力してください。'
             slack_webhook_url:
               blank: '入力してください。'
               too_long: '%{count}文字以下で入力してください。'
               invalid: '形式が正しくありません。'
             slack_mention:
               too_long: '%{count}文字以下で入力してください。'
+              invalid: '形式が正しくありません。'
             email_enabled:
               inclusion: '選択してください。'
             email_address:
