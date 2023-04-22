@@ -6,9 +6,9 @@ class SendSetting < ApplicationRecord
   validates :slack_enabled, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validates :slack_webhook_url, presence: true, if: proc { |setting| setting.slack_enabled }
   validates :slack_webhook_url, length: { maximum: Settings.slack_webhook_url_maximum }, allow_blank: true
-  validates :slack_webhook_url, format: { with: %r{\Ahttps?://[^(\s|　)]+\.[^(\s|　)]+\Z} }, if: proc { |setting| setting.slack_enabled && errors[:slack_webhook_url].blank? }
+  validates :slack_webhook_url, format: { with: %r{\Ahttps?://[A-Za-z0-9.-]+/[A-Za-z0-9/]+\Z} }, if: proc { |setting| setting.slack_enabled && errors[:slack_webhook_url].blank? }
   validates :slack_mention, length: { maximum: Settings.slack_mention_maximum }, allow_blank: true
-  validates :slack_mention, format: { with: /\A[A-Za-z0-9!^@]*\Z/ }, if: proc { |setting| setting.slack_enabled && errors[:slack_mention].blank? }
+  validates :slack_mention, format: { with: /\A[A-Za-z0-9!^@|]*\Z/ }, if: proc { |setting| setting.slack_enabled && errors[:slack_mention].blank? }
   validates :email_enabled, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validates :email_address, presence: true, if: proc { |setting| setting.email_enabled }
   validates :email_address, email: true, allow_blank: true, if: proc { |setting| setting.email_enabled }

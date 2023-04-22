@@ -64,7 +64,8 @@ class SlackUsersController < ApplicationAuthController
   end
 
   def current_members
-    current_user.members.joins({ space: { send_setting_active: :slack_domain } }).merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:id)
+    current_user.members.where(power: %i[admin writer]).joins({ space: { send_setting_active: :slack_domain } })
+                .merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:id)
   end
 
   # Only allow a list of trusted parameters through.

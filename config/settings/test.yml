@@ -103,10 +103,12 @@ task_event_memo_maximum: 14 # NOTE: (6+8?)以上 = "memo(#{n})"
 
 ## Slackユーザー
 # SlackのメンバーIDの最大文字数
-# slack_user_memberid_minimum: 10
+# slack_user_memberid_minimum: 11
 slack_user_memberid_maximum: 16 # NOTE: Faker::Number.hexadecimal(digits: 11).upcase
 
 ## 通知設定
+# [Slack]ドメイン名（サブドメイン）の最大文字数
+# slack_domain_name_maximum: 32
 # [Slack]Webhook URLの最大文字数
 slack_webhook_url_maximum: 64 # NOTE: Faker::Internet.url
 # [Slack]メンションの最大文字数

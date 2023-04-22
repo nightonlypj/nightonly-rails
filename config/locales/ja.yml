@@ -327,6 +327,7 @@ ja:
               inclusion: '選択してください。'
             slack_name:
               blank: '入力してください。'
+              too_long: '%{count}文字以下で入力してください。'
               invalid: '英字（小文字）・数字・ハイフンのみで入力してください。'
             slack_webhook_url:
               blank: '入力してください。'

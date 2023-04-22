@@ -49,20 +49,40 @@ class SendSettingsController < ApplicationAuthController
     end
   end
 
-  SLACK_NAME_KEY = 'activerecord.errors.models.send_setting.attributes.slack_name'.freeze
   def validate_params_update
     @new_send_setting = SendSetting.new(send_setting_params.merge(space: @space, last_updated_user: current_user))
     @new_send_setting.valid?
-
-    @slack_name = param_slack_name
-    if @new_send_setting.slack_enabled && @slack_name.blank?
-      @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.blank"))
-    elsif @slack_name.present? # NOTE: slack_enabledがfalseでもチェックする（INSERTする為）
-      @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.invalid")) if (@slack_name =~ /^[a-z0-9\-]*$/).nil?
-    end
+    validate_slack_name
     return unless @new_send_setting.errors.any?
 
     render './failure', locals: { errors: @new_send_setting.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
+  end
+
+  SLACK_NAME_KEY = 'activerecord.errors.models.send_setting.attributes.slack_name'.freeze
+  def validate_slack_name
+    @slack_name = param_slack_name
+    if @new_send_setting.slack_enabled && @slack_name.blank?
+      @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.blank"))
+      return
+    end
+    return if @slack_name.blank?
+
+    maximum = Settings.slack_domain_name_maximum
+    if @slack_name.length > maximum
+      if @new_send_setting.slack_enabled
+        @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.too_long", count: maximum))
+      else
+        @slack_name = nil # NOTE: 不正値がINSERTされないように空にする
+      end
+      return
+    end
+    if (@slack_name =~ /^[a-z0-9-]*$/).nil?
+      if @new_send_setting.slack_enabled
+        @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.invalid"))
+      else
+        @slack_name = nil
+      end
+    end
   end
 
   # Only allow a list of trusted parameters through.
