@@ -4,11 +4,13 @@ class TasksController < ApplicationAuthController
   before_action :response_not_acceptable_for_not_api
   before_action :set_space_current_member_auth_private
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy]
-  before_action :check_power_writer, only: %i[create update destroy]
+  before_action :check_power_admin, only: :destroy
+  before_action :check_power_writer, only: %i[create update]
   before_action :set_task, only: %i[show update]
   before_action :set_params_index, only: :index
   before_action :validate_params_create, only: :create
   before_action :validate_params_update, only: :update
+  before_action :set_params_destroy, :validate_params_destroy, only: :destroy
 
   # GET /tasks/:space_code(.json) タスク一覧API
   def index
@@ -45,9 +47,14 @@ class TasksController < ApplicationAuthController
     render_success('notice.task.update')
   end
 
-  # POST /tasks/:space_code/delete/:id(.json) タスク削除API(処理)
+  # POST /tasks/:space_code/delete(.json) タスク削除API(処理)
   def destroy
-    # TODO
+    key = @ids.count == @tasks.count ? 'destroy' : 'destroy_include_notfound'
+    @destroy_count = @tasks.count
+    notice = t("notice.task.#{key}", count: @ids.count.to_s(:delimited), destroy_count: @destroy_count.to_s(:delimited))
+
+    @tasks.destroy_all
+    render locals: { notice: notice }
   end
 
   private
@@ -224,6 +231,21 @@ class TasksController < ApplicationAuthController
     "#{month}01".to_date
   rescue StandardError
     nil
+  end
+
+  def set_params_destroy
+    @ids = params[:ids]&.compact_blank&.uniq
+  end
+
+  def validate_params_destroy
+    alert = nil
+    alert = 'alert.task.destroy.ids.blank' if @ids.blank?
+    if alert.blank?
+      @tasks = Task.where(space: @space, id: @ids).order(:id)
+      alert = 'alert.task.destroy.ids.notfound' if @tasks.empty?
+    end
+
+    render './failure', locals: { alert: t(alert) }, status: :unprocessable_entity if alert.present?
   end
 
   # Only allow a list of trusted parameters through.

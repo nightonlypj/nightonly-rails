@@ -510,6 +510,11 @@ ja:
       notfound: 'ファイルが見つかりません。'
       status:
         failure: 'ダウンロードファイルの作成に失敗しました。お問い合わせ頂くか、やり直してください。'
+    task:
+      destroy:
+        ids:
+          blank: '削除対象が指定されていません。'
+          notfound: '削除対象が見つかりません。'
   notice:
     user:
       image_update: '画像を変更しました。'
@@ -538,6 +543,8 @@ ja:
     task:
       create: 'タスクを追加しました。'
       update: 'タスクの設定を変更しました。'
+      destroy: '%{destroy_count}件のタスクを削除しました。'
+      destroy_include_notfound: '%{count}件中%{destroy_count}件のタスクを削除しました。'
     task_event:
       update: '通知イベントの情報を変更しました。'
     slack_user:

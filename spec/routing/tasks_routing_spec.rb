@@ -43,8 +43,8 @@ RSpec.describe TasksController, type: :routing do
 
     it 'routes to #destroy' do
       expect(delete: '/tasks/1').not_to be_routable
-      expect(post: "/tasks/#{space_code}/delete/1").to route_to('tasks#destroy', space_code: space_code, id: '1')
-      expect(post: "/tasks/#{space_code}/delete/1.json").to route_to('tasks#destroy', space_code: space_code, id: '1', format: 'json')
+      expect(post: "/tasks/#{space_code}/delete").to route_to('tasks#destroy', space_code: space_code)
+      expect(post: "/tasks/#{space_code}/delete.json").to route_to('tasks#destroy', space_code: space_code, format: 'json')
     end
   end
 end

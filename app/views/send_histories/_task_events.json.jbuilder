@@ -1,5 +1,9 @@
 json.array! task_event_ids do |id|
   task_event = task_events[id.to_i]
+  if task_event.blank?
+    json.deleted true
+    next
+  end
 
   json.code task_event.code
   json.start l(task_event.started_date, format: :json)
