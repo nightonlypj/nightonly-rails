@@ -10,6 +10,8 @@ class TaskEvent < ApplicationRecord
   validates :code, uniqueness: { case_sensitive: true }, allow_blank: true
   validates :status, presence: true
   validates :memo, length: { maximum: Settings.task_event_memo_maximum }, allow_blank: true
+  validates :last_ended_date, presence: true
+  validate :validate_last_ended_date
 
   scope :by_month, lambda { |months, last_date|
     return none if months.count.zero?
@@ -59,5 +61,14 @@ class TaskEvent < ApplicationRecord
   # 最終更新日時
   def last_updated_at
     updated_at == created_at ? nil : updated_at
+  end
+
+  private
+
+  def validate_last_ended_date
+    return if started_date.blank? || last_ended_date.blank?
+
+    return errors.add(:last_ended_date, :after) if last_ended_date < started_date
+    return errors.add(:last_ended_date, :before) if last_ended_date > (started_date + 1.month).end_of_month
   end
 end

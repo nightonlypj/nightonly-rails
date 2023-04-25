@@ -145,6 +145,7 @@ ja:
         task_cycle: 'タスク周期'
         started_date: '開始日'
         ended_date: '終了日'
+        last_ended_date: '最終終了日'
         status: 'ステータス'
         assigned_user: '担当者ID'
         assigned_at: '担当日時'
@@ -281,9 +282,9 @@ ja:
               too_long: '%{count}文字以下で入力してください。'
             started_date:
               blank: '入力してください。'
-              taken: '今日より後の日付を入力してください。'
+              before: '今日以降の日付を入力してください。'
             ended_date:
-              taken: '開始日より後の日付を入力してください。'
+              after: '開始日以降の日付を入力してください。'
         task_cycle:
           attributes:
             cycle:
@@ -315,6 +316,12 @@ ja:
               blank: '入力してください。'
               greater_than_or_equal_to: '%{count}以上の値を入力してください。'
               less_than_or_equal_to: '%{count}以下の値を入力してください。'
+        task_event:
+          attributes:
+            last_ended_date:
+              blank: '入力してください。'
+              after: '開始以降の日付を入力してください。'
+              before: 翌月末までの日付を入力してください。
         slack_user:
           attributes:
             memberid:

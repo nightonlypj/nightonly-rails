@@ -4,7 +4,7 @@ json.array! task_events.each do |task_event|
   json.task_id task_event.task_cycle.task_id
   json.priority_order Settings.priority_order[task.present? ? task.priority : task_event.task_cycle.task.priority]
   json.start l(task_event.started_date, format: :json)
-  json.end l(task_event.ended_date, format: :json) if task_event.started_date != task_event.ended_date
+  json.end l(task_event.last_ended_date, format: :json)
   json.status task_event.status
   json.status_i18n task_event.status_i18n
 end

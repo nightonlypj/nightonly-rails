@@ -67,12 +67,12 @@ class Task < ApplicationRecord
   def validate_started_date
     return if started_date.blank? || (id.present? && !started_date_changed?)
 
-    errors.add(:started_date, :taken) if started_date < Time.current.to_date
+    errors.add(:started_date, :before) if started_date < Time.current.to_date
   end
 
   def validate_ended_date
     return if started_date.blank? || ended_date.blank?
 
-    errors.add(:ended_date, :taken) if started_date > ended_date
+    errors.add(:ended_date, :after) if ended_date < started_date
   end
 end

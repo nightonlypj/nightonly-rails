@@ -13,6 +13,8 @@ class TaskEventsController < ApplicationAuthController
   def index
     @events = []
     @tasks = {}
+    @months = nil
+    @next_events = {}
 
     tomorrow = Time.current.to_date.tomorrow
     set_holidays(tomorrow, tomorrow + 1.month) # NOTE: 1ヶ月以上の休みはない前提
@@ -28,15 +30,13 @@ class TaskEventsController < ApplicationAuthController
       @task_events = []
     end
 
-    @next_events = {}
     next_start_date = [@start_date, Time.current.to_date].max
     return if next_start_date > @end_date
 
-    @exist_task_events = @task_events.map { |task_event| [{ task_id: task_event.task_cycle.task_id, ended_date: task_event.ended_date }, true] }.to_h
+    set_exist_task_events
     logger.debug("@exist_task_events: #{@exist_task_events}")
 
     set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
-    @months = nil
     task_cycles = TaskCycle.active.where(space: @space).by_month(cycle_months(next_start_date, @end_date) + [nil])
                            .eager_load(task: %i[created_user last_updated_user])
                            .by_task_period(next_start_date, @end_date).merge(Task.order(:priority)).order(:id)
@@ -117,6 +117,6 @@ class TaskEventsController < ApplicationAuthController
     params[:task_event] = TaskEvent.new.attributes if params[:task_event].blank? # NOTE: 変更なしで成功する為
     params[:task_event][:status] = nil if TaskEvent.statuses[params[:task_event][:status]].blank? # NOTE: ArgumentError対策
 
-    params.require(:task_event).permit(:status, :assign_myself, :assign_delete, :memo)
+    params.require(:task_event).permit(:last_ended_date, :status, :assign_myself, :assign_delete, :memo)
   end
 end

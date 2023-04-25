@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_04_08_084721) do
+ActiveRecord::Schema.define(version: 2023_04_24_102856) do
 
   create_table "admin_users", charset: "utf8", collation: "utf8_bin", comment: "管理者", force: :cascade do |t|
     t.string "name", null: false, comment: "氏名"
@@ -271,10 +271,11 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.bigint "last_updated_user_id", comment: "最終更新者ID"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.date "last_ended_date", null: false, comment: "最終終了日"
     t.index ["assigned_user_id"], name: "index_task_events_on_assigned_user_id"
     t.index ["code"], name: "index_task_events1", unique: true
     t.index ["last_updated_user_id"], name: "index_task_events_on_last_updated_user_id"
-    t.index ["space_id", "started_date", "ended_date", "id"], name: "index_task_events3"
+    t.index ["space_id", "started_date", "id"], name: "index_task_events3"
     t.index ["space_id", "status", "id"], name: "index_task_events4"
     t.index ["space_id"], name: "index_task_events_on_space_id"
     t.index ["task_cycle_id", "ended_date"], name: "index_task_events2", unique: true

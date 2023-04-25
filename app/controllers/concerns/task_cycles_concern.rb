@@ -7,6 +7,10 @@ module TaskCyclesConcern
     @holidays = Holiday.where(date: start_date..end_date).index_by(&:date)
   end
 
+  def set_exist_task_events
+    @exist_task_events = @task_events.map { |task_event| [{ task_id: task_event.task_cycle.task_id, ended_date: task_event.ended_date }, true] }.to_h
+  end
+
   def cycle_months(start_date, end_date)
     return [*start_date.month..end_date.month] if start_date.year == end_date.year
     return [*start_date.month..12, *1..end_date.month].uniq.sort if start_date.year == end_date.year + 1

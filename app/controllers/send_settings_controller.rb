@@ -52,10 +52,21 @@ class SendSettingsController < ApplicationAuthController
   def validate_params_update
     @new_send_setting = SendSetting.new(send_setting_params.merge(space: @space, last_updated_user: current_user))
     @new_send_setting.valid?
+    delete_invalid_value(:slack_enabled, :slack_webhook_url)
+    delete_invalid_value(:slack_enabled, :slack_mention)
+    delete_invalid_value(:email_enabled, :email_address)
+
     validate_slack_name
     return unless @new_send_setting.errors.any?
 
     render './failure', locals: { errors: @new_send_setting.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
+  end
+
+  def delete_invalid_value(enabled_key, targey_key)
+    return if @new_send_setting[enabled_key] || @new_send_setting.errors[targey_key].blank?
+
+    @new_send_setting[targey_key] = nil # NOTE: バリデーションエラーにならないように空にする
+    @new_send_setting.errors.delete(targey_key)
   end
 
   SLACK_NAME_KEY = 'activerecord.errors.models.send_setting.attributes.slack_name'.freeze

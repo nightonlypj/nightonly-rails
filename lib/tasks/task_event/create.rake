@@ -84,9 +84,9 @@ namespace :task_event do
     @logger.info("task_cycles.count: #{task_cycles.count}")
     return 0 if task_cycles.count.zero?
 
-    task_events = TaskEvent.where(space: space, started_date: start_date..)
-                           .eager_load(task_cycle: :task).merge(Task.order(:priority)).order(:id)
-    @exist_task_events = task_events.map { |task_event| [{ task_id: task_event.task_cycle.task_id, ended_date: task_event.ended_date }, true] }.to_h
+    @task_events = TaskEvent.where(space: space, started_date: start_date..)
+                            .eager_load(task_cycle: :task).merge(Task.order(:priority)).order(:id)
+    set_exist_task_events
     @logger.debug("@exist_task_events: #{@exist_task_events}")
 
     @next_events = {}
@@ -103,7 +103,8 @@ namespace :task_event do
     insert_params = { space_id: space.id, created_at: now, updated_at: now }
     insert_datas = insert_events.map do |task_cycle, event_start_date, event_end_date|
       index += 1
-      insert_params.merge(code: codes[index], task_cycle_id: task_cycle.id, started_date: event_start_date, ended_date: event_end_date)
+      insert_params.merge(code: codes[index], task_cycle_id: task_cycle.id,
+                          started_date: event_start_date, ended_date: event_end_date, last_ended_date: event_end_date)
     end
     @logger.debug("insert_datas: #{insert_datas}")
     TaskEvent.insert_all!(insert_datas) if !dry_run && insert_datas.present?
@@ -208,9 +209,9 @@ namespace :task_event do
     @task_events.each do |task_event|
       if task_event.started_date > target_date
         @next_task_events[task_event.id] = task_event if notice_target == :next
-      elsif task_event.ended_date < target_date
+      elsif task_event.last_ended_date < target_date
         @expired_task_events[task_event.id] = task_event
-      elsif task_event.ended_date == target_date
+      elsif task_event.last_ended_date == target_date
         @end_today_task_events[task_event.id] = task_event
       else
         @date_include_task_events[task_event.id] = task_event
@@ -280,7 +281,7 @@ namespace :task_event do
         assigned_user = slack_user.present? ? "<@#{html_escape(slack_user.memberid)}>" : html_escape(task_event.assigned_user.name)
       end
       priority = task_event.task_cycle.task.priority.to_sym == :none ? '' : "[#{task_event.task_cycle.task.priority_i18n}]"
-      period = I18n.l(task_event.started_date) + (task_event.started_date == task_event.ended_date ? '' : "〜#{I18n.l(task_event.ended_date)}")
+      period = I18n.l(task_event.started_date) + (task_event.started_date == task_event.last_ended_date ? '' : "〜#{I18n.l(task_event.last_ended_date)}")
       text += "#{slack_status_icon(type, notice_target, task_event.status.to_sym, task_event.assigned_user)} [#{task_event.status_i18n}] #{assigned_user}\n" \
               "<#{space_url}?code=#{task_event.code}|#{priority}#{html_escape(task_event.task_cycle.task.title)}> (#{period})\n\n"
     end
