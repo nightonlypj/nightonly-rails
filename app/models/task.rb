@@ -19,9 +19,7 @@ class Task < ApplicationRecord
   scope :search, lambda { |text|
     return if text&.strip.blank?
 
-    collate = connection_db_config.configuration_hash[:adapter] == 'mysql2' ? ' COLLATE utf8_unicode_ci' : ''
-    like = connection_db_config.configuration_hash[:adapter] == 'postgresql' ? 'ILIKE' : 'LIKE'
-    sql = "tasks.title#{collate} #{like} ?"
+    sql = "tasks.title #{search_like} ?"
 
     task = all
     text.split(/[[:blank:]]+/).each do |word|

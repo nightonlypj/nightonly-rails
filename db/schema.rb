@@ -12,7 +12,7 @@
 
 ActiveRecord::Schema.define(version: 2023_04_24_102856) do
 
-  create_table "admin_users", charset: "utf8", collation: "utf8_bin", comment: "管理者", force: :cascade do |t|
+  create_table "admin_users", charset: "utf8mb4", comment: "管理者", force: :cascade do |t|
     t.string "name", null: false, comment: "氏名"
     t.string "email", default: "", null: false, comment: "メールアドレス"
     t.string "encrypted_password", default: "", null: false, comment: "暗号化されたパスワード"
@@ -39,7 +39,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["unlock_token"], name: "index_admin_users4", unique: true
   end
 
-  create_table "download_files", charset: "utf8", collation: "utf8_bin", comment: "ダウンロードファイル", force: :cascade do |t|
+  create_table "download_files", charset: "utf8mb4", comment: "ダウンロードファイル", force: :cascade do |t|
     t.bigint "download_id", null: false, comment: "ダウンロードID"
     t.binary "body", size: :long, comment: "内容"
     t.datetime "created_at", precision: 6, null: false
@@ -47,7 +47,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["download_id"], name: "index_download_files_on_download_id"
   end
 
-  create_table "downloads", charset: "utf8", collation: "utf8_bin", comment: "ダウンロード", force: :cascade do |t|
+  create_table "downloads", charset: "utf8mb4", comment: "ダウンロード", force: :cascade do |t|
     t.bigint "user_id", null: false, comment: "ユーザーID"
     t.integer "status", default: 0, null: false, comment: "ステータス"
     t.datetime "requested_at", null: false, comment: "依頼日時"
@@ -71,7 +71,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["user_id"], name: "index_downloads_on_user_id"
   end
 
-  create_table "holidays", charset: "utf8", collation: "utf8_bin", comment: "祝日", force: :cascade do |t|
+  create_table "holidays", charset: "utf8mb4", comment: "祝日", force: :cascade do |t|
     t.date "date", null: false, comment: "日付"
     t.string "name", null: false, comment: "名称"
     t.datetime "created_at", precision: 6, null: false
@@ -79,7 +79,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["date"], name: "index_holidays1", unique: true
   end
 
-  create_table "infomations", charset: "utf8", collation: "utf8_bin", comment: "お知らせ", force: :cascade do |t|
+  create_table "infomations", charset: "utf8mb4", comment: "お知らせ", force: :cascade do |t|
     t.string "title", null: false, comment: "タイトル"
     t.string "summary", comment: "概要"
     t.text "body", comment: "本文"
@@ -99,7 +99,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["user_id"], name: "index_infomations_on_user_id"
   end
 
-  create_table "invitations", charset: "utf8", collation: "utf8_bin", comment: "招待", force: :cascade do |t|
+  create_table "invitations", charset: "utf8mb4", comment: "招待", force: :cascade do |t|
     t.string "code", null: false, comment: "コード"
     t.bigint "space_id", null: false, comment: "スペースID"
     t.string "email", comment: "メールアドレス"
@@ -125,7 +125,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["space_id"], name: "index_invitations_on_space_id"
   end
 
-  create_table "members", charset: "utf8", collation: "utf8_bin", comment: "メンバー", force: :cascade do |t|
+  create_table "members", charset: "utf8mb4", comment: "メンバー", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "user_id", null: false, comment: "ユーザーID"
     t.integer "power", null: false, comment: "権限"
@@ -147,7 +147,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["user_id"], name: "index_members_on_user_id"
   end
 
-  create_table "send_histories", charset: "utf8", collation: "utf8_bin", comment: "通知履歴", force: :cascade do |t|
+  create_table "send_histories", charset: "utf8mb4", comment: "通知履歴", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "send_setting_id", null: false, comment: "通知設定ID"
     t.date "target_date", null: false, comment: "対象日"
@@ -171,7 +171,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["target_date", "completed_at", "id"], name: "send_histories2"
   end
 
-  create_table "send_settings", charset: "utf8", collation: "utf8_bin", comment: "通知設定", force: :cascade do |t|
+  create_table "send_settings", charset: "utf8mb4", comment: "通知設定", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "slack_domain_id", comment: "SlackドメインID"
     t.boolean "slack_enabled", default: false, null: false, comment: "[Slack]通知する"
@@ -195,14 +195,14 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["updated_at", "id"], name: "send_settings2"
   end
 
-  create_table "slack_domains", charset: "utf8", collation: "utf8_bin", comment: "Slackドメイン", force: :cascade do |t|
+  create_table "slack_domains", charset: "utf8mb4", comment: "Slackドメイン", force: :cascade do |t|
     t.string "name", null: false, comment: "ドメイン名"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["name"], name: "index_slack_domains1", unique: true
   end
 
-  create_table "slack_users", charset: "utf8", collation: "utf8_bin", comment: "Slackユーザー", force: :cascade do |t|
+  create_table "slack_users", charset: "utf8mb4", comment: "Slackユーザー", force: :cascade do |t|
     t.bigint "slack_domain_id", null: false, comment: "SlackドメインID"
     t.bigint "user_id", null: false, comment: "ユーザーID"
     t.string "memberid", comment: "SlackのメンバーID"
@@ -214,7 +214,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["user_id"], name: "index_slack_users_on_user_id"
   end
 
-  create_table "spaces", charset: "utf8", collation: "utf8_bin", comment: "スペース", force: :cascade do |t|
+  create_table "spaces", charset: "utf8mb4", comment: "スペース", force: :cascade do |t|
     t.string "code", null: false, comment: "コード"
     t.string "image", comment: "画像"
     t.string "name", null: false, comment: "名称"
@@ -236,7 +236,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["process_priority", "id"], name: "index_spaces5"
   end
 
-  create_table "task_cycles", charset: "utf8", collation: "utf8_bin", comment: "タスク周期", force: :cascade do |t|
+  create_table "task_cycles", charset: "utf8mb4", comment: "タスク周期", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "task_id", null: false, comment: "タスクID"
     t.integer "cycle", null: false, comment: "周期"
@@ -258,7 +258,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["updated_at", "id"], name: "index_task_cycles2"
   end
 
-  create_table "task_events", charset: "utf8", collation: "utf8_bin", comment: "タスクイベント", force: :cascade do |t|
+  create_table "task_events", charset: "utf8mb4", comment: "タスクイベント", force: :cascade do |t|
     t.string "code", null: false, comment: "コード"
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "task_cycle_id", null: false, comment: "タスク周期ID"
@@ -282,7 +282,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["task_cycle_id"], name: "index_task_events_on_task_cycle_id"
   end
 
-  create_table "tasks", charset: "utf8", collation: "utf8_bin", comment: "タスク", force: :cascade do |t|
+  create_table "tasks", charset: "utf8mb4", comment: "タスク", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.integer "priority", default: 0, null: false, comment: "優先度"
     t.string "title", null: false, comment: "タイトル"
@@ -308,7 +308,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["updated_at", "id"], name: "index_tasks8"
   end
 
-  create_table "users", charset: "utf8", collation: "utf8_bin", comment: "ユーザー", force: :cascade do |t|
+  create_table "users", charset: "utf8mb4", comment: "ユーザー", force: :cascade do |t|
     t.string "code", null: false, comment: "コード"
     t.string "image", comment: "画像"
     t.string "name", null: false, comment: "氏名"
@@ -347,7 +347,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.index ["unlock_token"], name: "index_users4", unique: true
   end
 
-  create_table "versions", charset: "utf8", collation: "utf8_bin", force: :cascade do |t|
+  create_table "versions", charset: "utf8mb4", force: :cascade do |t|
     t.string "item_type", null: false
     t.bigint "item_id", null: false
     t.string "event", null: false
