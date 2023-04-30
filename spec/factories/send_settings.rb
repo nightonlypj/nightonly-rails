@@ -1,9 +1,11 @@
 FactoryBot.define do
   factory :send_setting do
-    start_notice_start_hour  { 10 }
-    # start_notice_required    { false }
-    next_notice_start_hour   { 17 }
-    # next_notice_required     { false }
+    start_notice_start_hour { Settings.default_start_notice_start_hour }
+    start_notice_completed  { Settings.default_start_notice_completed }
+    start_notice_required   { Settings.default_start_notice_required }
+    next_notice_start_hour  { Settings.default_next_notice_start_hour }
+    next_notice_completed   { Settings.default_next_notice_completed }
+    next_notice_required    { Settings.default_next_notice_required }
     association :space
 
     # Slack

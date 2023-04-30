@@ -47,6 +47,7 @@ class TaskEvent < ApplicationRecord
   }
 
   # ステータス
+  NOT_NOTICE_STATUS = %i[complete unnecessary].freeze
   enum status: {
     untreated: 0,         # 未処理
     waiting_premise: 1,   # 前提対応待ち

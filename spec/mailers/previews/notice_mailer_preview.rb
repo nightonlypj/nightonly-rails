@@ -9,7 +9,11 @@ class NoticeMailerPreview < ActionMailer::Preview
     next_task_events = notice_target == :next ? FactoryBot.build_stubbed_list(:task_event, rand(3), space: space, task_cycle: task_cycle) : nil
     expired_task_events = FactoryBot.build_stubbed_list(:task_event, rand(3), space: space, task_cycle: task_cycle)
     end_today_task_events = FactoryBot.build_stubbed_list(:task_event, rand(3), space: space, task_cycle: task_cycle)
-    date_include_task_events = FactoryBot.build_stubbed_list(:task_event, rand(3), space: space, task_cycle: task_cycle)
+    date_include_task_events = FactoryBot.build_stubbed_list(:task_event, rand(3), :yesterday, :assigned, space: space, task_cycle: task_cycle)
+    complete_task_events = [
+      FactoryBot.build_stubbed(:task_event, :completed, space: space, task_cycle: task_cycle),
+      FactoryBot.build_stubbed(:task_event, :completed, :yesterday, :assigned, space: space, task_cycle: task_cycle)
+    ]
     NoticeMailer.with(
       space: space,
       target_date: [Time.current, Time.current.yesterday][rand(2)].to_date,
@@ -19,6 +23,7 @@ class NoticeMailerPreview < ActionMailer::Preview
       expired_task_events: expired_task_events,
       end_today_task_events: end_today_task_events,
       date_include_task_events: date_include_task_events,
+      complete_task_events: complete_task_events,
       dry_run: true
     ).incomplete_task
   end

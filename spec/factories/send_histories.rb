@@ -17,7 +17,7 @@ FactoryBot.define do
     after(:stub) do |send_history|
       if send_history.send_setting.blank?
         send_history.space = FactoryBot.build_stubbed(:space) if send_history.space.blank?
-        send_history.send_setting = FactoryBot.build_stubbed(:task, space: send_history.space) if send_history.send_setting.blank?
+        send_history.send_setting = FactoryBot.build_stubbed(:task, space: send_history.space)
       else
         send_history.space = send_history.send_setting.space
       end

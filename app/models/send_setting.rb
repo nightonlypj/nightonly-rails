@@ -14,9 +14,11 @@ class SendSetting < ApplicationRecord
   validates :email_address, email: true, allow_blank: true, if: proc { |setting| setting.email_address.present? }
   validates :start_notice_start_hour, presence: true
   validates :start_notice_start_hour, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 22 }, allow_blank: true
+  validates :start_notice_completed, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validates :start_notice_required, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validates :next_notice_start_hour, presence: true
   validates :next_notice_start_hour, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 23 }, allow_blank: true
+  validates :next_notice_completed, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validates :next_notice_required, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validate :validate_start_hour
 

@@ -20,7 +20,7 @@ FactoryBot.define do
     after(:stub) do |task_cycle|
       if task_cycle.task.blank?
         task_cycle.space = FactoryBot.build_stubbed(:space) if task_cycle.space.blank?
-        task_cycle.task = FactoryBot.build_stubbed(:task, space: task_cycle.space) if task_cycle.task.blank?
+        task_cycle.task = FactoryBot.build_stubbed(:task, space: task_cycle.space)
       else
         task_cycle.space = task_cycle.task.space
       end

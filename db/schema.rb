@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_04_24_102856) do
+ActiveRecord::Schema.define(version: 2023_04_29_065900) do
 
   create_table "admin_users", charset: "utf8mb4", comment: "管理者", force: :cascade do |t|
     t.string "name", null: false, comment: "氏名"
@@ -165,6 +165,7 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.text "send_data", comment: "送信データ"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.text "completed_task_event_ids", comment: "完了したタスクイベントIDs"
     t.index ["send_setting_id"], name: "index_send_histories_on_send_setting_id"
     t.index ["space_id", "target_date", "notice_target"], name: "send_histories1"
     t.index ["space_id"], name: "index_send_histories_on_space_id"
@@ -187,6 +188,8 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.datetime "deleted_at", comment: "削除日時"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.boolean "start_notice_completed", default: true, null: false, comment: "[開始確認]完了通知"
+    t.boolean "next_notice_completed", default: true, null: false, comment: "[翌営業日・終了確認]完了通知"
     t.index ["deleted_at", "id"], name: "send_settings3"
     t.index ["last_updated_user_id"], name: "index_send_settings_on_last_updated_user_id"
     t.index ["slack_domain_id"], name: "index_send_settings_on_slack_domain_id"
@@ -272,11 +275,13 @@ ActiveRecord::Schema.define(version: 2023_04_24_102856) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.date "last_ended_date", null: false, comment: "最終終了日"
+    t.datetime "last_completed_at", comment: "最終完了日時"
     t.index ["assigned_user_id"], name: "index_task_events_on_assigned_user_id"
     t.index ["code"], name: "index_task_events1", unique: true
     t.index ["last_updated_user_id"], name: "index_task_events_on_last_updated_user_id"
     t.index ["space_id", "started_date", "id"], name: "index_task_events3"
     t.index ["space_id", "status", "id"], name: "index_task_events4"
+    t.index ["space_id", "status", "last_completed_at"], name: "index_task_events5"
     t.index ["space_id"], name: "index_task_events_on_space_id"
     t.index ["task_cycle_id", "ended_date"], name: "index_task_events2", unique: true
     t.index ["task_cycle_id"], name: "index_task_events_on_task_cycle_id"

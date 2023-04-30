@@ -31,14 +31,15 @@ namespace :task_event do
     total_notice_success_count = 0
     total_notice_failure_count = 0
     ActiveRecord::Base.connection_pool.with_connection do # NOTE: 念の為（PG::UnableToSend: no connection to the server対策）
-      set_holidays(target_date, target_date + 1.month) # NOTE: 1ヶ月以上の休みはない前提
-      before_business_date = handling_holiday_date(target_date, :before)
-      after_business_date = handling_holiday_date(target_date, :after)
-      next_business_date = handling_holiday_date(target_date.tomorrow, :after)
       start_date = target_date - 31.days # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
       end_date = target_date + 31.days
-      set_holidays(start_date, end_date)
-      @logger.info("business_date: #{before_business_date}, #{after_business_date}, #{next_business_date}, start_date: #{start_date}, end_date: #{end_date}")
+      set_holidays(start_date, end_date) # NOTE: 1ヶ月以上の休みはない前提
+      before_business_date = handling_holiday_date(target_date, :before)
+      after_business_date = handling_holiday_date(target_date, :after)
+      prev_business_date = handling_holiday_date(target_date.yesterday, :before)
+      next_business_date = handling_holiday_date(target_date.tomorrow, :after)
+      business_date = "#{before_business_date}, #{after_business_date}, #{prev_business_date}, #{next_business_date}"
+      @logger.info("start_date: #{start_date}, end_date: #{end_date}, business_date: #{business_date}")
 
       spaces = Space.active.eager_load(:send_setting_active).merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:process_priority, :id)
       count = spaces.count
@@ -60,14 +61,16 @@ namespace :task_event do
 
         if next_notice
           notice_target = :next
+          complete_start_date = target_date
         else
           @logger.info("start_notice_start: #{send_setting.start_notice_start_hour}")
           next if target_date + send_setting.start_notice_start_hour.hours > Time.current # NOTE: [開始確認]開始時間以降に通知
 
           notice_target = :start
+          complete_start_date = prev_business_date
         end
 
-        success_count, failure_count = send_notice_task_events(dry_run, space, target_date, notice_target, send_setting)
+        success_count, failure_count = send_notice_task_events(dry_run, space, target_date, complete_start_date, notice_target, send_setting)
         total_notice_success_count += success_count
         total_notice_failure_count += failure_count
       end
@@ -135,14 +138,22 @@ namespace :task_event do
   end
 
   # タスクイベント通知
-  def send_notice_task_events(dry_run, space, target_date, notice_target, send_setting)
+  def send_notice_task_events(dry_run, space, target_date, complete_start_date, notice_target, send_setting)
     enable_send_target = get_enable_send_target(space, target_date, notice_target, send_setting)
     return 0, 0 unless enable_send_target.values.any?
 
     # REVIEW: dry_runでは今回作成分が対象にならない
-    @task_events = TaskEvent.where(space: space).where.not(status: %i[complete unnecessary])
-                            .eager_load(task_cycle: :task).order(:status).merge(Task.order(:priority)).order(:id)
+    @processing_task_events = TaskEvent.where(space: space).where.not(status: TaskEvent::NOT_NOTICE_STATUS)
+                                       .eager_load(task_cycle: :task).order(:status).merge(Task.order(:priority)).order(:id)
     set_data_task_events(notice_target, target_date, space.send_setting_active.first.slack_domain_id, enable_send_target['slack'])
+
+    if send_setting["#{notice_target}_notice_completed"]
+      @complete_task_events = TaskEvent.where(space: space, status: TaskEvent::NOT_NOTICE_STATUS,
+                                              last_completed_at: complete_start_date.beginning_of_day..target_date.end_of_day)
+                                       .eager_load(task_cycle: :task).order(:last_completed_at)
+    else
+      @complete_task_events = []
+    end
 
     success_count = 0
     failure_count = 0
@@ -152,7 +163,7 @@ namespace :task_event do
       next unless enable_send_target[send_target]
 
       send_history = SendHistory.new(history_params.merge(send_target: send_target, started_at: Time.current))
-      if !send_setting["#{notice_target}_notice_required"] && @task_events.count.zero?
+      if !send_setting["#{notice_target}_notice_required"] && @processing_task_events.count.zero? && @complete_task_events.count.zero?
         send_history.status = :skip
         send_history.completed_at = Time.current
         send_history.save! unless dry_run
@@ -206,7 +217,7 @@ namespace :task_event do
     @end_today_task_events = {}
     @date_include_task_events = {}
     assigned_user_ids = {}
-    @task_events.each do |task_event|
+    @processing_task_events.each do |task_event|
       if task_event.started_date > target_date
         @next_task_events[task_event.id] = task_event if notice_target == :next
       elsif task_event.last_ended_date < target_date
@@ -232,16 +243,18 @@ namespace :task_event do
       send_setting: send_setting,
       target_date: target_date,
       notice_target: notice_target,
-      target_count: @task_events.count,
+      target_count: @processing_task_events.count + @complete_task_events.count,
       next_task_event_ids: @next_task_events.present? ? @next_task_events.keys.join(',') : nil,
       expired_task_event_ids: @expired_task_events.present? ? @expired_task_events.keys.join(',') : nil,
       end_today_task_event_ids: @end_today_task_events.present? ? @end_today_task_events.keys.join(',') : nil,
-      date_include_task_event_ids: @date_include_task_events.present? ? @date_include_task_events.keys.join(',') : nil
+      date_include_task_event_ids: @date_include_task_events.present? ? @date_include_task_events.keys.join(',') : nil,
+      completed_task_event_ids: @complete_task_events.present? ? @complete_task_events.ids : nil
     }
   end
 
   def send_notice_slack(dry_run, space, target_date, notice_target, send_history, space_url)
     add_target_date = target_date == Time.current.to_date ? nil : "(#{I18n.l(target_date)})"
+    notice_completed = send_history.send_setting["#{notice_target}_notice_completed"]
     default_mention = send_history.send_setting.slack_mention
     default_mention = "<#{html_escape(default_mention)}>" if default_mention.present?
     username = "#{I18n.t('app_name')}#{I18n.t('sub_title_short')}#{Settings.env_name}"
@@ -249,11 +262,12 @@ namespace :task_event do
       text: "#{add_target_date}[#{I18n.t("enums.send_history.notice_target.#{send_history.notice_target}")}] " +
             I18n.t('notifier.task_event.message', name: "<#{space_url}|#{html_escape(space.name)}>"),
       attachments: [
-        send_history.notice_target.to_sym == :next ? slack_task_events(:next, notice_target, @next_task_events, default_mention, space_url) : nil,
-        slack_task_events(:expired, notice_target, @expired_task_events, default_mention, space_url),
-        slack_task_events(:end_today, notice_target, @end_today_task_events, default_mention, space_url),
-        slack_task_events(:date_include, notice_target, @date_include_task_events, default_mention, space_url)
-          .merge(footer: username, footer_icon: Settings.logo_image_url)
+        send_history.notice_target.to_sym == :next ? slack_processing_task_events(:next, notice_target, @next_task_events, default_mention, space_url) : nil,
+        slack_processing_task_events(:expired, notice_target, @expired_task_events, default_mention, space_url),
+        slack_processing_task_events(:end_today, notice_target, @end_today_task_events, default_mention, space_url),
+        slack_processing_task_events(:date_include, notice_target, @date_include_task_events, default_mention, space_url)
+          .merge(notice_completed ? {} : { footer: username, footer_icon: Settings.logo_image_url }),
+        notice_completed ? slack_completed_task_events(notice_target, space_url).merge(footer: username, footer_icon: Settings.logo_image_url) : nil
       ].compact
     }
     send_history.send_data = send_data.to_s
@@ -271,25 +285,34 @@ namespace :task_event do
     send_history
   end
 
-  def slack_task_events(type, notice_target, task_events, default_mention, space_url)
+  def slack_processing_task_events(type, notice_target, task_events, default_mention, space_url)
     text = ''
     task_events.each_value do |task_event|
-      if task_event.assigned_user.blank?
-        assigned_user = "#{I18n.t('notifier.task_event.assigned.notfound')} #{default_mention}"
-      else
-        slack_user = @assigned_slack_users[task_event.assigned_user_id]
-        assigned_user = slack_user.present? ? "<@#{html_escape(slack_user.memberid)}>" : html_escape(task_event.assigned_user.name)
-      end
-      priority = task_event.task_cycle.task.priority.to_sym == :none ? '' : "[#{task_event.task_cycle.task.priority_i18n}]"
-      period = I18n.l(task_event.started_date) + (task_event.started_date == task_event.last_ended_date ? '' : "〜#{I18n.l(task_event.last_ended_date)}")
-      text += "#{slack_status_icon(type, notice_target, task_event.status.to_sym, task_event.assigned_user)} [#{task_event.status_i18n}] #{assigned_user}\n" \
-              "<#{space_url}?code=#{task_event.code}|#{priority}#{html_escape(task_event.task_cycle.task.title)}> (#{period})\n\n"
+      text += "#{slack_status_icon(type, notice_target, task_event.status.to_sym, task_event.assigned_user)} " \
+              "[#{task_event.status_i18n}] #{slack_assigned_user(task_event, default_mention)}\n" \
+              "<#{space_url}?code=#{task_event.code}|#{slack_priority(task_event)}#{html_escape(task_event.task_cycle.task.title)}> " \
+              "(#{slack_period(task_event)})\n\n"
     end
 
     {
       title: I18n.t("notifier.task_event.type.#{type}.title"),
       color: I18n.t("notifier.task_event.type.#{type}.slack_color"),
       text: task_events.count.positive? ? text : I18n.t('notifier.task_event.list.notfound')
+    }
+  end
+
+  def slack_completed_task_events(notice_target, space_url)
+    text = ''
+    @complete_task_events.each do |task_event|
+      text += ":sunny: [#{task_event.status_i18n}] #{slack_assigned_user(task_event)}\n" \
+              "<#{space_url}?code=#{task_event.code}|#{slack_priority(task_event)}#{html_escape(task_event.task_cycle.task.title)}> " \
+              "(#{slack_period(task_event)})\n\n"
+    end
+
+    {
+      title: I18n.t("notifier.task_event.type.complete.#{notice_target}.title"),
+      color: I18n.t("notifier.task_event.type.complete.#{notice_target}.slack_color"),
+      text: @complete_task_events.count.positive? ? text : I18n.t('notifier.task_event.list.notfound')
     }
   end
 
@@ -334,6 +357,27 @@ namespace :task_event do
     end
   end
 
+  def slack_assigned_user(task_event, default_mention = nil)
+    if TaskEvent::NOT_NOTICE_STATUS.include?(task_event.status.to_sym)
+      return I18n.t('notifier.task_event.assigned.notfound.not_notice') if task_event.assigned_user.blank?
+    else
+      return "#{I18n.t('notifier.task_event.assigned.notfound.notice')} #{default_mention}" if task_event.assigned_user.blank?
+
+      slack_user = @assigned_slack_users[task_event.assigned_user_id]
+      return "<@#{html_escape(slack_user.memberid)}>" if slack_user.present?
+    end
+
+    html_escape(task_event.assigned_user.name)
+  end
+
+  def slack_priority(task_event)
+    task_event.task_cycle.task.priority.to_sym == :none ? '' : "[#{task_event.task_cycle.task.priority_i18n}]"
+  end
+
+  def slack_period(task_event)
+    I18n.l(task_event.started_date) + (task_event.started_date == task_event.last_ended_date ? '' : "〜#{I18n.l(task_event.last_ended_date)}")
+  end
+
   def send_notice_email(dry_run, space, target_date, send_history, space_url)
     unless dry_run
       NoticeMailer.with(
@@ -344,7 +388,8 @@ namespace :task_event do
         next_task_events: @next_task_events.values,
         expired_task_events: @expired_task_events.values,
         end_today_task_events: @end_today_task_events.values,
-        date_include_task_events: @date_include_task_events.values
+        date_include_task_events: @date_include_task_events.values,
+        complete_task_events: @complete_task_events
       ).incomplete_task.deliver_now
     end
 

@@ -13,10 +13,12 @@ json.send_setting do
 
     json.start_notice do
       json.start_hour Settings.default_start_notice_start_hour
+      json.completed Settings.default_start_notice_completed
       json.required Settings.default_start_notice_required
     end
     json.next_notice do
       json.start_hour Settings.default_next_notice_start_hour
+      json.completed Settings.default_next_notice_completed
       json.required Settings.default_next_notice_required
     end
   else

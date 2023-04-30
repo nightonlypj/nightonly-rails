@@ -13,7 +13,7 @@ json.task do
 end
 
 json.event do
-  json.partial! 'task_event', task_event: @task_event, detail: true
+  json.partial! 'task_event', task: @task, task_event: @task_event, detail: true
 end
 
 if @task_event.task_cycle.deleted_at.present?

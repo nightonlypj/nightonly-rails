@@ -113,11 +113,13 @@ slack_user_memberid_maximum: 16 # NOTE: Faker::Number.hexadecimal(digits: 11).up
 slack_webhook_url_maximum: 64 # NOTE: Faker::Internet.url
 # [Slack]メンションの最大文字数
 slack_mention_maximum: 8 # NOTE: '!here'
-# [開始確認]デフォルト開始時間/必須
+# [開始確認]デフォルト開始時間/完了通知/必須
 # default_start_notice_start_hour: 10
+# default_start_notice_completed: true
 # default_start_notice_required: false
-# [翌営業日・終了確認]デフォルト開始時間/必須
+# [翌営業日・終了確認]デフォルト開始時間/完了通知/必須
 # default_next_notice_start_hour: 17
+# default_next_notice_completed: true
 # default_next_notice_required: false
 
 ## 通知履歴

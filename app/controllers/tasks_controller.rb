@@ -186,7 +186,7 @@ class TasksController < ApplicationAuthController
     case task_cycle.cycle.to_sym
     when :weekly
       keys = []
-      [*1..12].each do |month|
+      (1..12).each do |month|
         keys += TaskCycle.weeks.keys.map { |week| { month: month, week: week, wday: task_cycle.wday } }
       end
       [:wday, keys]

@@ -12,22 +12,15 @@ class TaskEventsController < ApplicationAuthController
   # GET /task_events/:space_code(.json) タスクイベント一覧API
   def index
     @events = []
-    @tasks = {}
     @months = nil
     @next_events = {}
 
-    tomorrow = Time.current.to_date.tomorrow
-    set_holidays(tomorrow, tomorrow + 1.month) # NOTE: 1ヶ月以上の休みはない前提
-    next_business_date = handling_holiday_date(tomorrow, :after)
-    if @start_date <= next_business_date
-      @task_events = TaskEvent.where(space: @space, started_date: @start_date..next_business_date)
-                              .eager_load(task_cycle: [task: %i[created_user last_updated_user]]).merge(Task.order(:priority)).order(:id)
-      @task_events.each do |task_event|
-        task_cycle = task_event.task_cycle
-        @tasks[task_cycle.task_id] = task_cycle.task if @tasks[task_cycle.task_id].blank?
-      end
-    else
-      @task_events = []
+    @tasks = {}
+    @task_events = TaskEvent.where(space: @space, started_date: @start_date..@end_date)
+                            .eager_load(task_cycle: [task: %i[created_user last_updated_user]]).merge(Task.order(:priority)).order(:id)
+    @task_events.each do |task_event|
+      task_cycle = task_event.task_cycle
+      @tasks[task_cycle.task_id] = task_cycle.task if @tasks[task_cycle.task_id].blank?
     end
 
     next_start_date = [@start_date, Time.current.to_date].max
@@ -53,6 +46,11 @@ class TaskEventsController < ApplicationAuthController
 
   # POST /task_events/:space_code/update/:id(.json) タスクイベント変更API(処理)
   def update
+    before_not_notice_status = TaskEvent::NOT_NOTICE_STATUS.include?(@task_event.status_was&.to_sym)
+    after_not_notice_status = TaskEvent::NOT_NOTICE_STATUS.include?(@task_event.status.to_sym)
+    @task_event.last_completed_at = Time.current if !before_not_notice_status && after_not_notice_status
+    @task_event.last_completed_at = nil if before_not_notice_status && !after_not_notice_status
+
     if @task_event.assign_myself
       @task_event.assigned_user = current_user
       @task_event.assigned_at = Time.current

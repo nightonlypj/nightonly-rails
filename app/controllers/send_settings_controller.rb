@@ -111,8 +111,10 @@ class SendSettingsController < ApplicationAuthController
       email_enabled: email[:enabled],
       email_address: email[:address].present? ? email[:address] : nil,
       start_notice_start_hour: start_notice[:start_hour],
+      start_notice_completed: start_notice[:completed],
       start_notice_required: start_notice[:required],
       next_notice_start_hour: next_notice[:start_hour],
+      next_notice_completed: next_notice[:completed],
       next_notice_required: next_notice[:required]
     }
   end

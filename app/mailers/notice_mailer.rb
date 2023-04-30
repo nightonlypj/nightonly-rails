@@ -9,6 +9,7 @@ class NoticeMailer < ApplicationMailer
     @expired_task_events = params[:expired_task_events]
     @end_today_task_events = params[:end_today_task_events]
     @date_include_task_events = params[:date_include_task_events]
+    @complete_task_events = params[:complete_task_events]
     begin
       @send_history.send_data = mail(
         from: "\"#{Settings.mailer_from.name.gsub(/%{app_name}/, t('app_name'))}\" <#{Settings.mailer_from.email}>",
