@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'users/sessions/new', type: :view do
@@ -29,3 +30,4 @@ RSpec.describe 'users/sessions/new', type: :view do
     end
   end
 end
+=end

@@ -1,13 +1,13 @@
 class SpacesController < ApplicationAuthController
   before_action :response_not_acceptable_for_not_html, only: %i[new edit delete undo_delete]
   before_action :authenticate_user!, only: %i[new create edit update delete destroy undo_delete undo_destroy]
-  before_action :redirect_spaces_for_user_destroy_reserved, only: %i[new create], if: :format_html?
+  # before_action :redirect_spaces_for_user_destroy_reserved, only: %i[new create], if: :format_html?
   before_action :set_space_current_member_auth_private_code, only: %i[show edit update delete destroy undo_delete undo_destroy]
-  before_action :redirect_space_for_user_destroy_reserved, only: %i[edit update delete destroy undo_delete undo_destroy], if: :format_html?
+  # before_action :redirect_space_for_user_destroy_reserved, only: %i[edit update delete destroy undo_delete undo_destroy], if: :format_html?
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy undo_destroy], unless: :format_html?
-  before_action :redirect_space_for_space_destroy_reserved, only: %i[delete destroy], if: :format_html?
+  # before_action :redirect_space_for_space_destroy_reserved, only: %i[delete destroy], if: :format_html?
   before_action :response_api_for_space_destroy_reserved, only: :destroy, unless: :format_html?
-  before_action :redirect_space_for_not_space_destroy_reserved, only: %i[undo_delete undo_destroy], if: :format_html?
+  # before_action :redirect_space_for_not_space_destroy_reserved, only: %i[undo_delete undo_destroy], if: :format_html?
   before_action :response_api_for_not_space_destroy_reserved, only: :undo_destroy, unless: :format_html?
   before_action :check_power_admin, only: %i[edit update delete destroy undo_delete undo_destroy]
   before_action :set_member_count, only: :show
@@ -26,11 +26,14 @@ class SpacesController < ApplicationAuthController
       @members = members.index_by(&:space_id)
     end
 
+=begin
     if format_html? && @spaces.current_page > [@spaces.total_pages, 1].max
       redirect_to @spaces.total_pages <= 1 ? spaces_path : spaces_path(page: @spaces.total_pages)
     end
+=end
   end
 
+=begin
   # GET /s/:code スペーストップ
   # GET /s/:code(.json) スペース詳細API
   def show; end
@@ -40,6 +43,7 @@ class SpacesController < ApplicationAuthController
     @space = Space.new
     @space.private = !Settings.enable_public_space || Settings.default_private_space
   end
+=end
 
   # POST /spaces/create スペース作成(処理)
   # POST /spaces/create(.json) スペース作成API(処理)
@@ -54,8 +58,10 @@ class SpacesController < ApplicationAuthController
     render :show, locals: { notice: t('notice.space.create') }, status: :created
   end
 
+=begin
   # GET /spaces/update/:code スペース設定変更
   def edit; end
+=end
 
   # POST /spaces/update/:code スペース設定変更(処理)
   # POST /spaces/update/:code(.json) スペース設定変更API(処理)
@@ -68,8 +74,10 @@ class SpacesController < ApplicationAuthController
     render :show, locals: { notice: t('notice.space.update') }
   end
 
+=begin
   # GET /spaces/delete/:code スペース削除
   def delete; end
+=end
 
   # POST /spaces/delete/:code スペース削除(処理)
   # POST /spaces/delete/:code(.json) スペース削除API(処理)
@@ -81,8 +89,10 @@ class SpacesController < ApplicationAuthController
     render :show, locals: { notice: t('notice.space.destroy') }
   end
 
+=begin
   # GET /spaces/undo_delete/:code スペース削除取り消し
   def undo_delete; end
+=end
 
   # POST /spaces/undo_delete/:code スペース削除取り消し(処理)
   # POST /spaces/undo_delete/:code(.json) スペース削除取り消しAPI(処理)
@@ -96,15 +106,18 @@ class SpacesController < ApplicationAuthController
 
   private
 
+=begin
   def redirect_spaces_for_user_destroy_reserved
     redirect_for_user_destroy_reserved(spaces_path)
   end
+=end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_space_current_member_auth_private_code
     set_space_current_member_auth_private(params[:code])
   end
 
+=begin
   def redirect_space_for_user_destroy_reserved
     redirect_for_user_destroy_reserved(space_path(@space.code))
   end
@@ -112,14 +125,17 @@ class SpacesController < ApplicationAuthController
   def redirect_space_for_space_destroy_reserved
     redirect_to space_path(@space.code), alert: t('alert.space.destroy_reserved') if @space.destroy_reserved?
   end
+=end
 
   def response_api_for_space_destroy_reserved
     render './failure', locals: { alert: t('alert.space.destroy_reserved') }, status: :unprocessable_entity if @space.destroy_reserved?
   end
 
+=begin
   def redirect_space_for_not_space_destroy_reserved
     redirect_to space_path(@space.code), alert: t('alert.space.not_destroy_reserved') unless @space.destroy_reserved?
   end
+=end
 
   def response_api_for_not_space_destroy_reserved
     render './failure', locals: { alert: t('alert.space.not_destroy_reserved') }, status: :unprocessable_entity unless @space.destroy_reserved?
@@ -174,9 +190,12 @@ class SpacesController < ApplicationAuthController
     params[:space] = Space.new.attributes if params[:space].blank? # NOTE: 変更なしで成功する為
 
     params[:space][:name] = params[:space][:name].to_s.gsub(/(^[[:space:]]+)|([[:space:]]+$)/, '') # NOTE: 前後のスペースを削除
+=begin
     if Settings.enable_public_space
       params[:space][:private] = nil if format_html? && !%w[true false].include?(params[:space][:private]) # NOTE: nilがエラーにならない為
     elsif target == :create
+=end
+    if target == :create
       params[:space][:private] = true
     else
       params[:space][:private] = @space.private

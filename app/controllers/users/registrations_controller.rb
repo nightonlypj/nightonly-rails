@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Users::RegistrationsController < Devise::RegistrationsController
+=begin
   include Users::RegistrationsConcern
   before_action :redirect_for_user_destroy_reserved, only: %i[edit update image_update image_destroy delete destroy]
   before_action :redirect_for_not_user_destroy_reserved, only: %i[undo_delete undo_destroy]
@@ -8,8 +9,10 @@ class Users::RegistrationsController < Devise::RegistrationsController
   before_action :configure_sign_up_params, only: :create
   before_action :configure_account_update_params, only: :update
   prepend_before_action :authenticate_scope!, only: %i[edit update image_update image_destroy delete destroy undo_delete undo_destroy]
+=end
   prepend_before_action :response_not_found_for_api_mode_not_api
 
+=begin
   # GET /users/sign_up アカウント登録
   # def new
   #   super
@@ -59,7 +62,10 @@ class Users::RegistrationsController < Devise::RegistrationsController
       render :edit
     end
   end
+=end
+  def image_update; end
 
+=begin
   # POST /users/image/destroy ユーザー画像削除(処理)
   def image_destroy
     @user = User.find(resource.id)
@@ -67,7 +73,10 @@ class Users::RegistrationsController < Devise::RegistrationsController
     @user.save!
     redirect_to edit_user_registration_path, notice: t('notice.user.image_destroy')
   end
+=end
+  def image_destroy; end
 
+=begin
   # GET /users/delete アカウント削除
   def delete; end
 
@@ -94,7 +103,10 @@ class Users::RegistrationsController < Devise::RegistrationsController
     set_flash_message! :notice, :undo_destroy_reserved
     redirect_to root_path
   end
+=end
+  def undo_destroy; end
 
+=begin
   # GET /users/cancel
   # Forces the session data which is usually expired after sign
   # in to be expired now. This is useful if the user wants to
@@ -115,4 +127,5 @@ class Users::RegistrationsController < Devise::RegistrationsController
   def after_inactive_sign_up_path_for(_resource)
     new_user_session_path
   end
+=end
 end

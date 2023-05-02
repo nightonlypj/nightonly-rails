@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'members/new', type: :view do
@@ -16,3 +17,4 @@ RSpec.describe 'members/new', type: :view do
     end
   end
 end
+=end

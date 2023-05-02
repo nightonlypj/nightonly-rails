@@ -3,7 +3,7 @@ class InvitationsController < ApplicationAuthController
   before_action :response_not_acceptable_for_not_html, only: %i[new edit]
   before_action :authenticate_user!
   before_action :set_space_current_member
-  before_action :redirect_invitations_for_user_destroy_reserved, only: %i[new create edit update], if: :format_html?
+  # before_action :redirect_invitations_for_user_destroy_reserved, only: %i[new create edit update], if: :format_html?
   before_action :response_api_for_user_destroy_reserved, only: %i[create update], unless: :format_html?
   before_action :check_power_admin
   before_action :set_invitation, only: %i[show edit update]
@@ -17,18 +17,22 @@ class InvitationsController < ApplicationAuthController
     @invitations = Invitation.where(space: @space).order(created_at: :desc, id: :desc)
                              .page(params[:page]).per(Settings.default_invitations_limit)
 
+=begin
     if format_html? && @invitations.current_page > [@invitations.total_pages, 1].max
       redirect_to @invitations.total_pages <= 1 ? invitations_path : invitations_path(page: @invitations.total_pages)
     end
+=end
   end
 
   # GET /invitations/:space_code/detail/:code(.json) 招待URL詳細API
   def show; end
 
+=begin
   # GET /invitations/:space_code/create 招待URL作成
   def new
     @invitation = Invitation.new(ended_time: '23:59')
   end
+=end
 
   # POST /invitations/:space_code/create 招待URL作成(処理)
   # POST /invitations/:space_code/create(.json) 招待URL作成API(処理)
@@ -64,9 +68,11 @@ class InvitationsController < ApplicationAuthController
 
   private
 
+=begin
   def redirect_invitations_for_user_destroy_reserved
     redirect_for_user_destroy_reserved(invitations_path(@space.code))
   end
+=end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_invitation

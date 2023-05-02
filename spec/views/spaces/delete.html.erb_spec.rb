@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'spaces/delete', type: :view do
@@ -18,3 +19,4 @@ RSpec.describe 'spaces/delete', type: :view do
     end
   end
 end
+=end

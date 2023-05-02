@@ -2,6 +2,7 @@ class TopController < ApplicationController
   include InfomationsConcern
   before_action :response_not_found_for_api_mode_not_api, unless: :development?
   before_action :response_not_acceptable_for_not_html
+=begin
   before_action :set_important_infomations, unless: :api_only_mode?
 
   # GET / トップページ
@@ -11,6 +12,7 @@ class TopController < ApplicationController
     @public_spaces = Space.where(private: false).active.order(created_at: :desc, id: :desc)
                           .limit(Settings.default_spaces_limit)
   end
+=end
 
   private
 
@@ -18,7 +20,9 @@ class TopController < ApplicationController
     Rails.env.development?
   end
 
+=begin
   def api_only_mode?
     Settings.api_only_mode
   end
+=end
 end

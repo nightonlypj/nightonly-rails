@@ -27,6 +27,7 @@ RSpec.describe 'Members', type: :request do
       let(:exist_user_mails)  { ['user1@example.com'] }
       let(:create_user_mails) { ['user2@example.com'] }
     end
+=begin
     shared_context 'set_flash_data_blank' do
       let(:emails) { [] }
       let(:exist_user_mails)  { [] }
@@ -71,6 +72,7 @@ RSpec.describe 'Members', type: :request do
         end
       end
     end
+=end
 
     # テストケース
     if Settings.api_only_mode
@@ -81,6 +83,7 @@ RSpec.describe 'Members', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[ログイン中][*][ある]flashがある（3件）' do
       include_context 'set_flash_data'
       it_behaves_like 'ToOK(html)'
@@ -158,5 +161,6 @@ RSpec.describe 'Members', type: :request do
       it_behaves_like 'ToMembers(html)', 'alert.user.destroy_reserved' # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 406
     end
+=end
   end
 end

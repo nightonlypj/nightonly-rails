@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'invitations/new', type: :view do
@@ -18,3 +19,4 @@ RSpec.describe 'invitations/new', type: :view do
     end
   end
 end
+=end

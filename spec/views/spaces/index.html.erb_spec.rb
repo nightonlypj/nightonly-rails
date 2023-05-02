@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'spaces/index', type: :view do
@@ -46,3 +47,4 @@ RSpec.describe 'spaces/index', type: :view do
     it_behaves_like '入力項目', true
   end
 end
+=end

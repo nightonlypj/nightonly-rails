@@ -21,6 +21,7 @@ RSpec.describe 'Invitations', type: :request do
       include_context 'set_member_power', :admin
     end
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200。対象項目が含まれる' do
@@ -28,6 +29,7 @@ RSpec.describe 'Invitations', type: :request do
         expect_space_html(response, space)
       end
     end
+=end
 
     # テストケース
     if Settings.api_only_mode
@@ -38,6 +40,7 @@ RSpec.describe 'Invitations', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[ログイン中][*]権限がある' do |power|
       include_context 'set_member_power', power
       it_behaves_like 'ToOK(html)'
@@ -99,5 +102,6 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToInvitations(html)', 'alert.user.destroy_reserved' # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 406
     end
+=end
   end
 end

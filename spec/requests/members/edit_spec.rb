@@ -25,6 +25,7 @@ RSpec.describe 'Members', type: :request do
       include_context 'set_member_power', :admin
     end
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200。対象項目が含まれる' do
@@ -32,6 +33,7 @@ RSpec.describe 'Members', type: :request do
         expect_space_html(response, space)
       end
     end
+=end
 
     # テストケース
     if Settings.api_only_mode
@@ -42,6 +44,7 @@ RSpec.describe 'Members', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[ログイン中][*][ある]対象メンバーがいる（他人）' do
       let_it_be(:show_user) { other_user }
       before_all { FactoryBot.create(:member, space: space, user: show_user) }
@@ -124,5 +127,6 @@ RSpec.describe 'Members', type: :request do
       it_behaves_like 'ToMembers(html)', 'alert.user.destroy_reserved' # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 406
     end
+=end
   end
 end

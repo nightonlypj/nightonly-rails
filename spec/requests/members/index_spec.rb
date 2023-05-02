@@ -19,11 +19,13 @@ RSpec.describe 'Members', type: :request do
 
         default_params = { text: nil, power: Member.powers.keys.join(','), sort: 'invitationed_at', desc: 1 }
         expect(response_json['search_params']).to eq(default_params.merge(params).stringify_keys)
+=begin
       else
         # HTML
         members.each do |member|
           expect(response.body).to include(member.user.name)
         end
+=end
       end
     end
   end
@@ -52,6 +54,7 @@ RSpec.describe 'Members', type: :request do
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
     let_it_be(:space_private) { FactoryBot.create(:space, :private) }
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200。対象項目が含まれる' do
@@ -72,6 +75,7 @@ RSpec.describe 'Members', type: :request do
         end
       end
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -100,6 +104,7 @@ RSpec.describe 'Members', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'ページネーション表示' do |page, link_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -188,6 +193,7 @@ RSpec.describe 'Members', type: :request do
         end
       end
     end
+=end
     shared_examples_for 'リスト表示(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -203,6 +209,7 @@ RSpec.describe 'Members', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'リダイレクト' do |page, redirect_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -212,6 +219,7 @@ RSpec.describe 'Members', type: :request do
         is_expected.to redirect_to(members_path(space_code: space.code, page: url_page))
       end
     end
+=end
     shared_examples_for 'リダイレクト(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -228,11 +236,13 @@ RSpec.describe 'Members', type: :request do
       include_context 'メンバー一覧作成', count.admin, count.writer, count.reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -242,11 +252,13 @@ RSpec.describe 'Members', type: :request do
       include_context 'メンバー一覧作成', count.admin, count.writer, count.reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -258,6 +270,7 @@ RSpec.describe 'Members', type: :request do
       include_context 'メンバー一覧作成', count.admin, count.writer, count.reader + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ToOK(html)', 2
@@ -266,6 +279,7 @@ RSpec.describe 'Members', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -275,6 +289,7 @@ RSpec.describe 'Members', type: :request do
       include_context 'メンバー一覧作成', count.admin, count.writer, count.reader + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'ToOK(html)', 2
@@ -283,6 +298,7 @@ RSpec.describe 'Members', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'ToOK(json)', 2
@@ -365,8 +381,10 @@ RSpec.describe 'Members', type: :request do
       let_it_be(:space) { space_public }
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToLogin(html)'
+=end
       end
       it_behaves_like 'ToNG(json)', 401
     end
@@ -408,9 +426,11 @@ RSpec.describe 'Members', type: :request do
         if subject_format == :json
           # JSON
           expect(response_json_members.count).to eq(0)
+=begin
         else
           # HTML
           expect(response.body).to include('対象のメンバーが見つかりません。')
+=end
         end
       end
     end
@@ -451,10 +471,12 @@ RSpec.describe 'Members', type: :request do
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
+=begin
       include_context 'ログイン処理'
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like '権限'
+=end
     end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
@@ -479,6 +501,7 @@ RSpec.describe 'Members', type: :request do
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
+=begin
       include_context 'ログイン処理'
       let_it_be(:member_admin) { FactoryBot.create(:member, :admin, space: space, user: user) }
       let(:subject_format) { nil }
@@ -523,6 +546,7 @@ RSpec.describe 'Members', type: :request do
         let(:members) { [] }
         it_behaves_like 'ToOK[氏名]'
       end
+=end
     end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'

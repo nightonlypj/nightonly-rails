@@ -43,6 +43,7 @@ def expect_member_json(response_json_member, member, user_power)
   end
 end
 
+=begin
 shared_examples_for 'ToMembers(html/*)' do |alert, notice|
   it 'メンバー一覧にリダイレクトする' do
     is_expected.to redirect_to(members_path(space.code))
@@ -64,3 +65,4 @@ shared_examples_for 'ToMembers(html)' do |alert = nil, notice = nil|
   it_behaves_like 'ToMembers(html/html)', alert, notice
   it_behaves_like 'ToMembers(html/json)', alert, notice
 end
+=end

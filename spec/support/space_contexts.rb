@@ -54,6 +54,7 @@ shared_context 'スペース一覧作成' do |public_admin_count, public_none_co
 end
 
 # テスト内容（共通）
+=begin
 def expect_space_html(response, space, user_power = :admin, use_link = true, image_version = :small)
   expect(response.body).to include(space.image_url(image_version))
   expect(response.body).to include("href=\"#{space_path(space.code)}\"") if use_link # スペーストップ
@@ -62,6 +63,7 @@ def expect_space_html(response, space, user_power = :admin, use_link = true, ima
   expect(response.body).to include(I18n.l(space.destroy_schedule_at.to_date)) if space.destroy_reserved?
   expect(response.body).to include(Member.powers_i18n[user_power]) if user_power.present?
 end
+=end
 
 def expect_space_basic_json(response_json_space, space)
   expect(response_json_space['code']).to eq(space.code)
@@ -106,6 +108,7 @@ def expect_space_json(response_json_space, space, user_power, member_count)
   end
 end
 
+=begin
 shared_examples_for 'ToSpaces(html/*)' do |alert, notice|
   it 'スペース一覧にリダイレクトする' do
     is_expected.to redirect_to(spaces_path)
@@ -149,3 +152,4 @@ shared_examples_for 'ToSpace(html)' do |alert = nil, notice = nil|
   it_behaves_like 'ToSpace(html/html)', alert, notice
   it_behaves_like 'ToSpace(html/json)', alert, notice
 end
+=end

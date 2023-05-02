@@ -14,6 +14,7 @@ RSpec.describe 'Spaces', type: :request do
   describe 'GET #show' do
     subject { get space_path(code: space.code, format: subject_format), headers: auth_headers.merge(accept_headers) }
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200。対象項目が含まれる' do
@@ -37,6 +38,7 @@ RSpec.describe 'Spaces', type: :request do
         expect(response.body).to include(space.description)
       end
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -54,8 +56,10 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'set_member_power', power
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)'
+=end
       end
     end
     shared_examples_for '[ログイン中/削除予約済み][公開]権限がある(json)' do |power|
@@ -68,8 +72,10 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'set_member_power', power
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -78,8 +84,10 @@ RSpec.describe 'Spaces', type: :request do
       let(:member_count) { 1 }
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)' # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'ToOK(json)'
     end
@@ -88,16 +96,20 @@ RSpec.describe 'Spaces', type: :request do
       let(:member_count) { 0 }
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'ToOK(json)'
     end
     shared_examples_for '[未ログイン][非公開]権限がない' do
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToLogin(html)'
+=end
       end
       it_behaves_like 'ToNG(json)', 401
     end

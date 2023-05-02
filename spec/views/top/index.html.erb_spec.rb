@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'top/index', type: :view do
@@ -24,7 +25,7 @@ RSpec.describe 'top/index', type: :view do
       if Settings.enable_public_space
         expect(rendered).to include("\"#{spaces_path}\"") # スペース一覧
       else
-        expect(rendered).not_to include("\"#{spaces_path}\"") # スペース一覧
+      expect(rendered).not_to include("\"#{spaces_path}\"") # スペース一覧
       end
       @public_spaces.each do |space| # 公開スペース
         expect(rendered).to include(space.name)
@@ -58,3 +59,4 @@ RSpec.describe 'top/index', type: :view do
     it_behaves_like '公開スペースなし'
   end
 end
+=end

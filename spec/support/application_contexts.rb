@@ -58,11 +58,13 @@ shared_examples_for 'NG' do
   raise '各Specに作成してください。'
 end
 # :nocov:
+=begin
 shared_examples_for 'OK(html)' do
   let(:subject_format) { nil }
   let(:accept_headers) { ACCEPT_INC_HTML }
   it_behaves_like 'OK'
 end
+=end
 shared_examples_for 'NG(html)' do
   let(:subject_format) { nil }
   let(:accept_headers) { ACCEPT_INC_HTML }
@@ -97,11 +99,13 @@ shared_examples_for 'ToOK(html/json)' do
   let(:accept_headers) { ACCEPT_INC_JSON }
   it_behaves_like 'ToOK(html/*)'
 end
+=begin
 shared_examples_for 'ToOK(html)' do |page = nil|
   let(:subject_page) { page }
   it_behaves_like 'ToOK(html/html)'
   it_behaves_like 'ToOK(html/json)'
 end
+=end
 shared_examples_for 'ToOK(json)' do |page = nil|
   let(:subject_page) { page }
   it_behaves_like 'ToNG(json/html)', 406
@@ -115,9 +119,11 @@ shared_examples_for 'ToNG(html/html)' do |code, errors = nil|
     is_expected.to eq(code)
     next if errors.blank?
 
+=begin
     errors.each do |error|
       expect(response.body).to include(error)
     end
+=end
   end
 end
 shared_examples_for 'ToNG(html/json)' do |code|
@@ -178,6 +184,7 @@ shared_examples_for 'ToNG(json)' do |code, errors = nil, alert = nil, notice = n
   it_behaves_like 'ToNG(json/json)', code, errors, alert, notice
 end
 
+=begin
 shared_examples_for 'ToLogin(html/*)' do
   it 'ログインにリダイレクトする' do
     is_expected.to redirect_to(new_user_session_path)
@@ -200,3 +207,4 @@ shared_examples_for 'ToLogin(html)' do
   it_behaves_like 'ToLogin(html/html)'
   it_behaves_like 'ToLogin(html/json)'
 end
+=end

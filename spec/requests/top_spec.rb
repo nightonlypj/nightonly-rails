@@ -12,6 +12,7 @@ RSpec.describe 'Top', type: :request do
   describe 'GET #index' do
     subject { get root_path(format: subject_format), headers: auth_headers.merge(accept_headers) }
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200。対象項目が含まれる' do
@@ -47,24 +48,29 @@ RSpec.describe 'Top', type: :request do
       include_context '大切なお知らせ一覧作成', 1, 1, 1, 1
       it_behaves_like 'ToOK(html)'
     end
+=end
 
     shared_examples_for '[ログイン中/削除予約済み]' do
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 404
+=begin
       else
         include_context 'お知らせ一覧作成', 1, 1, 1, 1
         it_behaves_like '[*]大切なお知らせがない'
         it_behaves_like '[ログイン中/削除予約済み]大切なお知らせがある'
+=end
       end
       it_behaves_like 'ToNG(json)', 406
     end
     shared_examples_for '[APIログイン中/削除予約済み]' do
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 404
+=begin
       else
         include_context 'お知らせ一覧作成', 1, 1, 1, 1
         it_behaves_like '[*]大切なお知らせがない'
         it_behaves_like '[未ログイン]大切なお知らせがある' # NOTE: APIは未ログイン扱い
+=end
       end
       it_behaves_like 'ToNG(json)', 406
     end
@@ -73,10 +79,12 @@ RSpec.describe 'Top', type: :request do
       include_context '未ログイン処理'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 404
+=begin
       else
         include_context 'お知らせ一覧作成', 1, 1, 0, 0
         it_behaves_like '[*]大切なお知らせがない'
         it_behaves_like '[未ログイン]大切なお知らせがある'
+=end
       end
       it_behaves_like 'ToNG(json)', 406
     end

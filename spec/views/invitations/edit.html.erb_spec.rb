@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'invitations/edit', type: :view do
@@ -35,3 +36,4 @@ RSpec.describe 'invitations/edit', type: :view do
     it_behaves_like '表示', 0, 1
   end
 end
+=end

@@ -48,8 +48,10 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'set_member_power', power
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -57,8 +59,10 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'set_member_power', power
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)' # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'ToOK(json)'
     end
@@ -123,8 +127,10 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'set_member_power', :admin
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -133,8 +139,10 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'set_member_power', :admin
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)' # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'ToOK(json)'
     end
@@ -169,8 +177,10 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'other_user_condition'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToLogin(html)'
+=end
       end
       it_behaves_like 'ToNG(json)', 401
     end

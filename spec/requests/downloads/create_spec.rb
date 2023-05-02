@@ -59,6 +59,7 @@ RSpec.describe 'Downloads', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'ToOK(html/*)' do
       it 'ダウンロード結果一覧（対象IDあり）にリダイレクトする' do
         is_expected.to redirect_to(downloads_path(target_id: current_download.id))
@@ -66,6 +67,7 @@ RSpec.describe 'Downloads', type: :request do
         expect(flash[:notice]).to be_nil
       end
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -81,16 +83,20 @@ RSpec.describe 'Downloads', type: :request do
     # テストケース
     shared_examples_for '[ログイン中/削除予約済み][member][ある]パラメータなし' do
       let(:attributes) { params }
+=begin
       msg_target       = get_locale('activerecord.errors.models.download.attributes.target.blank')
       msg_format       = get_locale('activerecord.errors.models.download.attributes.format.blank')
       msg_char_code    = get_locale('activerecord.errors.models.download.attributes.char_code.blank')
       msg_newline_code = get_locale('activerecord.errors.models.download.attributes.newline_code.blank')
       msg_output_items = get_locale('activerecord.errors.models.download.attributes.output_items.blank')
+=end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [msg_target, msg_format, msg_char_code, msg_newline_code, msg_output_items]
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -105,8 +111,10 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [msg_target, msg_format, msg_char_code, msg_newline_code, msg_output_items]
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 422, { target: [msg_target], format: [msg_format], char_code: [msg_char_code],
@@ -117,33 +125,43 @@ RSpec.describe 'Downloads', type: :request do
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'OK(html)'
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中/削除予約済み][member][ある]有効なパラメータ' do
       let(:attributes) { valid_attributes.merge(params).merge(add_attributes) }
+=begin
       message = get_locale('activerecord.errors.models.download.attributes.output_items.blank')
+=end
       it_behaves_like 'NG(html)' # NOTE: HTMLもログイン状態になるが、パラメータが異なる為
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になるが、パラメータが異なる為
+=end
       end
       it_behaves_like 'OK(json)'
       it_behaves_like 'ToOK(json)'
     end
     shared_examples_for '[ログイン中/削除予約済み][member][ある]無効なパラメータ' do
       let(:attributes) { invalid_attributes.merge(params).merge(add_attributes) }
+=begin
       message = get_locale('activerecord.errors.models.download.attributes.target.blank')
+=end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message]
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -154,8 +172,10 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 422, { target: [message] }
@@ -306,8 +326,10 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToLogin(html)'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401

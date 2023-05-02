@@ -18,12 +18,14 @@ RSpec.describe 'Downloads', type: :request do
   describe 'GET #index' do
     subject { get downloads_path(page: subject_page, format: subject_format), headers: auth_headers.merge(accept_headers) }
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200' do
         is_expected.to eq(200)
       end
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -42,6 +44,7 @@ RSpec.describe 'Downloads', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'ページネーション表示' do |page, link_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -108,6 +111,7 @@ RSpec.describe 'Downloads', type: :request do
         end
       end
     end
+=end
     shared_examples_for 'リスト表示(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -123,6 +127,7 @@ RSpec.describe 'Downloads', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'リダイレクト' do |page, redirect_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -132,6 +137,7 @@ RSpec.describe 'Downloads', type: :request do
         is_expected.to redirect_to(downloads_path(page: url_page))
       end
     end
+=end
     shared_examples_for 'リダイレクト(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -146,11 +152,13 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'ダウンロード結果一覧作成', 0, 0, 0, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示（0件）'
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -158,11 +166,13 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'ダウンロード結果一覧作成', 0, 0, 0, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示（0件）'
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リダイレクト(json)', 2
@@ -172,11 +182,13 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -185,11 +197,13 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -200,6 +214,7 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ToOK(html)', 2
@@ -208,6 +223,7 @@ RSpec.describe 'Downloads', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -216,6 +232,7 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ToOK(html)', 2
@@ -224,6 +241,7 @@ RSpec.describe 'Downloads', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'ToOK(json)', 2
@@ -247,8 +265,10 @@ RSpec.describe 'Downloads', type: :request do
       include_context '未ログイン処理'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToLogin(html)'
+=end
       end
       it_behaves_like 'ToNG(json)', 401
     end
@@ -290,11 +310,13 @@ RSpec.describe 'Downloads', type: :request do
           end
 
           expect(response_json['search_params']).to eq(params.stringify_keys)
+=begin
         else
           # HTML
           downloads.each do |download|
             expect(response.body).to include(I18n.l(download.requested_at))
           end
+=end
         end
       end
     end
@@ -304,9 +326,11 @@ RSpec.describe 'Downloads', type: :request do
         if subject_format == :json
           # JSON
           expect(response_json_downloads.count).to eq(0)
+=begin
         else
           # HTML
           expect(response.body).to include('対象が見つかりません。')
+=end
         end
       end
     end
@@ -332,10 +356,12 @@ RSpec.describe 'Downloads', type: :request do
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
+=begin
       include_context 'ログイン処理'
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like 'ID'
+=end
     end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
@@ -370,12 +396,14 @@ RSpec.describe 'Downloads', type: :request do
           else
             expect(response_json_target).to be_nil
           end
+=begin
         else
           # HTML
           expect(flash[:alert]).to alert.present? ? eq(get_locale(alert)) : be_nil
           expect(flash[:notice]).to notice.present? ? eq(get_locale(notice)) : be_nil
           expect(response.body).to include(get_locale(alert)) if alert.present?
           expect(response.body).to include(get_locale(notice)) if notice.present?
+=end
         end
       end
     end
@@ -433,10 +461,12 @@ RSpec.describe 'Downloads', type: :request do
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
+=begin
       include_context 'ログイン処理'
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like '対象ID'
+=end
     end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'

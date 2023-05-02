@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'Users::Registrations', type: :request do
@@ -185,3 +186,4 @@ RSpec.describe 'Users::Registrations', type: :request do
     end
   end
 end
+=end

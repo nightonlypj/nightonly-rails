@@ -20,12 +20,14 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'set_member_power', :admin
     end
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200' do
         is_expected.to eq(200)
       end
     end
+=end
 
     # テストケース
     if Settings.api_only_mode
@@ -36,6 +38,7 @@ RSpec.describe 'Downloads', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[ログイン中/削除予約済み][member]権限がある' do |power|
       include_context 'set_member_power', power
       it_behaves_like 'ToOK(html)'
@@ -110,5 +113,6 @@ RSpec.describe 'Downloads', type: :request do
       include_context 'APIログイン処理', :destroy_reserved
       it_behaves_like '[APIログイン中/削除予約済み]'
     end
+=end
   end
 end

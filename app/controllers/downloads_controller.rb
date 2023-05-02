@@ -11,9 +11,11 @@ class DownloadsController < ApplicationAuthController
     @downloads = Download.where(user: current_user).search(@id).order(id: :desc)
                          .page(params[:page]).per(Settings.default_downloads_limit)
 
+=begin
     if format_html? && @downloads.current_page > [@downloads.total_pages, 1].max
       return redirect_to @downloads.total_pages <= 1 ? downloads_path : downloads_path(page: @downloads.total_pages)
     end
+=end
 
     set_flash_index
   end
@@ -35,6 +37,7 @@ class DownloadsController < ApplicationAuthController
     send_data(@download.download_files.first.body, filename: "#{@download.model}_#{l(@download.requested_at, format: :file)}.#{@download.format}")
   end
 
+=begin
   # GET /downloads/create ダウンロード依頼
   def new
     output_items = @items.stringify_keys.keys
@@ -42,6 +45,7 @@ class DownloadsController < ApplicationAuthController
     @download = Download.new(model: @model, space: @space, search_params: params[:search_params], select_items: params[:select_items],
                              target: @enable_target[0], format: :csv, char_code: :sjis, newline_code: :crlf, output_items: output_items)
   end
+=end
 
   # POST /downloads/create ダウンロード依頼(処理)
   # POST /downloads/create(.json) ダウンロード依頼API(処理)
@@ -108,6 +112,7 @@ class DownloadsController < ApplicationAuthController
       # :nocov:
     end
 
+=begin
     if format_html?
       @enable_target = []
       @enable_target.push('select') if target_params[:select_items].present?
@@ -116,6 +121,7 @@ class DownloadsController < ApplicationAuthController
 
       @items = t("items.#{@model}")
     end
+=end
   end
 
   def set_params_create
@@ -130,6 +136,7 @@ class DownloadsController < ApplicationAuthController
 
   # Only allow a list of trusted parameters through.
   def download_params
+=begin
     if format_html?
       params[:download][:output_items] = []
       @items.each do |key, _label|
@@ -137,6 +144,7 @@ class DownloadsController < ApplicationAuthController
       end
       params[:download][:select_items] = params[:download][:select_items]&.split(',')
     end
+=end
 
     # NOTE: ArgumentError対策
     params[:download][:target]       = nil if Download.targets[params[:download][:target]].blank?

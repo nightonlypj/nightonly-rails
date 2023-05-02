@@ -23,6 +23,7 @@ RSpec.describe 'Invitations', type: :request do
       let_it_be(:invitation) { FactoryBot.create(:invitation, :active, space: space) }
     end
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200。対象項目が含まれる' do
@@ -30,6 +31,7 @@ RSpec.describe 'Invitations', type: :request do
         expect_space_html(response, space)
       end
     end
+=end
 
     # テストケース
     if Settings.api_only_mode
@@ -40,6 +42,7 @@ RSpec.describe 'Invitations', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[ログイン中/削除予約済み][*][ある]招待コードが存在する' do |status|
       let_it_be(:invitation) { FactoryBot.create(:invitation, status, space: space) }
       it_behaves_like 'ToOK(html)'
@@ -122,5 +125,6 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToInvitations(html)', 'alert.user.destroy_reserved' # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 406
     end
+=end
   end
 end

@@ -21,12 +21,14 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'set_member_power', :admin
     end
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200' do
         is_expected.to eq(200)
       end
     end
+=end
 
     # テストケース
     if Settings.api_only_mode
@@ -37,6 +39,7 @@ RSpec.describe 'Spaces', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[ログイン中][*][ある]権限がある' do |power|
       include_context 'set_member_power', power
       it_behaves_like 'ToSpace(html)', 'alert.space.destroy_reserved'
@@ -128,5 +131,6 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'ToSpace(html)', 'alert.user.destroy_reserved' # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 406
     end
+=end
   end
 end

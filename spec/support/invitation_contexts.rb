@@ -48,6 +48,7 @@ def expect_invitation_json(response_json_invitation, invitation)
   expect(response_json_invitation['last_updated_at']).to eq(I18n.l(invitation.last_updated_at, format: :json, default: nil))
 end
 
+=begin
 shared_examples_for 'ToInvitations(html/*)' do |alert, notice|
   it '招待URL一覧にリダイレクトする' do
     is_expected.to redirect_to(invitations_path(space.code))
@@ -69,3 +70,4 @@ shared_examples_for 'ToInvitations(html)' do |alert = nil, notice = nil|
   it_behaves_like 'ToInvitations(html/html)', alert, notice
   it_behaves_like 'ToInvitations(html/json)', alert, notice
 end
+=end

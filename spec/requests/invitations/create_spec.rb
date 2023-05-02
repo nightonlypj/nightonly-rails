@@ -55,9 +55,11 @@ RSpec.describe 'Invitations', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'ToOK(html/*)' do
       it_behaves_like 'ToInvitations(html)', nil, 'notice.invitation.create'
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -74,13 +76,17 @@ RSpec.describe 'Invitations', type: :request do
     # テストケース
     shared_examples_for '[ログイン中][*][ある]パラメータなし' do
       let(:attributes) { nil }
+=begin
       msg_domains = get_locale('activerecord.errors.models.invitation.attributes.domains.blank')
       msg_power   = get_locale('activerecord.errors.models.invitation.attributes.power.blank')
+=end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [msg_domains, msg_power]
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -92,8 +98,10 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [msg_domains, msg_power]
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 422, { domains: [msg_domains], power: [msg_power] }
@@ -103,9 +111,11 @@ RSpec.describe 'Invitations', type: :request do
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'OK(html)'
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -115,9 +125,11 @@ RSpec.describe 'Invitations', type: :request do
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'OK(html)'
         it_behaves_like 'ToOK(html)' # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'OK(json)'
       it_behaves_like 'ToOK(json)'
@@ -127,9 +139,11 @@ RSpec.describe 'Invitations', type: :request do
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'OK(html)'
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -139,21 +153,27 @@ RSpec.describe 'Invitations', type: :request do
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'OK(html)'
         it_behaves_like 'ToOK(html)' # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'OK(json)'
       it_behaves_like 'ToOK(json)'
     end
     shared_examples_for '[ログイン中][*][ある]無効なパラメータ（ドメインがない）' do
       let(:attributes) { invalid_attributes }
+=begin
       message = get_locale('activerecord.errors.models.invitation.attributes.domains.blank')
+=end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message]
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -164,20 +184,26 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 422, { domains: [message] }
     end
     shared_examples_for '[ログイン中][*][ある]無効なパラメータ（ドメインが最大数より多い）' do
       let(:attributes) { invalid_attributes_over }
+=begin
       message = get_locale('activerecord.errors.models.invitation.attributes.domains.max_count', count: Settings.invitation_domains_max_count)
+=end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message]
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -188,20 +214,26 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 422, { domains: [message] }
     end
     shared_examples_for '[ログイン中][*][ある]無効なパラメータ（ドメインに不正な形式が含まれる）' do
       let(:attributes) { invalid_attributes_format }
+=begin
       message = get_locale('activerecord.errors.models.invitation.attributes.domains.invalid', domain: 'aaa')
+=end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message]
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -212,8 +244,10 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 422, { domains: [message] }
@@ -305,8 +339,10 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToLogin(html)'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401
@@ -323,8 +359,10 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToInvitations(html)', 'alert.user.destroy_reserved'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -341,8 +379,10 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToInvitations(html)', 'alert.user.destroy_reserved' # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 422, nil, 'alert.user.destroy_reserved'

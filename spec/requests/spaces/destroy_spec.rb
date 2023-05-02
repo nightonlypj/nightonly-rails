@@ -40,6 +40,7 @@ RSpec.describe 'Spaces', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'ToOK(html/*)' do
       it '削除したスペースにリダイレクトする' do
         is_expected.to redirect_to(space_path(space.code))
@@ -47,6 +48,7 @@ RSpec.describe 'Spaces', type: :request do
         expect(flash[:notice]).to eq(get_locale('notice.space.destroy'))
       end
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -65,9 +67,11 @@ RSpec.describe 'Spaces', type: :request do
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'OK(html)'
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -77,9 +81,11 @@ RSpec.describe 'Spaces', type: :request do
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'OK(html)'
         it_behaves_like 'ToOK(html)' # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'OK(json)'
       it_behaves_like 'ToOK(json)'
@@ -105,8 +111,10 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToSpace(html)', 'alert.space.destroy_reserved'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -117,8 +125,10 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToSpace(html)', 'alert.space.destroy_reserved' # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 422, nil, 'alert.space.destroy_reserved'
@@ -177,8 +187,10 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToLogin(html)'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401
@@ -195,8 +207,10 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToSpace(html)', 'alert.user.destroy_reserved'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -213,8 +227,10 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToSpace(html)', 'alert.user.destroy_reserved' # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 422, nil, 'alert.user.destroy_reserved'

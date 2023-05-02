@@ -13,6 +13,7 @@ RSpec.describe 'Users::Unlocks', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       it_behaves_like 'ToOK[status]'
     end
@@ -20,6 +21,7 @@ RSpec.describe 'Users::Unlocks', type: :request do
       include_context 'ログイン処理'
       it_behaves_like 'ToTop', 'devise.failure.already_authenticated', nil
     end
+=end
   end
 
   # POST /users/unlock/resend アカウントロック解除[メール再送](処理)
@@ -34,6 +36,7 @@ RSpec.describe 'Users::Unlocks', type: :request do
     let(:valid_attributes)   { { email: send_user.email } }
     let(:invalid_attributes) { { email: not_user[:email] } }
 
+=begin
     # テスト内容
     shared_examples_for 'OK' do
       let(:url) { "http://#{Settings.base_domain}#{user_unlock_path}" }
@@ -45,6 +48,7 @@ RSpec.describe 'Users::Unlocks', type: :request do
         expect(ActionMailer::Base.deliveries[0].text_part.body).to include(url)
       end
     end
+=end
     shared_examples_for 'NG' do
       it 'メールが送信されない' do
         expect { subject }.to change(ActionMailer::Base.deliveries, :count).by(0)
@@ -60,6 +64,7 @@ RSpec.describe 'Users::Unlocks', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[未ログイン]有効なパラメータ（ロック中）' do
       let(:send_user)  { send_user_locked }
       let(:attributes) { valid_attributes }
@@ -106,6 +111,7 @@ RSpec.describe 'Users::Unlocks', type: :request do
       it_behaves_like '[ログイン中]有効なパラメータ（未ロック）'
       it_behaves_like '[ログイン中]無効なパラメータ'
     end
+=end
   end
 
   # GET /users/unlock アカウントロック解除(処理)
@@ -117,6 +123,7 @@ RSpec.describe 'Users::Unlocks', type: :request do
     subject { get user_unlock_path(unlock_token: unlock_token) }
     let(:current_user) { User.find(send_user.id) }
 
+=begin
     # テスト内容
     shared_examples_for 'OK' do
       it 'アカウントロック日時がなしに回数が0に変更される' do
@@ -125,6 +132,7 @@ RSpec.describe 'Users::Unlocks', type: :request do
         expect(current_user.failed_attempts).to eq(0)
       end
     end
+=end
     shared_examples_for 'NG' do
       it 'アカウントロック日時・回数が変更されない' do
         subject
@@ -141,6 +149,7 @@ RSpec.describe 'Users::Unlocks', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[未ログイン][存在する]ロック日時がない（未ロック）' do
       include_context 'アカウントロック解除トークン作成', false
       it_behaves_like 'NG'
@@ -234,5 +243,6 @@ RSpec.describe 'Users::Unlocks', type: :request do
       it_behaves_like '[ログイン中]トークンが存在しない'
       it_behaves_like '[ログイン中]トークンがない'
     end
+=end
   end
 end

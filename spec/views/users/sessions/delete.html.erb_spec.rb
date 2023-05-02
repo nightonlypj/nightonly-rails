@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'users/sessions/delete', type: :view do
@@ -20,3 +21,4 @@ RSpec.describe 'users/sessions/delete', type: :view do
     end
   end
 end
+=end

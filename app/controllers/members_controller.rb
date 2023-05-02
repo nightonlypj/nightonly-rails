@@ -4,7 +4,7 @@ class MembersController < ApplicationAuthController
   before_action :response_not_acceptable_for_not_html, only: %i[new result edit]
   before_action :authenticate_user!
   before_action :set_space_current_member
-  before_action :redirect_members_for_user_destroy_reserved, only: %i[new create result edit update destroy], if: :format_html?
+  # before_action :redirect_members_for_user_destroy_reserved, only: %i[new create result edit update destroy], if: :format_html?
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy], unless: :format_html?
   before_action :check_power_admin, only: %i[new create result edit update destroy]
   before_action :set_member, only: %i[show edit update]
@@ -18,18 +18,22 @@ class MembersController < ApplicationAuthController
   def index
     @members = members_search.page(params[:page]).per(Settings.default_members_limit)
 
+=begin
     if format_html? && @members.current_page > [@members.total_pages, 1].max
       redirect_to @members.total_pages <= 1 ? members_path : members_path(page: @members.total_pages)
     end
+=end
   end
 
   # GET /members/:space_code/detail/:user_code(.json) メンバー詳細API
   def show; end
 
+=begin
   # GET /members/:space_code/create メンバー招待
   def new
     @member = Member.new
   end
+=end
 
   # POST /members/:space_code/create メンバー招待(処理)
   # POST /members/:space_code/create(.json) メンバー招待API(処理)
@@ -45,21 +49,25 @@ class MembersController < ApplicationAuthController
 
     @exist_user_mails = exist_users.pluck(:email)
     @create_user_mails = create_users.pluck(:email)
+=begin
     if format_html?
       return redirect_to result_member_path(@space.code), notice: t('notice.member.create'), flash: {
         emails: @emails, exist_user_mails: @exist_user_mails, create_user_mails: @create_user_mails,
         power: @member.power
       }
     end
+=end
 
     @user_codes = users.pluck(:code)
     render :result, locals: { notice: t('notice.member.create') }, status: :created
   end
 
+=begin
   # GET /members/:space_code/result メンバー招待（結果）
   def result
     redirect_to members_path(@space.code) if flash.blank?
   end
+=end
 
   # GET /members/:space_code/update/:user_code メンバー情報変更
   def edit; end
@@ -98,9 +106,11 @@ class MembersController < ApplicationAuthController
 
   private
 
+=begin
   def redirect_members_for_user_destroy_reserved
     redirect_for_user_destroy_reserved(members_path(@space.code))
   end
+=end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_member
@@ -150,8 +160,10 @@ class MembersController < ApplicationAuthController
   def set_params_destroy
     if params[:codes].instance_of?(Array)
       @codes = params[:codes].compact_blank.uniq
+=begin
     elsif params[:codes].present?
       @codes = params[:codes].to_unsafe_h.map { |code, value| code if value == '1' }.compact.uniq
+=end
     else
       @codes = []
     end

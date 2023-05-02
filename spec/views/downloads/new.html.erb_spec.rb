@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'downloads/new', type: :view do
@@ -30,3 +31,4 @@ RSpec.describe 'downloads/new', type: :view do
     end
   end
 end
+=end

@@ -83,6 +83,7 @@ def expect_user_json(response_json_user, user, use_email, id_present = nil)
   expect(response_json_user['deleted']).to eq(user.blank?) if id_present == true
 end
 
+=begin
 shared_examples_for 'ToTop' do |alert, notice|
   it 'トップページにリダイレクトする' do
     is_expected.to redirect_to(root_path)
@@ -97,6 +98,7 @@ shared_examples_for 'ToLogin' do |alert, notice|
     expect(flash[:notice]).to notice.present? ? eq(get_locale(notice)) : be_nil
   end
 end
+=end
 
 shared_context 'Authテスト内容' do
   let(:response_json_user)        { response_json['user'] }

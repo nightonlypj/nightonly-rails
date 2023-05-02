@@ -22,6 +22,7 @@ RSpec.describe 'Invitations', type: :request do
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
     let_it_be(:space_private) { FactoryBot.create(:space, :private) }
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200。対象項目が含まれる' do
@@ -30,6 +31,7 @@ RSpec.describe 'Invitations', type: :request do
         expect(response.body).to include("href=\"#{new_invitation_path(space.code)}\"") # 招待URL作成
       end
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -57,6 +59,7 @@ RSpec.describe 'Invitations', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'ページネーション表示' do |page, link_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -143,6 +146,7 @@ RSpec.describe 'Invitations', type: :request do
         end
       end
     end
+=end
     shared_examples_for 'リスト表示(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -158,6 +162,7 @@ RSpec.describe 'Invitations', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'リダイレクト' do |page, redirect_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -167,6 +172,7 @@ RSpec.describe 'Invitations', type: :request do
         is_expected.to redirect_to(invitations_path(space_code: space.code, page: url_page))
       end
     end
+=end
     shared_examples_for 'リダイレクト(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -181,11 +187,13 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', 0, 0, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示（0件）'
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -193,11 +201,13 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', 0, 0, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示（0件）'
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -208,11 +218,13 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -221,11 +233,13 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -236,6 +250,7 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ToOK(html)', 2
@@ -244,6 +259,7 @@ RSpec.describe 'Invitations', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -252,6 +268,7 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'ToOK(html)', 2
@@ -260,6 +277,7 @@ RSpec.describe 'Invitations', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'ToOK(json)', 2
@@ -346,8 +364,10 @@ RSpec.describe 'Invitations', type: :request do
       let_it_be(:space) { space_public }
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToLogin(html)'
+=end
       end
       it_behaves_like 'ToNG(json)', 401
     end

@@ -19,11 +19,13 @@ RSpec.describe 'Spaces', type: :request do
 
         default_params = { text: nil, public: 1, private: 1, join: 1, nojoin: 1, active: 1, destroy: 0 }
         expect(response_json['search_params']).to eq(default_params.merge(params).stringify_keys)
+=begin
       else
         # HTML
         spaces.each do |space|
           expect(response.body).to include(space.name)
         end
+=end
       end
     end
   end
@@ -40,12 +42,14 @@ RSpec.describe 'Spaces', type: :request do
   describe 'GET #index' do
     subject { get spaces_path(page: subject_page, format: subject_format), headers: auth_headers.merge(accept_headers) }
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200' do
         is_expected.to eq(200)
       end
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -61,6 +65,7 @@ RSpec.describe 'Spaces', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'ページネーション表示' do |page, link_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -117,6 +122,7 @@ RSpec.describe 'Spaces', type: :request do
         end
       end
     end
+=end
     shared_examples_for 'リスト表示(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -142,6 +148,7 @@ RSpec.describe 'Spaces', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'リダイレクト' do |page, redirect_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -151,6 +158,7 @@ RSpec.describe 'Spaces', type: :request do
         is_expected.to redirect_to(spaces_path(page: url_page))
       end
     end
+=end
     shared_examples_for 'リダイレクト(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -165,11 +173,13 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', 0, 0, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示（0件）'
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -180,11 +190,13 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', 0, count.public_admin + count.public_none + count.private_admin + count.private_reader, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -195,11 +207,13 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', count.public_admin, count.public_none, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -210,11 +224,13 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', count.public_admin, count.public_none, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -226,6 +242,7 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', 0, all + 1, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ToOK(html)', 2
@@ -234,6 +251,7 @@ RSpec.describe 'Spaces', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'ToOK(json)', 2
@@ -246,6 +264,7 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', count.public_admin, count.public_none + 1, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ToOK(html)', 2
@@ -254,6 +273,7 @@ RSpec.describe 'Spaces', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       # it_behaves_like 'ToOK(json)', 1 # NOTE: APIは未ログイン扱いの為
       # it_behaves_like 'ToOK(json)', 2
@@ -266,6 +286,7 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', count.public_admin, count.public_none + 1, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ToOK(html)', 2
@@ -274,6 +295,7 @@ RSpec.describe 'Spaces', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'ToOK(json)', 2
@@ -344,11 +366,13 @@ RSpec.describe 'Spaces', type: :request do
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
+=begin
       include_context 'ログイン処理'
       before_all { FactoryBot.create(:member, :admin, space: join_space, user: user) }
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like '検索文字列あり'
+=end
     end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
@@ -435,11 +459,13 @@ RSpec.describe 'Spaces', type: :request do
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
+=begin
       include_context 'ログイン処理'
       include_context 'スペース一覧作成', 1, 1, 1, 1
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like 'オプション'
+=end
     end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'

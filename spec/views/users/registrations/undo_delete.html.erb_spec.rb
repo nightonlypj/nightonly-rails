@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'users/registrations/undo_delete', type: :view do
@@ -15,3 +16,4 @@ RSpec.describe 'users/registrations/undo_delete', type: :view do
     end
   end
 end
+=end

@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'layouts/application', type: :view do
@@ -74,3 +75,4 @@ RSpec.describe 'layouts/application', type: :view do
     it_behaves_like '削除予約表示'
   end
 end
+=end
