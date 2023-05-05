@@ -15,8 +15,9 @@ class SendHistoriesController < ApplicationAuthController
     @expired_task_event_ids = to_array(@send_history.expired_task_event_ids)
     @end_today_task_event_ids = to_array(@send_history.end_today_task_event_ids)
     @date_include_task_event_ids = to_array(@send_history.date_include_task_event_ids)
+    @completed_task_event_ids = to_array(@send_history.completed_task_event_ids)
 
-    task_event_ids = @next_task_event_ids + @expired_task_event_ids + @end_today_task_event_ids + @date_include_task_event_ids
+    task_event_ids = @next_task_event_ids + @expired_task_event_ids + @end_today_task_event_ids + @date_include_task_event_ids + @completed_task_event_ids
     @task_events = TaskEvent.where(space: @space, id: task_event_ids).eager_load(task_cycle: :task).index_by(&:id)
   end
 
