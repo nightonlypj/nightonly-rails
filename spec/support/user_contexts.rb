@@ -65,22 +65,22 @@ shared_context 'アカウントロック解除トークン作成' do |locked, ex
 end
 
 # テスト内容（共通）
-def expect_user_json(response_json_user, user, use_email, id_present = nil)
-  if id_present == false
-    expect(response_json_user).to be_nil
-    return
+def expect_user_json(response_json_user, user, use = { email: false })
+  result = 6
+  expect(response_json_user['code']).to eq(user.code)
+  expect_image_json(response_json_user, user)
+  expect(response_json_user['name']).to eq(user.name)
+  if use[:email]
+    expect(response_json_user['email']).to eq(user.email)
+    result += 1
+  else
+    expect(response_json_user['email']).to be_nil
   end
+  ## 削除予約
+  expect(response_json_user['destroy_requested_at']).to eq(I18n.l(user.destroy_requested_at, format: :json, default: nil))
+  expect(response_json_user['destroy_schedule_at']).to eq(I18n.l(user.destroy_schedule_at, format: :json, default: nil))
 
-  if id_present.nil? || user.present?
-    expect(response_json_user['code']).to eq(user.code)
-    expect_image_json(response_json_user, user)
-    expect(response_json_user['name']).to eq(user.name)
-    expect(response_json_user['email']).to use_email ? eq(user.email) : be_nil
-    ## 削除予約
-    expect(response_json_user['destroy_requested_at']).to eq(I18n.l(user.destroy_requested_at, format: :json, default: nil))
-    expect(response_json_user['destroy_schedule_at']).to eq(I18n.l(user.destroy_schedule_at, format: :json, default: nil))
-  end
-  expect(response_json_user['deleted']).to eq(user.blank?) if id_present == true
+  result
 end
 
 =begin
@@ -109,38 +109,36 @@ shared_context 'Authテスト内容' do
     if current_user.blank?
       expect(response_json_user).to be_nil
     else
-      expect_user_json(response_json_user, current_user, false)
+      count = expect_user_json(response_json_user, current_user, { email: false })
       expect(response_json_user['provider']).to eq(current_user.provider)
       ## アカウント削除の猶予期間
       expect(response_json_user['destroy_schedule_days']).to eq(Settings.user_destroy_schedule_days)
       ## お知らせ
       expect(response_json_user['infomation_unread_count']).to eq(current_user.infomation_unread_count)
+
       ## ダウンロード結果
       expect(response_json_user['undownloaded_count']).to eq(current_user.undownloaded_count)
-
       ## 参加スペース
+      expect(response_json_user_spaces.count).to eq(inside_spaces.count)
       inside_spaces.sort_by(&:name).each_with_index do |space, index|
         data = response_json_user_spaces[index]
         expect(data['code']).to eq(space.code)
-
-        data_image_url = data['image_url']
-        expect(data_image_url['mini']).to eq("#{Settings.base_image_url}#{space.image_url(:mini)}")
-        expect(data_image_url['small']).to eq("#{Settings.base_image_url}#{space.image_url(:small)}")
-        expect(data_image_url['medium']).to eq("#{Settings.base_image_url}#{space.image_url(:medium)}")
-        expect(data_image_url['large']).to eq("#{Settings.base_image_url}#{space.image_url(:large)}")
-        expect(data_image_url['xlarge']).to eq("#{Settings.base_image_url}#{space.image_url(:xlarge)}")
-
+        expect_image_json(data, space)
         expect(data['name']).to eq(space.name)
         expect(data['description']).to eq(space.description)
         expect(data['private']).to eq(space.private)
         expect(data['destroy_requested_at']).to eq(I18n.l(space.destroy_requested_at, format: :json, default: nil))
         expect(data['destroy_schedule_at']).to eq(I18n.l(space.destroy_schedule_at, format: :json, default: nil))
 
+        data_current_member = data['current_member']
         power = @members[space.id]
-        expect(data['current_member']['power']).to eq(power)
-        expect(data['current_member']['power_i18n']).to eq(Member.powers_i18n[power])
+        expect(data_current_member['power']).to eq(power)
+        expect(data_current_member['power_i18n']).to eq(Member.powers_i18n[power])
+        expect(data_current_member.count).to eq(2)
+        expect(data.count).to eq(9)
       end
-      expect(response_json_user_spaces.count).to eq(inside_spaces.count)
+
+      expect(response_json_user.count).to eq(count + 3 + 2)
     end
   end
   let(:expect_failure_json) do
