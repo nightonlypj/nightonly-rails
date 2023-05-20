@@ -63,7 +63,7 @@ class ApplicationAuthController < ApplicationController
 
   # 権限チェック（投稿者以上）
   def check_power_writer
-    response_forbidden unless @current_member.power_admin? || @current_member.power_writer?
+    response_forbidden unless @current_member&.power_admin? || @current_member&.power_writer?
   end
 
   protected

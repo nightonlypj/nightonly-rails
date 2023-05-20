@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_04_29_065900) do
+ActiveRecord::Schema.define(version: 2023_05_18_102109) do
 
   create_table "admin_users", charset: "utf8mb4", comment: "管理者", force: :cascade do |t|
     t.string "name", null: false, comment: "氏名"
@@ -254,8 +254,10 @@ ActiveRecord::Schema.define(version: 2023_04_29_065900) do
     t.datetime "deleted_at", comment: "削除日時"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "order", comment: "並び順"
     t.index ["deleted_at", "id"], name: "index_task_cycles3"
     t.index ["deleted_at", "space_id", "cycle", "month"], name: "index_task_cycles1"
+    t.index ["order", "id"], name: "index_task_cycles4"
     t.index ["space_id"], name: "index_task_cycles_on_space_id"
     t.index ["task_id"], name: "index_task_cycles_on_task_id"
     t.index ["updated_at", "id"], name: "index_task_cycles2"

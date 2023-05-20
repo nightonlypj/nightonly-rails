@@ -6,6 +6,7 @@ FactoryBot.define do
     started_at    { Time.current }
     target_date   { Time.current.to_date }
 
+    # :nocov:
     after(:build) do |send_history|
       if send_history.send_setting.blank?
         send_history.space = FactoryBot.build(:space) if send_history.space.blank?
@@ -22,6 +23,7 @@ FactoryBot.define do
         send_history.space = send_history.send_setting.space
       end
     end
+    # :nocov:
 
     # 通知対象
     trait :start do

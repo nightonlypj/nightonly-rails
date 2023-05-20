@@ -7,6 +7,7 @@ FactoryBot.define do
     # status          { :untreated }
     sequence(:memo) { |n| "memo(#{n})" }
 
+    # :nocov:
     after(:build) do |task_event|
       if task_event.task_cycle.blank?
         task_event.space = FactoryBot.build(:space) if task_event.space.blank?
@@ -23,6 +24,7 @@ FactoryBot.define do
         task_event.space = task_event.task_cycle.space
       end
     end
+    # :nocov:
 
     # 開始・終了日
     trait :yesterday do

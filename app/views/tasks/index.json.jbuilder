@@ -20,7 +20,11 @@ json.tasks do
     json.partial! 'task', task: task, detail: false
 
     json.cycles do
-      json.array! task.task_cycles_active do |task_cycle|
+      task_cycles = task.task_cycles_active.index_by do |task_cycle|
+        "#{task_cycle.order}_#{task_cycle.updated_at.strftime('%Y%m%d%H%M%S')}_#{task_cycle.id}"
+      end.sort # NOTE: DBアクセスせずに、並び順で出力
+
+      json.array! task_cycles do |_, task_cycle|
         json.partial! 'task_cycle', task_cycle: task_cycle
       end
     end

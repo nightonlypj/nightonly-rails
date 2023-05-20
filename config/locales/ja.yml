@@ -135,6 +135,7 @@ ja:
         wday: '曜日'
         handling_holiday: '休日の扱い'
         period: '期間（日）'
+        order: '並び順'
         deleted_at: '削除日時'
         created_at: '作成日時'
         updated_at: '更新日時'

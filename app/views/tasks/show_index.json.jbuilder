@@ -1,6 +1,5 @@
 json.success true
-json.alert alert if alert.present?
-json.notice notice if notice.present?
+json.notice notice
 
 json.task do
   json.partial! 'task', task: @task, detail: @detail

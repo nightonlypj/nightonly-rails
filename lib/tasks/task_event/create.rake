@@ -83,7 +83,7 @@ namespace :task_event do
   # タスクイベント作成
   def create_task_events(dry_run, space, target_date, next_start_date, start_date, end_date)
     task_cycles = TaskCycle.active.where(space: space).by_month(cycle_months(start_date, end_date) + [nil])
-                           .eager_load(:task).by_task_period(target_date, next_start_date).merge(Task.order(:priority)).order(:id)
+                           .eager_load(:task).by_task_period(target_date, next_start_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
     @logger.info("task_cycles.count: #{task_cycles.count}")
     return 0 if task_cycles.count.zero?
 

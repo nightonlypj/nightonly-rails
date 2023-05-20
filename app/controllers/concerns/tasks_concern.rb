@@ -5,7 +5,7 @@ module TasksConcern
 
   def set_task(id = params[:id])
     @task = Task.where(space: @space, id: id).eager_load(:task_cycles_active, :created_user, :last_updated_user)
-                .merge(TaskCycle.order(:updated_at, :id)).first
+                .merge(TaskCycle.order(:order, :updated_at, :id)).first
     response_not_found if @task.blank?
   end
 
@@ -52,7 +52,7 @@ module TasksConcern
   end
 
   def priority_include_key?(priority, key)
-    priority.blank? ? false : priority.split(',').include?(key)
+    priority.blank? ? priority.nil? : priority.split(',').include?(key)
   end
 
   def tasks_select(codes)
@@ -62,7 +62,8 @@ module TasksConcern
   def tasks_search
     Task.where(space: @space).search(@text).by_priority(@priorities).by_start_end_date(@before, @active, @after)
         .eager_load(:task_cycles_active, :created_user, :last_updated_user)
-        .order(SORT_COLUMN[@sort] + (@desc ? ' DESC' : ''), id: :desc).merge(TaskCycle.order(:updated_at, :id))
+        .order(SORT_COLUMN[@sort] + (@desc ? ' DESC' : ''), id: :desc)
+    # .merge(TaskCycle.order(:order, :updated_at, :id)) # NOTE: ページの最後のtaskにtask_cycleが複数紐付く場合、次ページでの取得になる為
   end
 
   # ダウンロードファイルのデータ作成
