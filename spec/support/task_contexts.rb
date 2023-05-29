@@ -4,13 +4,13 @@ shared_context 'タスク一覧作成' do |high_count, middle_count, low_count, 
     created_user = FactoryBot.create(:user)
     last_updated_user = FactoryBot.create(:user)
     destroy_user = FactoryBot.build_stubbed(:user)
-    FactoryBot.create_list(:task, high_count, priority: :high, space: space, created_user_id: destroy_user.id,
+    FactoryBot.create_list(:task, high_count, space: space, priority: :high, created_user_id: destroy_user.id,
                                               last_updated_user: last_updated_user, created_at: now - 4.days, updated_at: now - 5.days) +
-      FactoryBot.create_list(:task, middle_count, priority: :middle, space: space, created_user: created_user,
+      FactoryBot.create_list(:task, middle_count, space: space, priority: :middle, created_user: created_user,
                                                   last_updated_user_id: destroy_user.id, created_at: now - 3.days, updated_at: now - 2.days) +
-      FactoryBot.create_list(:task, low_count, priority: :low, space: space, created_user: created_user,
+      FactoryBot.create_list(:task, low_count, space: space, priority: :low, created_user: created_user,
                                                created_at: now - 1.day, updated_at: now - 1.day) +
-      FactoryBot.create_list(:task, none_count, priority: :none, space: space, created_user: created_user,
+      FactoryBot.create_list(:task, none_count, space: space, priority: :none, created_user: created_user,
                                                 created_at: now, updated_at: now)
   end
   before_all { FactoryBot.create(:task, space: FactoryBot.create(:space, :public)) } # NOTE: 対象外
@@ -18,14 +18,14 @@ shared_context 'タスク一覧作成' do |high_count, middle_count, low_count, 
   let_it_be(:task_cycles) do
     FactoryBot.create(:task_cycle, :weekly, wday: :mon, task: tasks[0], deleted_at: Time.current) # NOTE: 対象外
     result = {}
-    result[tasks[0].id] = [FactoryBot.create(:task_cycle, :weekly, wday: :wed, task: tasks[0], order: 1)] if tasks.count.positive?
-    result[tasks[1].id] = [FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], order: 2)] if tasks.count > 1
-    result[tasks[2].id] = [FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], order: 3)] if tasks.count > 2
-    result[tasks[3].id] = [FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], order: 4)] if tasks.count > 3
+    result[tasks[0].id] = [FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :wed, order: 1)] if tasks.count.positive?
+    result[tasks[1].id] = [FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], order: 1)] if tasks.count > 1
+    result[tasks[2].id] = [FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], order: 1)] if tasks.count > 2
+    result[tasks[3].id] = [FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], order: 1)] if tasks.count > 3
     if tasks.count > 4
-      task_cycle = FactoryBot.create(:task_cycle, :weekly, wday: :fri, handling_holiday: :after, task: tasks[4], order: 6)
+      task_cycle = FactoryBot.create(:task_cycle, :weekly, task: tasks[4], wday: :fri, handling_holiday: :after, order: 2)
       result[tasks[4].id] = [
-        FactoryBot.create(:task_cycle, :weekly, wday: :mon, handling_holiday: :before, task: tasks[4], order: 5),
+        FactoryBot.create(:task_cycle, :weekly, task: tasks[4], wday: :mon, handling_holiday: :before, order: 1),
         task_cycle # NOTE: 並び順のテストの為、先にcreateする
       ]
     end
@@ -82,14 +82,8 @@ end
 
 shared_context '[task]作成・更新条件' do
   let_it_be(:current_date) { Date.new(2022, 12, 10) }
-  let(:valid_months) { %w[202211 202212 202301] } # NOTE: 現在日と前後、年を跨ぐように設定
-  before_all do
-    FactoryBot.create(:holiday, date: Date.new(2022, 11, 3), name: '文化の日')
-    FactoryBot.create(:holiday, date: Date.new(2022, 11, 23), name: '勤労感謝の日')
-    FactoryBot.create(:holiday, date: Date.new(2023, 1, 1), name: '元日')
-    FactoryBot.create(:holiday, date: Date.new(2023, 1, 2), name: '休日')
-    FactoryBot.create(:holiday, date: Date.new(2023, 1, 9), name: '成人の日')
-  end
+  let(:valid_months) { %w[202209 202211 202212 202301] } # NOTE: 現在日と前後＋1ヶ月空けて前月、年を跨ぐように設定
+  include_context '祝日設定(2022/11-2023/01)'
 end
 
 shared_examples_for '[task]パラメータなし' do |update|
@@ -106,8 +100,8 @@ shared_examples_for '[task]パラメータなし' do |update|
   it_behaves_like 'ToNG(json)', 422, { cycles: [msg_cycles], priority: [msg_priority], started_date: [msg_started_date], title: [msg_title] }
 end
 
-shared_examples_for '[task]monthsパラメータ' do
-  context 'なし' do
+shared_examples_for '[task]months/detailパラメータ' do
+  context 'ない/ない' do
     let(:params) { { task: attributes } }
     let(:use_events) { false }
     it_behaves_like 'NG(html)'
@@ -115,23 +109,23 @@ shared_examples_for '[task]monthsパラメータ' do
     it_behaves_like 'OK(json)'
     it_behaves_like 'ToOK(json)'
   end
-  context 'あり' do
-    let(:params) { { task: attributes, months: valid_months } }
+  context 'ある/true' do
+    let(:params) { { task: attributes, months: valid_months, detail: true } }
     let(:use_events) { true }
     it_behaves_like 'NG(html)'
     it_behaves_like 'ToNG(html)', 406
     it_behaves_like 'OK(json)'
     it_behaves_like 'ToOK(json)'
   end
-  context '空' do
-    let(:params) { { task: attributes, months: [] } }
+  context '空/false' do
+    let(:params) { { task: attributes, months: [], detail: false } }
     msg_months = get_locale('errors.messages.task.months.invalid', month: '')
     it_behaves_like 'NG(html)'
     it_behaves_like 'ToNG(html)', 406
     it_behaves_like 'NG(json)'
     it_behaves_like 'ToNG(json)', 422, { months: [msg_months] }
   end
-  context '不正値' do
+  context '不正値/ない' do
     let(:params) { { task: attributes, months: 'xxx' } }
     msg_months = get_locale('errors.messages.task.months.invalid', month: 'xxx')
     it_behaves_like 'NG(html)'
@@ -178,7 +172,7 @@ shared_examples_for '[task]有効なパラメータ' do |update|
       next unless update
 
       # NOTE: 2つ目が存在する + 1つ目はdelete -> 変更なし
-      [FactoryBot.create(:task_cycle, :weekly, wday: :tue, handling_holiday: :after, period: 2, task: task, order: 1)]
+      [FactoryBot.create(:task_cycle, :weekly, task: task, wday: :tue, handling_holiday: :after, period: 2, order: 1)]
     end
     let(:task_cycles_inactive_count) { 0 if update } # 元の値
     let(:except_task_cycles_inactive_count) { 0 if update }
@@ -209,7 +203,7 @@ shared_examples_for '[task]有効なパラメータ' do |update|
         { index: 0, started_date: '2023-01-30', last_ended_date: '2023-01-31' }
       ]
     end
-    it_behaves_like '[task]monthsパラメータ'
+    it_behaves_like '[task]months/detailパラメータ'
   end
   context "有効なパラメータ（毎月 × 日/営業日/週）#{' @追加あり' if update}" do
     let(:attributes) do
@@ -255,8 +249,8 @@ shared_examples_for '[task]有効なパラメータ' do |update|
     let_it_be(:task_cycles) do # 元の値
       next unless update
 
-      # NOTE: 2つ目が存在する -> 1・3つ目を追加
-      [FactoryBot.create(:task_cycle, :monthly, :business_day, task: task, business_day: 2, period: 2, order: 1)]
+      # NOTE: 1つ目が存在する -> 2・3つ目を追加
+      [FactoryBot.create(:task_cycle, :monthly, :day, task: task, day: 1, handling_holiday: :before, period: 1, order: 1)]
     end
     let(:task_cycles_inactive_count) { 0 if update } # 元の値
     let(:except_task_cycles_inactive_count) { 0 if update }
@@ -305,7 +299,7 @@ shared_examples_for '[task]有効なパラメータ' do |update|
         { index: 2, started_date: '2023-01-16', last_ended_date: '2023-01-18' }
       ]
     end
-    it_behaves_like '[task]monthsパラメータ'
+    it_behaves_like '[task]months/detailパラメータ'
   end
   context "有効なパラメータ（毎年 × 日/営業日/週）#{' @削除・復帰あり' if update}" do
     let(:attributes) do
@@ -404,7 +398,7 @@ shared_examples_for '[task]有効なパラメータ' do |update|
         { index: 0, started_date: '2022-12-30', last_ended_date: '2022-12-30' }
       ]
     end
-    it_behaves_like '[task]monthsパラメータ'
+    it_behaves_like '[task]months/detailパラメータ'
   end
 end
 

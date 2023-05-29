@@ -64,14 +64,10 @@ class TasksController < ApplicationAuthController
     set_task(@task.id)
     return render :show_index, locals: { notice: t("notice.task.#{target}") }, status: target == :create ? :created : nil if @months.blank?
 
-    tomorrow = Time.current.to_date.tomorrow
-    set_holidays(tomorrow, tomorrow + 1.month) # NOTE: 1ヶ月以上の休みはない前提
-    next_business_date = handling_holiday_date(tomorrow, :after)
-
     if target == :create
       @task_events = []
     else
-      @task_events = TaskEvent.joins(:task_cycle).where(space: @space, task_cycle: { task_id: @task.id }).by_month(@months, next_business_date).order(:id)
+      @task_events = TaskEvent.joins(:task_cycle).where(space: @space, task_cycle: { task_id: @task.id }).by_month(@months).order(:id)
     end
     set_exist_task_events
     logger.debug("@exist_task_events: #{@exist_task_events}")
@@ -99,7 +95,7 @@ class TasksController < ApplicationAuthController
   end
 
   def check_validation(target)
-    @detail = params[:detail]
+    @detail = params[:detail].to_s == 'true'
     @task.valid?
 
     @now = Time.current
@@ -238,7 +234,7 @@ class TasksController < ApplicationAuthController
   end
 
   def set_params_destroy
-    @ids = params[:ids]&.compact_blank&.uniq
+    @ids = params[:ids].instance_of?(Array) ? params[:ids].compact_blank.uniq : []
   end
 
   def validate_params_destroy

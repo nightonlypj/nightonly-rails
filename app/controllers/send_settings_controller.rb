@@ -1,5 +1,6 @@
 class SendSettingsController < ApplicationAuthController
   before_action :response_not_acceptable_for_not_api
+  before_action :authenticate_user!, only: :update
   before_action :set_space_current_member_auth_private
   before_action :response_api_for_user_destroy_reserved, only: :update
   before_action :check_power_admin, only: :update

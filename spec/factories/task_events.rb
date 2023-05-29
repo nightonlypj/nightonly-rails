@@ -19,7 +19,7 @@ FactoryBot.define do
     after(:stub) do |task_event|
       if task_event.task_cycle.blank?
         task_event.space = FactoryBot.build_stubbed(:space) if task_event.space.blank?
-        task_event.task_cycle = FactoryBot.build_stubbed(:task, space: task_event.space)
+        task_event.task_cycle = FactoryBot.build_stubbed(:task_cycle, space: task_event.space)
       else
         task_event.space = task_event.task_cycle.space
       end
@@ -28,19 +28,19 @@ FactoryBot.define do
 
     # 開始・終了日
     trait :yesterday do
-      started_date    { Time.current.yesterday.to_date }
+      started_date    { Time.current.to_date - 1.day }
       ended_date      { Time.current.to_date }
     end
 
     # ステータス
     trait :completed do
       status            { :complete }
-      last_completed_at { Time.current }
+      last_completed_at { Time.current - 1.hour }
     end
 
     # 担当
     trait :assigned do
-      assigned_at { Time.current }
+      assigned_at { Time.current - 2.hours }
       association :assigned_user, factory: :user
     end
   end

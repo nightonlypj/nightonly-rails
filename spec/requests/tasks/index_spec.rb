@@ -85,6 +85,7 @@ RSpec.describe 'Tasks', type: :request do
       end
     end
 
+    # テストケース
     shared_examples_for 'タスク' do
       context 'ない' do
         include_context 'タスク一覧作成', 0, 0, 0, 0
@@ -110,7 +111,6 @@ RSpec.describe 'Tasks', type: :request do
       end
     end
 
-    # テストケース
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
       include_context 'set_member_power', power
       it_behaves_like 'タスク'

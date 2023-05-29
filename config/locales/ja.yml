@@ -323,6 +323,13 @@ ja:
               less_than_or_equal_to: '%{count}以下の値を入力してください。'
         task_event:
           attributes:
+            code:
+              blank: 'お問い合わせ頂くか、最初からやり直してください。'
+              taken: '処理に失敗しました。しばらく時間をあけてから、やり直してください。'
+            status:
+              blank: '選択してください。'
+            memo:
+              too_long: '%{count}文字以下で入力してください。'
             last_ended_date:
               blank: '入力してください。'
               after: '開始以降の日付を入力してください。'
@@ -496,6 +503,8 @@ ja:
         months:
           invalid: '形式が正しくありません。%{month}'
       task_events:
+        end_date:
+          after: '開始日以降の日付を入力してください。'
         max_month_count: '%{count}ヶ月以内で指定してください。'
       task_cycles:
         zero: '有効な周期が存在しません。'

@@ -12,7 +12,8 @@ RSpec.describe 'Tasks', type: :request do
   #   TODO: 削除予約: ある, ない
   #   権限: ある（管理者, 投稿者）, ない（閲覧者, なし）
   #   パラメータなし, 有効なパラメータ（毎週 × 削除なし/あり, 毎月/毎年 × 日/営業日/週）, 無効なパラメータ（タスク: 不正値, 周期: ない, 不正値, 曜日/日/営業日重複, 最大数より多い）
-  #   　monthsパラメータ: なし, あり, 空, 不正値
+  #     monthsパラメータ: ない, ある, 空, 不正値
+  #     detailパラメータ: ない, true, false
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #create' do
@@ -24,8 +25,8 @@ RSpec.describe 'Tasks', type: :request do
 
     include_context '[task]作成・更新条件'
     let_it_be(:valid_task_attributes)  { FactoryBot.attributes_for(:task, started_date: current_date, ended_date: nil) }
-    let_it_be(:valid_cycle_attributes) { FactoryBot.attributes_for(:task_cycle) }
-    let_it_be(:valid_attributes)       { valid_task_attributes.merge(cycles: [valid_cycle_attributes]) }
+    let_it_be(:valid_cycle_attributes) { FactoryBot.attributes_for(:task_cycle).reject { |key| key == :order } }
+    let_it_be(:valid_attributes)         { valid_task_attributes.merge(cycles: [valid_cycle_attributes]) }
     let_it_be(:invalid_task_attributes)  { valid_task_attributes.merge(title: nil) }
     let_it_be(:invalid_cycle_attributes) { valid_cycle_attributes.merge(cycle: nil) }
     let(:current_task)               { Task.eager_load(:task_cycles_active).last }
@@ -95,19 +96,16 @@ RSpec.describe 'Tasks', type: :request do
         if use_events
           expect(response_json_events.count).to eq(expect_events.count)
           response_json_events.each_with_index do |response_json_event, index|
-            expect(response_json_event['cycle_id']).to eq(current_task_cycles_active[expect_events[index][:index]].id)
-            expect(response_json_event['task_id']).to eq(current_task.id)
-            expect(response_json_event['priority_order']).to eq(Settings.priority_order[current_task.priority])
-            expect(response_json_event['started_date']).to eq(expect_events[index][:started_date])
-            expect(response_json_event['last_ended_date']).to eq(expect_events[index][:last_ended_date])
-            expect(response_json_event.count).to eq(5)
+            current_task_cycle = current_task_cycles_active[expect_events[index][:index]]
+            count = expect_task_event_json(response_json_event, current_task, current_task_cycle, nil, expect_events[index], { detail: false })
+            expect(response_json_event.count).to eq(count)
           end
           result += 1
         else
           expect(response_json_events).to be_nil
         end
 
-        count = expect_task_json(response_json_task, current_task, current_task_cycles_active, { detail: false, cycles: !use_events })
+        count = expect_task_json(response_json_task, current_task, current_task_cycles_active, { detail: params[:detail], cycles: !use_events })
         expect(response_json_task.count).to eq(count)
 
         expect(response_json.count).to eq(result)

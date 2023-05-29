@@ -1,5 +1,4 @@
-require 'rails_helper'
+# require 'rails_helper'
 
-RSpec.describe SlackDomain, type: :model do
-  # TODO
-end
+# RSpec.describe SlackDomain, type: :model do
+# end

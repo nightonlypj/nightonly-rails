@@ -9,6 +9,7 @@ FactoryBot.define do
     wday             { TaskCycle.wdays_i18n.keys[[0, 6].include?(Time.current.wday) ? 0 : Time.current.wday - 1].to_sym } # NOTE: 土・日曜日をコメントアウトしている為
     handling_holiday { TaskCycle.handling_holidays.keys[rand(2)].to_sym }
     period           { rand(1..3) }
+    order            { 1 }
 
     # :nocov:
     after(:build) do |task_cycle|
@@ -59,6 +60,11 @@ FactoryBot.define do
       week             { TaskCycle.weeks.keys[(Time.current.day - 1) / 7] }
       # wday             { TaskCycle.wdays_i18n.keys[[0, 6].include?(Time.current.wday) ? 0 : Time.current.wday - 1].to_sym } # NOTE: 土・日曜日をコメントアウトしている為
       # handling_holiday { %i[before after][rand(2)] }
+    end
+
+    # 論理削除
+    trait :deleted do
+      deleted_at { Time.current }
     end
   end
 end

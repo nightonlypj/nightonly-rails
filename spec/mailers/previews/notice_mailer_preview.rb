@@ -16,7 +16,7 @@ class NoticeMailerPreview < ActionMailer::Preview
     ]
     NoticeMailer.with(
       space: space,
-      target_date: [Time.current, Time.current.yesterday][rand(2)].to_date,
+      target_date: [Time.current, Time.current - 1.day][rand(2)].to_date,
       send_history: send_history,
       space_url: "#{Settings.front_url}/-/#{space.code}",
       next_task_events: next_task_events,

@@ -13,33 +13,22 @@ class TaskEvent < ApplicationRecord
   validates :last_ended_date, presence: true
   validate :validate_last_ended_date
 
-  scope :by_month, lambda { |months, last_date|
-    return none if months.count.zero?
-
-    task_event = all
+  scope :by_month, lambda { |months| # NOTE: monthsの形式が正しく、昇順の前提
+    task_event = none
     index = 0
     while index < months.count
-      start_date = "#{months[index]}01".to_date
-      break if start_date > last_date
+      start_month = "#{months[index]}01".to_date
+      end_month = start_month
 
       while index + 1 < months.count
-        end_date = "#{months[index + 1]}01".to_date
-        break if start_date + 1.month != end_date || end_date.end_of_month >= last_date
+        next_start_month = "#{months[index + 1]}01".to_date
+        break if next_start_month != end_month + 1.month
 
+        end_month = next_start_month
         index += 1
       end
-      if index + 1 < months.count
-        end_date = end_date.end_of_month
-        index += 1
-      else
-        end_date = start_date.end_of_month
-      end
-      if end_date >= last_date
-        task_event = task_event.where(ended_date: start_date..last_date)
-        break
-      end
 
-      task_event = task_event.where(ended_date: start_date..end_date)
+      task_event = task_event.or(where(started_date: start_month..end_month.end_of_month))
       index += 1
     end
 

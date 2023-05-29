@@ -15,7 +15,7 @@ namespace :task_event do
     begin
       target_date = args.target_date&.to_date
       raise '日付が指定されていません。' if target_date.blank?
-      raise '翌々日以降の日付は指定できません。' if target_date > Time.current.to_date.tomorrow
+      raise '翌々日以降の日付は指定できません。' if target_date > Time.current.to_date + 1.day
     rescue StandardError
       raise '日付の形式が不正です。'
     end
@@ -36,8 +36,8 @@ namespace :task_event do
       set_holidays(start_date, end_date) # NOTE: 1ヶ月以上の休みはない前提
       before_business_date = handling_holiday_date(target_date, :before)
       after_business_date = handling_holiday_date(target_date, :after)
-      prev_business_date = handling_holiday_date(target_date.yesterday, :before)
-      next_business_date = handling_holiday_date(target_date.tomorrow, :after)
+      prev_business_date = handling_holiday_date(target_date - 1.day, :before)
+      next_business_date = handling_holiday_date(target_date + 1.day, :after)
       business_date = "#{before_business_date}, #{after_business_date}, #{prev_business_date}, #{next_business_date}"
       @logger.info("start_date: #{start_date}, end_date: #{end_date}, business_date: #{business_date}")
 
@@ -83,7 +83,7 @@ namespace :task_event do
   # タスクイベント作成
   def create_task_events(dry_run, space, target_date, next_start_date, start_date, end_date)
     task_cycles = TaskCycle.active.where(space: space).by_month(cycle_months(start_date, end_date) + [nil])
-                           .eager_load(:task).by_task_period(target_date, next_start_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
+                           .eager_load(:task).by_task_period(target_date, end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
     @logger.info("task_cycles.count: #{task_cycles.count}")
     return 0 if task_cycles.count.zero?
 

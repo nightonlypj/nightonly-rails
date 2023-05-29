@@ -28,14 +28,14 @@ module TasksConcern
   def set_params_index(search_params = params, sort_only = false)
     @priorities = []
     if sort_only
-      @text = nil
+      # @text = nil
 
-      Task.priorities.each do |key, _value|
-        @priorities.push(key)
-      end
-      @before = true
-      @active = true
-      @after = false
+      # Task.priorities.each do |key, _value|
+      #   @priorities.push(key)
+      # end
+      # @before = true
+      # @active = true
+      # @after = false
     else
       @text = search_params[:text]&.slice(..(255 - 1))
 
