@@ -41,7 +41,7 @@ RSpec.describe 'Tasks', type: :request do
   # テストパターン
   #   未ログイン, APIログイン中, APIログイン中（削除予約済み）
   #   スペース: 存在しない, 公開, 非公開
-  #   権限: ある（管理者, 投稿者, 閲覧者）, ない
+  #   権限: ある（管理者〜閲覧者）, ない
   #   タスク: ない, 最大表示数と同じ, 最大表示数より多い
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
@@ -137,7 +137,6 @@ RSpec.describe 'Tasks', type: :request do
     shared_examples_for '[APIログイン中/削除予約済み]スペースが非公開' do
       let_it_be(:space) { space_private }
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :admin
-      it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :writer
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :reader
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がない'
     end

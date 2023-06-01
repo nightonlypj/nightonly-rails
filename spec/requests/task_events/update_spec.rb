@@ -81,11 +81,10 @@ RSpec.describe 'TaskEvents', type: :request do
         context 'パラメータなし' do
           let_it_be(:task_event) { FactoryBot.create(:task_event, space: space) }
           let(:params) { nil }
-          message = get_locale('activerecord.errors.models.task_event.attributes.last_ended_date.blank')
           it_behaves_like 'NG(html)'
           it_behaves_like 'ToNG(html)', 406
           it_behaves_like 'NG(json)'
-          it_behaves_like 'ToNG(json)', 422, { last_ended_date: [message] }
+          it_behaves_like 'ToNG(json)', 422, { last_ended_date: [get_locale('activerecord.errors.models.task_event.attributes.last_ended_date.blank')] }
         end
         context '有効なパラメータ（通知ステータス変更なし、担当なし→自分）, detailパラメータがない' do # 未処理 -> 処理中
           let_it_be(:task_event) { FactoryBot.create(:task_event, space: space, status: :untreated, assigned_user: nil) }
@@ -138,11 +137,10 @@ RSpec.describe 'TaskEvents', type: :request do
         context '無効なパラメータ' do
           let_it_be(:task_event) { FactoryBot.create(:task_event, space: space) }
           let(:params) { { task_event: invalid_attributes } }
-          message = get_locale('activerecord.errors.models.task_event.attributes.status.blank')
           it_behaves_like 'NG(html)'
           it_behaves_like 'ToNG(html)', 406
           it_behaves_like 'NG(json)'
-          it_behaves_like 'ToNG(json)', 422, { status: [message] }
+          it_behaves_like 'ToNG(json)', 422, { status: [get_locale('activerecord.errors.models.task_event.attributes.status.blank')] }
         end
       end
       context 'イベントコードが存在しない' do

@@ -19,7 +19,7 @@ class TaskCycle < ApplicationRecord
 
   scope :active, -> { where(deleted_at: nil) }
   scope :by_month, lambda { |months|
-    return none if months.count.zero?
+    return none if months.count == 0
     return if months.include?(nil) && months.compact.uniq.sort == [*1..12]
 
     where(month: months)

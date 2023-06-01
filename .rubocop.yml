@@ -120,7 +120,7 @@ Style/FrozenStringLiteralComment:
 
 # C: Layout/LineLength: Line is too long.
 Layout/LineLength:
-  # Max: 160
+  Max: 160
   Exclude:
     - 'spec/**/*'
 

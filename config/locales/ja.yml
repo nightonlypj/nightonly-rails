@@ -372,7 +372,7 @@ ja:
               blank: '入力してください。'
               greater_than_or_equal_to: '%{count}以上の値を入力してください。'
               less_than_or_equal_to: '%{count}以下の値を入力してください。'
-              invalid: '開始確認よりも後の時間を入力してください。'
+              invalid: '開始確認より後の時間を入力してください。'
             next_notice_completed:
               inclusion: '選択してください。'
             next_notice_required:

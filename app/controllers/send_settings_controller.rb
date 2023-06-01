@@ -5,6 +5,7 @@ class SendSettingsController < ApplicationAuthController
   before_action :response_api_for_user_destroy_reserved, only: :update
   before_action :check_power_admin, only: :update
   before_action :set_send_setting, only: %i[show update]
+  before_action :set_current_slack_user, only: :show
   before_action :validate_params_update, only: :update
 
   # GET /send_settings/:space_code/detail(.json) 通知設定詳細API
@@ -22,8 +23,10 @@ class SendSettingsController < ApplicationAuthController
     now = Time.current
     ActiveRecord::Base.transaction do
       if exist_send_setting.present?
-        exist_send_setting.update!(last_updated_user: current_user, deleted_at: nil, updated_at: now) if exist_send_setting.deleted_at.present?
-        @send_setting.update!(last_updated_user: current_user, deleted_at: now, updated_at: now) if exist_send_setting.id != @send_setting&.id
+        exist_send_setting.update!(last_updated_user: current_user, deleted_at: nil)
+        if @send_setting.present? && @send_setting.id != exist_send_setting.id
+          @send_setting.update!(last_updated_user: current_user, deleted_at: now, updated_at: now)
+        end
       else
         if slack_domain.present?
           slack_domain.save!
@@ -35,6 +38,7 @@ class SendSettingsController < ApplicationAuthController
     end
 
     set_send_setting
+    set_current_slack_user
     render :show, locals: { notice: t('notice.send_setting.update') }
   end
 
@@ -43,8 +47,11 @@ class SendSettingsController < ApplicationAuthController
   # Use callbacks to share common setup or constraints between actions.
   def set_send_setting
     @send_setting = SendSetting.active.where(space: @space).eager_load(:slack_domain, :last_updated_user).order(updated_at: :desc, id: :desc).first
+  end
+
+  def set_current_slack_user
     if @send_setting.present? && @send_setting.slack_domain.present? && current_user.present?
-      @current_slack_user = SlackUser.where(slack_domain: @send_setting.slack_domain, user: current_user).first
+      @current_slack_user = SlackUser.find_by(slack_domain: @send_setting.slack_domain, user: current_user)
     else
       @current_slack_user = nil
     end
@@ -79,10 +86,9 @@ class SendSettingsController < ApplicationAuthController
     end
     return if @slack_name.blank?
 
-    maximum = Settings.slack_domain_name_maximum
-    if @slack_name.length > maximum
+    if @slack_name.length > Settings.slack_domain_name_maximum
       if @new_send_setting.slack_enabled
-        @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.too_long", count: maximum))
+        @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.too_long", count: Settings.slack_domain_name_maximum))
       else
         @slack_name = nil # NOTE: 不正値がINSERTされないように空にする
       end

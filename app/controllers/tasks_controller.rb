@@ -132,27 +132,29 @@ class TasksController < ApplicationAuthController
         @task.errors.add("cycle#{index}_#{target}", t("activerecord.errors.models.task_cycle.attributes.#{target}.taken"))
         cycle_error += 1
       end
-      next if cycle_error.positive?
+      next if cycle_error > 0
 
       count += 1
       key = task_cycle_key(task_cycle)
       if active_task_cycles[key].present?
         active_task_cycle_ids.push(active_task_cycles[key].id)
-        @upsert_task_cycles.push(active_task_cycles[key].attributes.symbolize_keys.merge(order: count, updated_at: @now)) if active_task_cycles[key].order != count
+        if active_task_cycles[key].order != count
+          @upsert_task_cycles.push(active_task_cycles[key].attributes.symbolize_keys.merge(order: count, updated_at: @now))
+        end
       elsif inactive_task_cycles[key].present?
         @upsert_task_cycles.push(inactive_task_cycles[key].attributes.symbolize_keys.merge(order: count, deleted_at: nil, updated_at: @now))
       else
         @insert_task_cycles.push(task_cycle.attributes.symbolize_keys.merge(order: count, created_at: @now, updated_at: @now))
       end
     end
-    return if cycle_error.positive?
+    return if cycle_error > 0
 
     @delete_task_cycle_ids = active_task_cycles.values.pluck(:id) - active_task_cycle_ids
     logger.debug("@insert_task_cycles: #{@insert_task_cycles}")
     logger.debug("@upsert_task_cycles: #{@upsert_task_cycles}")
     logger.debug("@delete_task_cycle_ids: #{@delete_task_cycle_ids}")
 
-    @task.errors.add(:cycles, t('errors.messages.task_cycles.zero')) if count.zero?
+    @task.errors.add(:cycles, t('errors.messages.task_cycles.zero')) if count == 0
     @task.errors.add(:cycles, t('errors.messages.task_cycles.max_count', count: Settings.task_cycles_max_count)) if count > Settings.task_cycles_max_count
   end
 

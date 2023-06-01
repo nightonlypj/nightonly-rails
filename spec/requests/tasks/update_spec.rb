@@ -42,7 +42,7 @@ RSpec.describe 'Tasks', type: :request do
       include_context 'set_member_power', :admin
       let_it_be(:task) { FactoryBot.create(:task, space: space) }
       let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task: task, order: 1)] }
-      let(:task_cycles_inactive_count) { 0 }
+      let(:task_cycle_inactive) { nil }
     end
 
     # テスト内容
@@ -77,7 +77,8 @@ RSpec.describe 'Tasks', type: :request do
           expect(current_task_cycle.deleted_at).to be_nil
         end
 
-        expect(current_task.task_cycles_inactive.count).to eq(except_task_cycles_inactive_count)
+        expect(current_task.task_cycles_inactive.count).to eq(except_task_cycle_inactive.present? ? 1 : 0)
+        expect(current_task.task_cycles_inactive.first.id).to eq(except_task_cycle_inactive.id) if except_task_cycle_inactive.present?
       end
     end
     shared_examples_for 'NG' do
@@ -85,7 +86,8 @@ RSpec.describe 'Tasks', type: :request do
         subject
         expect(current_task).to eq(task)
         expect(current_task_cycles_active).to eq(task_cycles)
-        expect(current_task.task_cycles_inactive.count).to eq(task_cycles_inactive_count)
+        expect(current_task.task_cycles_inactive.count).to eq(task_cycle_inactive.present? ? 1 : 0)
+        expect(current_task.task_cycles_inactive.first).to eq(task_cycle_inactive) if task_cycle_inactive.present?
       end
     end
 
@@ -139,7 +141,7 @@ RSpec.describe 'Tasks', type: :request do
       include_context 'set_member_power', power
       let_it_be(:task) { FactoryBot.create(:task, space: space) }
       let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task: task, order: 1)] }
-      let(:task_cycles_inactive_count) { 0 }
+      let(:task_cycle_inactive) { nil }
       let(:params) { { task: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる

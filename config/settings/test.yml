@@ -113,9 +113,9 @@ slack_user_memberid_maximum: 16 # NOTE: Faker::Number.hexadecimal(digits: 11).up
 
 ## 通知設定
 # [Slack]ドメイン名（サブドメイン）の最大文字数
-# slack_domain_name_maximum: 32
+slack_domain_name_maximum: 32 # NOTE: Faker::Internet.domain_word
 # [Slack]Webhook URLの最大文字数
-slack_webhook_url_maximum: 64 # NOTE: Faker::Internet.url
+slack_webhook_url_maximum: 64 # NOTE: Faker::Internet.url(scheme: 'https')
 # [Slack]メンションの最大文字数
 slack_mention_maximum: 8 # NOTE: '!here'
 # [開始確認]デフォルト開始時間/完了通知/必須

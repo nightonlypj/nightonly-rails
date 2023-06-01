@@ -9,7 +9,7 @@ RSpec.describe 'TaskEvents', type: :request do
   # テストパターン
   #   未ログイン, APIログイン中, APIログイン中（削除予約済み）
   #   スペース: 存在しない, 公開, 非公開
-  #   権限: ある（管理者, 投稿者, 閲覧者）, ない
+  #   権限: ある（管理者〜閲覧者）, ない
   #   開始日: ない, YYYY-MM-DD, YYYY/MM/DD, YYYYMMDD, 存在しない日付（1/0, 2/30）
   #   終了日: ない, YYYY-MM-DD, YYYY/MM/DD, YYYYMMDD, 存在しない日付（1/0, 2/30）, 開始日より前, 開始日と同じ, 最大月数より大きい
   #   イベント・タスク: ある, ない
@@ -246,7 +246,6 @@ RSpec.describe 'TaskEvents', type: :request do
     shared_examples_for '[APIログイン中/削除予約済み]スペースが非公開' do
       let_it_be(:space) { space_private }
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :admin
-      it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :writer
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :reader
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がない'
     end

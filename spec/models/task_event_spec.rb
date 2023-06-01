@@ -1,24 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe TaskEvent, type: :model do
-  # テスト内容（共通）
-  shared_examples_for 'Valid' do
-    it '保存できる' do
-      expect(task_event).to be_valid
-    end
-  end
-  shared_examples_for 'InValid' do
-    it '保存できない。エラーメッセージが一致する' do
-      expect(task_event).to be_invalid
-      expect(task_event.errors.messages).to eq(messages)
-    end
-  end
-
   # コード
   # テストパターン
   #   ない, 正常値, 重複
   describe 'validates :code' do
-    let(:task_event) { FactoryBot.build_stubbed(:task_event, code: code) }
+    let(:model) { FactoryBot.build_stubbed(:task_event, code: code) }
     let(:valid_code) { Digest::MD5.hexdigest(SecureRandom.uuid) }
 
     # テストケース
@@ -43,8 +30,9 @@ RSpec.describe TaskEvent, type: :model do
   # テストパターン
   #   ない, 正常値
   describe 'validates :status' do
-    let(:task_event) { FactoryBot.build_stubbed(:task_event, status: status) }
+    let(:model) { FactoryBot.build_stubbed(:task_event, status: status) }
 
+    # テストケース
     context 'ない' do
       let(:status) { nil }
       let(:messages) { { status: [get_locale('activerecord.errors.models.task_event.attributes.status.blank')] } }
@@ -58,9 +46,9 @@ RSpec.describe TaskEvent, type: :model do
 
   # 概要
   # テストパターン
-  #   ない, 最大文字数と同じ, 最大文字数よりも多い
+  #   ない, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :memo' do
-    let(:task_event) { FactoryBot.build_stubbed(:task_event, memo: memo) }
+    let(:model) { FactoryBot.build_stubbed(:task_event, memo: memo) }
 
     # テストケース
     context 'ない' do
@@ -71,7 +59,7 @@ RSpec.describe TaskEvent, type: :model do
       let(:memo) { 'a' * Settings.task_event_memo_maximum }
       it_behaves_like 'Valid'
     end
-    context '最大文字数よりも多い' do
+    context '最大文字数より多い' do
       let(:memo) { 'a' * (Settings.task_event_memo_maximum + 1) }
       let(:messages) { { memo: [get_locale('activerecord.errors.models.task_event.attributes.memo.too_long', count: Settings.task_event_memo_maximum)] } }
       it_behaves_like 'InValid'
@@ -83,7 +71,7 @@ RSpec.describe TaskEvent, type: :model do
   #   開始日: ない, ある
   #   最終終了日: ない, 開始日より前, 開始日の翌月末, 開始日の翌々月初
   describe 'validates :last_ended_date' do
-    let(:task_event) { FactoryBot.build_stubbed(:task_event, started_date: started_date, last_ended_date: last_ended_date) }
+    let(:model) { FactoryBot.build_stubbed(:task_event, started_date: started_date, last_ended_date: last_ended_date) }
     let(:started_date) { Time.current.to_date }
 
     # テストケース
@@ -117,9 +105,7 @@ RSpec.describe TaskEvent, type: :model do
     # テストケース
     context '更新日時が作成日時と同じ' do
       let(:task_event) { FactoryBot.create(:task_event) }
-      it 'なし' do
-        is_expected.to eq(nil)
-      end
+      it_behaves_like 'Value', nil, 'nil'
     end
     context '更新日時が作成日時以降' do
       let(:task_event) { FactoryBot.create(:task_event, created_at: Time.current - 1.hour, updated_at: Time.current) }
