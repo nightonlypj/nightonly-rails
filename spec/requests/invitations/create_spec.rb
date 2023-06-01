@@ -14,9 +14,9 @@ RSpec.describe 'Invitations', type: :request do
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #create' do
-    subject { post create_invitation_path(space_code: space.code, format: subject_format), params: { invitation: attributes }, headers: auth_headers.merge(accept_headers) }
-    let_it_be(:valid_attributes)     { FactoryBot.attributes_for(:invitation, :create) }
-    let_it_be(:valid_attributes_max) { FactoryBot.attributes_for(:invitation, :create_max) }
+    subject { post create_invitation_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
+    let_it_be(:valid_attributes)     { FactoryBot.attributes_for(:invitation, :create).reject { |key| key == :code } }
+    let_it_be(:valid_attributes_max) { FactoryBot.attributes_for(:invitation, :create_max).reject { |key| key == :code } }
     let_it_be(:invalid_attributes)        { valid_attributes.merge(domains: nil) }
     let_it_be(:invalid_attributes_over)   { valid_attributes.merge(domains: "#{valid_attributes_max[:domains]}\n#{valid_attributes[:domains]}") }
     let_it_be(:invalid_attributes_format) { valid_attributes.merge(domains: "#{valid_attributes[:domains]}\naaa") }
@@ -26,7 +26,7 @@ RSpec.describe 'Invitations', type: :request do
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
     let_it_be(:space_private) { FactoryBot.create(:space, :private) }
     shared_context 'valid_condition' do
-      let(:attributes) { valid_attributes }
+      let(:params) { { invitation: valid_attributes } }
       let_it_be(:space) { space_public }
       include_context 'set_member_power', :admin
     end
@@ -81,7 +81,7 @@ RSpec.describe 'Invitations', type: :request do
 
     # テストケース
     shared_examples_for '[ログイン中][*][ある]パラメータなし' do
-      let(:attributes) { nil }
+      let(:params) { nil }
 =begin
       msg_domains = get_locale('activerecord.errors.models.invitation.attributes.domains.blank')
       msg_power   = get_locale('activerecord.errors.models.invitation.attributes.power.blank')
@@ -98,7 +98,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある]パラメータなし' do
-      let(:attributes) { nil }
+      let(:params) { nil }
       msg_domains = get_locale('activerecord.errors.models.invitation.attributes.domains.blank')
       msg_power   = get_locale('activerecord.errors.models.invitation.attributes.power.blank')
       it_behaves_like 'NG(html)'
@@ -113,6 +113,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToNG(json)', 422, { domains: [msg_domains], power: [msg_power] }
     end
     shared_examples_for '[ログイン中][*][ある]有効なパラメータ（ドメインが1件）' do
+      let(:params) { { invitation: attributes } }
       let(:attributes) { valid_attributes }
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
@@ -127,6 +128,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある]有効なパラメータ（ドメインが1件）' do
+      let(:params) { { invitation: attributes } }
       let(:attributes) { valid_attributes }
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
@@ -141,6 +143,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToOK(json)'
     end
     shared_examples_for '[ログイン中][*][ある]有効なパラメータ（ドメインが最大数と同じ）' do
+      let(:params) { { invitation: attributes } }
       let(:attributes) { valid_attributes_max }
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
@@ -155,6 +158,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある]有効なパラメータ（ドメインが最大数と同じ）' do
+      let(:params) { { invitation: attributes } }
       let(:attributes) { valid_attributes_max }
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
@@ -169,7 +173,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToOK(json)'
     end
     shared_examples_for '[ログイン中][*][ある]無効なパラメータ（ドメインがない）' do
-      let(:attributes) { invalid_attributes }
+      let(:params) { { invitation: invalid_attributes } }
 =begin
       message = get_locale('activerecord.errors.models.invitation.attributes.domains.blank')
 =end
@@ -185,7 +189,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある]無効なパラメータ（ドメインがない）' do
-      let(:attributes) { invalid_attributes }
+      let(:params) { { invitation: invalid_attributes } }
       message = get_locale('activerecord.errors.models.invitation.attributes.domains.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
@@ -199,7 +203,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToNG(json)', 422, { domains: [message] }
     end
     shared_examples_for '[ログイン中][*][ある]無効なパラメータ（ドメインが最大数より多い）' do
-      let(:attributes) { invalid_attributes_over }
+      let(:params) { { invitation: invalid_attributes_over } }
 =begin
       message = get_locale('activerecord.errors.models.invitation.attributes.domains.max_count', count: Settings.invitation_domains_max_count)
 =end
@@ -215,7 +219,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある]無効なパラメータ（ドメインが最大数より多い）' do
-      let(:attributes) { invalid_attributes_over }
+      let(:params) { { invitation: invalid_attributes_over } }
       message = get_locale('activerecord.errors.models.invitation.attributes.domains.max_count', count: Settings.invitation_domains_max_count)
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
@@ -229,7 +233,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToNG(json)', 422, { domains: [message] }
     end
     shared_examples_for '[ログイン中][*][ある]無効なパラメータ（ドメインに不正な形式が含まれる）' do
-      let(:attributes) { invalid_attributes_format }
+      let(:params) { { invitation: invalid_attributes_format } }
 =begin
       message = get_locale('activerecord.errors.models.invitation.attributes.domains.invalid', domain: 'aaa')
 =end
@@ -245,7 +249,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある]無効なパラメータ（ドメインに不正な形式が含まれる）' do
-      let(:attributes) { invalid_attributes_format }
+      let(:params) { { invitation: invalid_attributes_format } }
       message = get_locale('activerecord.errors.models.invitation.attributes.domains.invalid', domain: 'aaa')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
@@ -279,7 +283,7 @@ RSpec.describe 'Invitations', type: :request do
     end
     shared_examples_for '[ログイン中][*]権限がない' do |power|
       include_context 'set_member_power', power
-      let(:attributes) { valid_attributes }
+      let(:params) { { invitation: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403
       it_behaves_like 'NG(json)'
@@ -287,16 +291,29 @@ RSpec.describe 'Invitations', type: :request do
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
       include_context 'set_member_power', power
-      let(:attributes) { valid_attributes }
+      let(:params) { { invitation: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403 # NOTE: HTMLもログイン状態になる
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 403
     end
 
+    shared_examples_for '[ログイン中][*]' do
+      it_behaves_like '[ログイン中][*]権限がある', :admin
+      it_behaves_like '[ログイン中][*]権限がない', :writer
+      it_behaves_like '[ログイン中][*]権限がない', :reader
+      it_behaves_like '[ログイン中][*]権限がない', nil
+    end
+    shared_examples_for '[APIログイン中][*]' do
+      it_behaves_like '[APIログイン中][*]権限がある', :admin
+      it_behaves_like '[APIログイン中][*]権限がない', :writer
+      it_behaves_like '[APIログイン中][*]権限がない', :reader
+      it_behaves_like '[APIログイン中][*]権限がない', nil
+    end
+
     shared_examples_for '[ログイン中]スペースが存在しない' do
       let_it_be(:space) { space_not }
-      let(:attributes) { valid_attributes }
+      let(:params) { { invitation: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 404
       it_behaves_like 'NG(json)'
@@ -304,7 +321,7 @@ RSpec.describe 'Invitations', type: :request do
     end
     shared_examples_for '[APIログイン中]スペースが存在しない' do
       let_it_be(:space) { space_not }
-      let(:attributes) { valid_attributes }
+      let(:params) { { invitation: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 404 # NOTE: HTMLもログイン状態になる
       it_behaves_like 'NG(json)'
@@ -312,31 +329,19 @@ RSpec.describe 'Invitations', type: :request do
     end
     shared_examples_for '[ログイン中]スペースが公開' do
       let_it_be(:space) { space_public }
-      it_behaves_like '[ログイン中][*]権限がある', :admin
-      it_behaves_like '[ログイン中][*]権限がない', :writer
-      it_behaves_like '[ログイン中][*]権限がない', :reader
-      it_behaves_like '[ログイン中][*]権限がない', nil
+      it_behaves_like '[ログイン中][*]'
     end
     shared_examples_for '[APIログイン中]スペースが公開' do
       let_it_be(:space) { space_public }
-      it_behaves_like '[APIログイン中][*]権限がある', :admin
-      it_behaves_like '[APIログイン中][*]権限がない', :writer
-      it_behaves_like '[APIログイン中][*]権限がない', :reader
-      it_behaves_like '[APIログイン中][*]権限がない', nil
+      it_behaves_like '[APIログイン中][*]'
     end
     shared_examples_for '[ログイン中]スペースが非公開' do
       let_it_be(:space) { space_private }
-      it_behaves_like '[ログイン中][*]権限がある', :admin
-      it_behaves_like '[ログイン中][*]権限がない', :writer
-      it_behaves_like '[ログイン中][*]権限がない', :reader
-      it_behaves_like '[ログイン中][*]権限がない', nil
+      it_behaves_like '[ログイン中][*]'
     end
     shared_examples_for '[APIログイン中]スペースが非公開' do
       let_it_be(:space) { space_private }
-      it_behaves_like '[APIログイン中][*]権限がある', :admin
-      it_behaves_like '[APIログイン中][*]権限がない', :writer
-      it_behaves_like '[APIログイン中][*]権限がない', :reader
-      it_behaves_like '[APIログイン中][*]権限がない', nil
+      it_behaves_like '[APIログイン中][*]'
     end
 
     context '未ログイン' do

@@ -15,7 +15,7 @@ RSpec.describe 'Members', type: :request do
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #update' do
-    subject { post update_member_path(space_code: space.code, user_code: show_user.code, format: subject_format), params: { member: attributes }, headers: auth_headers.merge(accept_headers) }
+    subject { post update_member_path(space_code: space.code, user_code: show_user.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
     let_it_be(:valid_attributes)   { FactoryBot.attributes_for(:member) }
     let_it_be(:invalid_attributes) { valid_attributes.merge(power: nil) }
     let(:current_member) { Member.last }
@@ -25,7 +25,7 @@ RSpec.describe 'Members', type: :request do
     let_it_be(:space_private) { FactoryBot.create(:space, :private) }
     let_it_be(:other_user)    { FactoryBot.create(:user) }
     shared_context 'valid_condition' do
-      let(:attributes) { valid_attributes }
+      let(:params) { { member: valid_attributes } }
       let_it_be(:space) { space_public }
       include_context 'set_member_power', :admin
       let_it_be(:show_user) { other_user }
@@ -72,7 +72,7 @@ RSpec.describe 'Members', type: :request do
 
     # テストケース
     shared_examples_for '[ログイン中][*][ある][他人]パラメータなし' do
-      let(:attributes) { nil }
+      let(:params) { nil }
 =begin
       message = get_locale('activerecord.errors.models.member.attributes.power.blank')
 =end
@@ -88,7 +88,7 @@ RSpec.describe 'Members', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある][他人]パラメータなし' do
-      let(:attributes) { nil }
+      let(:params) { nil }
       message = get_locale('activerecord.errors.models.member.attributes.power.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
@@ -102,6 +102,7 @@ RSpec.describe 'Members', type: :request do
       it_behaves_like 'ToNG(json)', 422, { power: [message] }
     end
     shared_examples_for '[ログイン中][*][ある][他人]有効なパラメータ' do
+      let(:params) { { member: attributes } }
       let(:attributes) { valid_attributes }
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
@@ -116,6 +117,7 @@ RSpec.describe 'Members', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある][他人]有効なパラメータ' do
+      let(:params) { { member: attributes } }
       let(:attributes) { valid_attributes }
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
@@ -130,7 +132,7 @@ RSpec.describe 'Members', type: :request do
       it_behaves_like 'ToOK(json)'
     end
     shared_examples_for '[ログイン中][*][ある][他人]無効なパラメータ' do
-      let(:attributes) { invalid_attributes }
+      let(:params) { { member: invalid_attributes } }
 =begin
       message = get_locale('activerecord.errors.models.member.attributes.power.blank')
 =end
@@ -146,7 +148,7 @@ RSpec.describe 'Members', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中][*][ある][他人]無効なパラメータ' do
-      let(:attributes) { invalid_attributes }
+      let(:params) { { member: invalid_attributes } }
       message = get_locale('activerecord.errors.models.member.attributes.power.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
@@ -177,7 +179,7 @@ RSpec.describe 'Members', type: :request do
     shared_examples_for '[ログイン中][*][ある]対象メンバーがいる（自分）' do
       let_it_be(:show_user) { user }
       let_it_be(:member)    { member_myself }
-      let(:attributes) { valid_attributes }
+      let(:params) { { member: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403
       it_behaves_like 'NG(json)'
@@ -186,7 +188,7 @@ RSpec.describe 'Members', type: :request do
     shared_examples_for '[APIログイン中][*][ある]対象メンバーがいる（自分）' do
       let_it_be(:show_user) { user }
       let_it_be(:member)    { member_myself }
-      let(:attributes) { valid_attributes }
+      let(:params) { { member: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403 # NOTE: HTMLもログイン状態になる
       it_behaves_like 'NG(json)'
@@ -195,7 +197,7 @@ RSpec.describe 'Members', type: :request do
     shared_examples_for '[ログイン中][*][ある]対象メンバーがいない' do
       let_it_be(:show_user) { other_user }
       let_it_be(:member)    { member_myself }
-      let(:attributes) { valid_attributes }
+      let(:params) { { member: valid_attributes } }
       # it_behaves_like 'NG(html)' # NOTE: 存在しない為
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 404
       # it_behaves_like 'NG(json)'
@@ -204,7 +206,7 @@ RSpec.describe 'Members', type: :request do
     shared_examples_for '[APIログイン中][*][ある]対象メンバーがいない' do
       let_it_be(:show_user) { other_user }
       let_it_be(:member)    { member_myself }
-      let(:attributes) { valid_attributes }
+      let(:params) { { member: valid_attributes } }
       # it_behaves_like 'NG(html)' # NOTE: 存在しない為
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 404 # NOTE: HTMLもログイン状態になる
       # it_behaves_like 'NG(json)'
@@ -227,7 +229,7 @@ RSpec.describe 'Members', type: :request do
       include_context 'set_member_power', power
       let_it_be(:show_user) { other_user }
       let_it_be(:member)    { FactoryBot.create(:member, space: space, user: show_user) }
-      let(:attributes) { valid_attributes }
+      let(:params) { { member: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403
       it_behaves_like 'NG(json)'
@@ -237,7 +239,7 @@ RSpec.describe 'Members', type: :request do
       include_context 'set_member_power', power
       let_it_be(:show_user) { other_user }
       let_it_be(:member)    { FactoryBot.create(:member, space: space, user: show_user) }
-      let(:attributes) { valid_attributes }
+      let(:params) { { member: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403 # NOTE: HTMLもログイン状態になる
       it_behaves_like 'NG(json)'
@@ -247,7 +249,7 @@ RSpec.describe 'Members', type: :request do
     shared_examples_for '[ログイン中]スペースが存在しない' do
       let_it_be(:space)     { space_not }
       let_it_be(:show_user) { other_user }
-      let(:attributes) { valid_attributes }
+      let(:params) { { member: valid_attributes } }
       # it_behaves_like 'NG(html)' # NOTE: 存在しない為
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 404
       # it_behaves_like 'NG(json)'
@@ -256,7 +258,7 @@ RSpec.describe 'Members', type: :request do
     shared_examples_for '[APIログイン中]スペースが存在しない' do
       let_it_be(:space)     { space_not }
       let_it_be(:show_user) { other_user }
-      let(:attributes) { valid_attributes }
+      let(:params) { { member: valid_attributes } }
       # it_behaves_like 'NG(html)' # NOTE: 存在しない為
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 404 # NOTE: HTMLもログイン状態になる
       # it_behaves_like 'NG(json)'

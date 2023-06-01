@@ -12,8 +12,8 @@ RSpec.describe 'Spaces', type: :request do
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #create' do
-    subject { post create_space_path(format: subject_format), params: { space: attributes }, headers: auth_headers.merge(accept_headers) }
-    let_it_be(:valid_attributes)   { FactoryBot.attributes_for(:space) }
+    subject { post create_space_path(format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
+    let_it_be(:valid_attributes)   { FactoryBot.attributes_for(:space).reject { |key| key == :code } }
     let_it_be(:exist_attributes)   { valid_attributes.merge(name: FactoryBot.create(:space, :public).name) }
     let_it_be(:invalid_attributes) { valid_attributes.merge(name: nil) }
     let(:current_space)  { Space.last }
@@ -72,7 +72,7 @@ RSpec.describe 'Spaces', type: :request do
 
     # テストケース
     shared_examples_for '[ログイン中]パラメータなし' do
-      let(:attributes) { nil }
+      let(:params) { nil }
 =begin
       message = get_locale('activerecord.errors.models.space.attributes.name.blank')
 =end
@@ -88,7 +88,7 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中]パラメータなし' do
-      let(:attributes) { nil }
+      let(:params) { nil }
       message = get_locale('activerecord.errors.models.space.attributes.name.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
@@ -102,6 +102,7 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'ToNG(json)', 422, { name: [message] }
     end
     shared_examples_for '[ログイン中]有効なパラメータ（同名がない）' do
+      let(:params) { { space: attributes } }
       let(:attributes) { valid_attributes }
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
@@ -116,6 +117,7 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中]有効なパラメータ（同名がない）' do
+      let(:params) { { space: attributes } }
       let(:attributes) { valid_attributes }
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
@@ -130,7 +132,7 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'ToOK(json)'
     end
     shared_examples_for '[ログイン中]有効なパラメータ（同名がある）' do
-      let(:attributes) { exist_attributes }
+      let(:params) { { space: exist_attributes } }
 =begin
       message = get_locale('activerecord.errors.models.space.attributes.name.taken')
 =end
@@ -146,7 +148,7 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中]有効なパラメータ（同名がある）' do
-      let(:attributes) { exist_attributes }
+      let(:params) { { space: exist_attributes } }
       message = get_locale('activerecord.errors.models.space.attributes.name.taken')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
@@ -160,7 +162,7 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'ToNG(json)', 422, { name: [message] }
     end
     shared_examples_for '[ログイン中]無効なパラメータ' do
-      let(:attributes) { invalid_attributes }
+      let(:params) { { space: invalid_attributes } }
 =begin
       message = get_locale('activerecord.errors.models.space.attributes.name.blank')
 =end
@@ -176,7 +178,7 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中]無効なパラメータ' do
-      let(:attributes) { invalid_attributes }
+      let(:params) { { space: invalid_attributes } }
       message = get_locale('activerecord.errors.models.space.attributes.name.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
@@ -192,7 +194,7 @@ RSpec.describe 'Spaces', type: :request do
 
     context '未ログイン' do
       include_context '未ログイン処理'
-      let(:attributes) { valid_attributes }
+      let(:params) { { space: valid_attributes } }
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -213,7 +215,7 @@ RSpec.describe 'Spaces', type: :request do
     end
     context 'ログイン中（削除予約済み）' do
       include_context 'ログイン処理', :destroy_reserved
-      let(:attributes) { valid_attributes }
+      let(:params) { { space: valid_attributes } }
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -234,7 +236,7 @@ RSpec.describe 'Spaces', type: :request do
     end
     context 'APIログイン中（削除予約済み）' do
       include_context 'APIログイン処理', :destroy_reserved
-      let(:attributes) { valid_attributes }
+      let(:params) { { space: valid_attributes } }
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
