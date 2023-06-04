@@ -314,8 +314,8 @@ RSpec.describe 'Downloads', type: :request do
             expect(response_json_downloads[downloads.count - index - 1]['requested_at']).to eq(I18n.l(download.requested_at, format: :json))
           end
 
+          expect(response_json['search_params']).to eq(default_params.merge(params).stringify_keys)
 =begin
-          expect(response_json['search_params']).to eq(params.stringify_keys)
         else
           # HTML
           downloads.each do |download|

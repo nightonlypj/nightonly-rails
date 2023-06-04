@@ -85,7 +85,7 @@ namespace :task_event do
     task_cycles = TaskCycle.active.where(space: space).by_month(cycle_months(start_date, end_date) + [nil])
                            .eager_load(:task).by_task_period(target_date, end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
     @logger.info("task_cycles.count: #{task_cycles.count}")
-    return 0 if task_cycles.count.zero?
+    return 0 if task_cycles.count == 0
 
     @task_events = TaskEvent.where(space: space, started_date: start_date..)
                             .eager_load(task_cycle: :task).merge(Task.order(:priority)).order(:id)
@@ -98,7 +98,7 @@ namespace :task_event do
     end
     insert_events = @next_events.values.filter { |_, event_start_date, event_end_date| event_start_date <= next_start_date && event_end_date >= target_date }
     @logger.info("insert: #{insert_events.count}")
-    return 0 if insert_events.count.zero?
+    return 0 if insert_events.count == 0
 
     index = -1
     codes = create_unique_codes(insert_events.count)
@@ -163,7 +163,7 @@ namespace :task_event do
       next unless enable_send_target[send_target]
 
       send_history = SendHistory.new(history_params.merge(send_target: send_target, started_at: Time.current))
-      if !send_setting["#{notice_target}_notice_required"] && @processing_task_events.count.zero? && @complete_task_events.count.zero?
+      if !send_setting["#{notice_target}_notice_required"] && @processing_task_events.count == 0 && @complete_task_events.count == 0
         send_history.status = :skip
         send_history.completed_at = Time.current
         send_history.save! unless dry_run
@@ -297,7 +297,7 @@ namespace :task_event do
     {
       title: I18n.t("notifier.task_event.type.#{type}.title"),
       color: I18n.t("notifier.task_event.type.#{type}.slack_color"),
-      text: task_events.count.positive? ? text : I18n.t('notifier.task_event.list.notfound')
+      text: task_events.count > 0 ? text : I18n.t('notifier.task_event.list.notfound')
     }
   end
 
@@ -312,7 +312,7 @@ namespace :task_event do
     {
       title: I18n.t("notifier.task_event.type.complete.#{notice_target}.title"),
       color: I18n.t("notifier.task_event.type.complete.#{notice_target}.slack_color"),
-      text: @complete_task_events.count.positive? ? text : I18n.t('notifier.task_event.list.notfound')
+      text: @complete_task_events.count > 0 ? text : I18n.t('notifier.task_event.list.notfound')
     }
   end
 

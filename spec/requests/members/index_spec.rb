@@ -22,9 +22,9 @@ RSpec.describe 'Members', type: :request do
           expect(response_json_members[members.count - index - 1]['user']['name']).to eq(member.user.name)
         end
 
-=begin
         input_params = params.to_h { |key, value| [key, %i[text power sort].include?(key) ? value : value.to_i] }
         expect(response_json['search_params']).to eq(default_params.merge(input_params).stringify_keys)
+=begin
       else
         # HTML
         members.each do |member|

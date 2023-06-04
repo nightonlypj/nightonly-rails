@@ -94,7 +94,7 @@ shared_examples_for '[task]パラメータなし' do |update|
   it_behaves_like 'ToNG(html)', 406
   it_behaves_like 'NG(json)'
   it_behaves_like 'ToNG(json)', 422, {
-    cycles: [get_locale('errors.messages.task_cycles.zero')],
+    cycles: [get_locale('errors.messages.task_cycles.blank')],
     priority: [get_locale('activerecord.errors.models.task.attributes.priority.blank')],
     started_date: [get_locale('activerecord.errors.models.task.attributes.started_date.blank')],
     title: [get_locale('activerecord.errors.models.task.attributes.title.blank')]
@@ -135,7 +135,7 @@ shared_examples_for '[task]months/detailパラメータ' do
 end
 
 shared_examples_for '[task]有効なパラメータ' do |update|
-  context "有効なパラメータ（毎週 × 削除なし/あり#{' @変更なし' if update}）" do
+  context "有効なパラメータ（毎週 × 削除なし/あり#{'、変更なし' if update}）" do
     let(:attributes) do
       valid_task_attributes.merge(
         cycles: [
@@ -204,7 +204,7 @@ shared_examples_for '[task]有効なパラメータ' do |update|
     end
     it_behaves_like '[task]months/detailパラメータ'
   end
-  context "有効なパラメータ（毎月 × 日/営業日/週）#{' @追加あり' if update}" do
+  context "有効なパラメータ（毎月 × 日/営業日/週）#{'、追加あり' if update}" do
     let(:attributes) do
       valid_task_attributes.merge(
         cycles: [
@@ -300,7 +300,7 @@ shared_examples_for '[task]有効なパラメータ' do |update|
     end
     it_behaves_like '[task]months/detailパラメータ'
   end
-  context "有効なパラメータ（毎年 × 日/営業日/週）#{' @削除・復帰あり' if update}" do
+  context "有効なパラメータ（毎年 × 日/営業日/週）#{'、削除・復帰・並び順変更あり' if update}" do
     let(:attributes) do
       valid_task_attributes.merge(
         cycles: [
@@ -347,14 +347,14 @@ shared_examples_for '[task]有効なパラメータ' do |update|
       # NOTE: 3つ目が削除済みで存在する -> 復帰
       FactoryBot.create(:task_cycle, :yearly, :week, task: task, month: 3, week: :third, wday: :wed, handling_holiday: :after, period: 3, order: 1, deleted_at: Time.current)
     end
-    let_it_be(:except_task_cycle_inactive) { FactoryBot.create(:task_cycle, :weekly, task: task, order: 1) if update }
+    let_it_be(:except_task_cycle_inactive) { FactoryBot.create(:task_cycle, :weekly, task: task, order: 2) if update }
     let_it_be(:task_cycles) do # 元の値
       next unless update
 
       [
-        except_task_cycle_inactive, # NOTE: 存在しない -> 削除
         # NOTE: 2つ目が存在する + 3つ目が削除済みで存在する -> 1つ目を追加
-        FactoryBot.create(:task_cycle, :yearly, :business_day, task: task, month: 2, business_day: 2, period: 2, order: 2)
+        FactoryBot.create(:task_cycle, :yearly, :business_day, task: task, month: 2, business_day: 2, period: 2, order: 1),
+        except_task_cycle_inactive # NOTE: 存在しない -> 削除
       ]
     end
     let(:expect_task_cycles_active) do
@@ -406,28 +406,35 @@ end
 shared_examples_for '[task]無効なパラメータ' do |update|
   let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task: task, order: 1)] if update }
   let(:task_cycle_inactive) { nil }
-  context '無効なパラメータ（タスク: 不正値）' do
+  context '無効なパラメータ（タスクが不正値）' do
     let(:params) { { task: invalid_task_attributes.merge(cycles: [valid_cycle_attributes]) } }
     it_behaves_like 'NG(html)'
     it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
     it_behaves_like 'NG(json)'
     it_behaves_like 'ToNG(json)', 422, { title: [get_locale('activerecord.errors.models.task.attributes.title.blank')] }
   end
-  context '無効なパラメータ（周期: ない）' do
+  context '無効なパラメータ（周期がない）' do
     let(:params) { { task: valid_task_attributes } }
     it_behaves_like 'NG(html)'
     it_behaves_like 'ToNG(html)', 406
     it_behaves_like 'NG(json)'
-    it_behaves_like 'ToNG(json)', 422, { cycles: [get_locale('errors.messages.task_cycles.zero')] }
+    it_behaves_like 'ToNG(json)', 422, { cycles: [get_locale('errors.messages.task_cycles.blank')] }
   end
-  context '無効なパラメータ（周期: 不正値）' do
+  context '無効なパラメータ（周期が不正値）' do
     let(:params) { { task: valid_task_attributes.merge(cycles: [invalid_cycle_attributes]) } }
     it_behaves_like 'NG(html)'
     it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
     it_behaves_like 'NG(json)'
     it_behaves_like 'ToNG(json)', 422, { cycle1_cycle: [get_locale('activerecord.errors.models.task_cycle.attributes.cycle.blank')] }
   end
-  context '無効なパラメータ（周期: 曜日重複）' do
+  context '無効なパラメータ（周期が文字）' do
+    let(:params) { { task: valid_task_attributes.merge(cycles: 'x') } }
+    it_behaves_like 'NG(html)'
+    it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
+    it_behaves_like 'NG(json)'
+    it_behaves_like 'ToNG(json)', 422, { cycles: [get_locale('errors.messages.task_cycles.invalid')] }
+  end
+  context '無効なパラメータ（周期の曜日が重複）' do
     let(:weekly_cycle)  { FactoryBot.attributes_for(:task_cycle, :weekly) }
     let(:monthly_cycle) { FactoryBot.attributes_for(:task_cycle, :monthly, :week, wday: weekly_cycle[:wday]) }
     let(:params) { { task: valid_task_attributes.merge(cycles: [weekly_cycle, monthly_cycle]) } }
@@ -436,7 +443,7 @@ shared_examples_for '[task]無効なパラメータ' do |update|
     it_behaves_like 'NG(json)'
     it_behaves_like 'ToNG(json)', 422, { cycle2_wday: [get_locale('activerecord.errors.models.task_cycle.attributes.wday.taken')] }
   end
-  context '無効なパラメータ（周期: 日重複）' do
+  context '無効なパラメータ（周期の日が重複）' do
     let(:monthly_cycle) { FactoryBot.attributes_for(:task_cycle, :monthly, :day) }
     let(:yearly_cycle)  { FactoryBot.attributes_for(:task_cycle, :yearly, :day, day: monthly_cycle[:day]) }
     let(:params) { { task: valid_task_attributes.merge(cycles: [monthly_cycle, yearly_cycle]) } }
@@ -445,7 +452,7 @@ shared_examples_for '[task]無効なパラメータ' do |update|
     it_behaves_like 'NG(json)'
     it_behaves_like 'ToNG(json)', 422, { cycle2_day: [get_locale('activerecord.errors.models.task_cycle.attributes.day.taken')] }
   end
-  context '無効なパラメータ（周期: 営業日重複）' do
+  context '無効なパラメータ（周期の営業日が重複）' do
     let(:monthly_cycle) { FactoryBot.attributes_for(:task_cycle, :monthly, :business_day) }
     let(:yearly_cycle)  { FactoryBot.attributes_for(:task_cycle, :yearly, :business_day, business_day: monthly_cycle[:business_day]) }
     let(:params) { { task: valid_task_attributes.merge(cycles: [monthly_cycle, yearly_cycle]) } }
@@ -454,7 +461,7 @@ shared_examples_for '[task]無効なパラメータ' do |update|
     it_behaves_like 'NG(json)'
     it_behaves_like 'ToNG(json)', 422, { cycle2_business_day: [get_locale('activerecord.errors.models.task_cycle.attributes.business_day.taken')] }
   end
-  context '無効なパラメータ（周期: 最大数より多い）' do
+  context '無効なパラメータ（周期が最大数より多い）' do
     let(:cycles) { (Settings.task_cycles_max_count + 1).times.map { |index| FactoryBot.attributes_for(:task_cycle, :monthly, :day, day: index + 1) } }
     let(:params) { { task: valid_task_attributes.merge(cycles: cycles) } }
     it_behaves_like 'NG(html)'

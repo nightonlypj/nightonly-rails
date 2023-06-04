@@ -29,7 +29,7 @@ RSpec.describe SendSetting, type: :model do
 
   # [Slack]Webhook URL
   # テストパターン
-  #   Webhook URL: ない, 最大文字数と同じ, 最大文字数より多い, 形式不正
+  #   Webhook URL: ない, 最大文字数と同じ, 最大文字数より多い, 不正値
   #   通知: する, しない
   describe 'validates :slack_webhook_url' do
     let(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled: slack_enabled, slack_webhook_url: slack_webhook_url) }
@@ -60,11 +60,11 @@ RSpec.describe SendSetting, type: :model do
       it_behaves_like 'Valid'
     end
     context 'Webhook URLが最大文字数より多い' do
-      let(:slack_webhook_url) { "?#{url_maximum}" } # NOTE: 形式不正と一緒に出ないことも確認
+      let(:slack_webhook_url) { "?#{url_maximum}" } # NOTE: 不正値と一緒に出ないことも確認
       let(:messages) { { slack_webhook_url: [get_locale('activerecord.errors.models.send_setting.attributes.slack_webhook_url.too_long', count: Settings.slack_webhook_url_maximum)] } }
       it_behaves_like '[InValid]通知'
     end
-    context 'Webhook URLが形式不正' do
+    context 'Webhook URLが不正値' do
       let(:slack_webhook_url) { "?#{url}" }
       let(:messages) { { slack_webhook_url: [get_locale('activerecord.errors.models.send_setting.attributes.slack_webhook_url.invalid')] } }
       it_behaves_like '[InValid]通知'
@@ -73,7 +73,7 @@ RSpec.describe SendSetting, type: :model do
 
   # [Slack]メンション
   # テストパターン
-  #   メンション: ない, 最大文字数と同じ, 最大文字数より多い, 形式不正
+  #   メンション: ない, 最大文字数と同じ, 最大文字数より多い, 不正値
   #   通知: する, しない
   describe 'validates :slack_mention' do
     let(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled: slack_enabled, slack_mention: slack_mention) }
@@ -103,11 +103,11 @@ RSpec.describe SendSetting, type: :model do
       it_behaves_like 'Valid'
     end
     context 'メンションが最大文字数より多い' do
-      let(:slack_mention) { "?#{mention_maximum}" } # NOTE: 形式不正と一緒に出ないことも確認
+      let(:slack_mention) { "?#{mention_maximum}" } # NOTE: 不正値と一緒に出ないことも確認
       let(:messages) { { slack_mention: [get_locale('activerecord.errors.models.send_setting.attributes.slack_mention.too_long', count: Settings.slack_mention_maximum)] } }
       it_behaves_like '[InValid]通知'
     end
-    context 'メンションが形式不正' do
+    context 'メンションが不正値' do
       let(:slack_mention) { "?#{mention}" }
       let(:messages) { { slack_mention: [get_locale('activerecord.errors.models.send_setting.attributes.slack_mention.invalid')] } }
       it_behaves_like '[InValid]通知'
@@ -142,7 +142,7 @@ RSpec.describe SendSetting, type: :model do
 
   # [メール]アドレス
   # テストパターン
-  #   アドレス: ない, 正常, 形式不正
+  #   アドレス: ない, 正常, 不正値
   #   通知: する, しない
   describe 'validates :email_address' do
     let(:model) { FactoryBot.build_stubbed(:send_setting, :email, email_enabled: email_enabled, email_address: email_address) }
@@ -170,7 +170,7 @@ RSpec.describe SendSetting, type: :model do
       let(:email_address) { Faker::Internet.email }
       it_behaves_like 'Valid'
     end
-    context 'アドレスが形式不正' do
+    context 'アドレスが不正値' do
       let(:email_address) { 'a' }
       let(:messages) { { email_address: [get_locale('activerecord.errors.models.send_setting.attributes.email_address.invalid')] } }
       it_behaves_like '[InValid]通知'

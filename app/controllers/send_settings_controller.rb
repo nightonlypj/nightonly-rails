@@ -77,7 +77,7 @@ class SendSettingsController < ApplicationAuthController
     @new_send_setting.errors.delete(targey_key)
   end
 
-  SLACK_NAME_KEY = 'activerecord.errors.models.send_setting.attributes.slack_name'.freeze
+  SLACK_NAME_KEY = 'activerecord.errors.models.slack_domain.attributes.name'.freeze
   def validate_slack_name
     @slack_name = param_slack_name
     if @new_send_setting.slack_enabled && @slack_name.blank?
@@ -94,7 +94,7 @@ class SendSettingsController < ApplicationAuthController
       end
       return
     end
-    if (@slack_name =~ /^[a-z0-9-]*$/).nil?
+    if (@slack_name =~ SlackDomain::NAME_FORMAT).nil?
       if @new_send_setting.slack_enabled
         @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.invalid"))
       else

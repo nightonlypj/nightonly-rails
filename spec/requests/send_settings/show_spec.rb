@@ -19,6 +19,7 @@ RSpec.describe 'SendSetting', type: :request do
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
     let_it_be(:space_private) { FactoryBot.create(:space, :private) }
+    let_it_be(:slack_domains) { FactoryBot.create_list(:slack_domain, 2) }
     let_it_be(:last_updated_user) { FactoryBot.create(:user) }
     let_it_be(:destroy_user)      { FactoryBot.build_stubbed(:user) }
 
@@ -54,15 +55,16 @@ RSpec.describe 'SendSetting', type: :request do
       end
       context '通知設定が存在する（1件）' do
         let(:slack_user) { nil }
-        let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space: space, last_updated_user: last_updated_user) }
+        let_it_be(:send_setting) do
+          FactoryBot.create(:send_setting, :changed, :slack, :email, space: space, slack_domain: slack_domains[0], last_updated_user: last_updated_user)
+        end
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'
       end
       context '通知設定が存在する（2件）' do
-        before_all { FactoryBot.create(:send_setting, :changed, :slack, :email, space: space) }
-        let_it_be(:slack_domain) { FactoryBot.create(:slack_domain) }
-        let_it_be(:slack_user)   { FactoryBot.create(:slack_user, slack_domain: slack_domain, user: user) if user.present? }
-        let_it_be(:send_setting) { FactoryBot.create(:send_setting, space: space, slack_domain: slack_domain, last_updated_user_id: destroy_user.id) }
+        before_all { FactoryBot.create(:send_setting, :changed, :slack, :email, space: space, slack_domain: slack_domains[0]) }
+        let_it_be(:slack_user)   { FactoryBot.create(:slack_user, slack_domain: slack_domains[1], user: user) if user.present? }
+        let_it_be(:send_setting) { FactoryBot.create(:send_setting, space: space, slack_domain: slack_domains[1], last_updated_user_id: destroy_user.id) }
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'
       end

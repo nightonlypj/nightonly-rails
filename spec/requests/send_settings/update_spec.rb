@@ -12,17 +12,17 @@ RSpec.describe 'SendSetting', type: :request do
   #   TODO: 削除予約: ある, ない
   #   権限: ある（管理者）, ない（投稿者, 閲覧者, なし）
   #   パラメータなし, 有効なパラメータ, 無効なパラメータ
-  #     Slackドメイン名: ない, 最大文字数と同じ, 最大文字数より多い, 不正
+  #     Slackドメイン名: ない, 最大文字数と同じ, 最大文字数より多い, 不正値
   #     通知設定: 存在しない, 存在する（変更あり/なし, 論理削除と一致）
   #     Slackドメイン: 存在しない, 存在する（Slackユーザー: 存在しない, 存在する）
-  #     通知するがfalseで、Slackドメイン名/Webhook URL/メンション/アドレスが正常/不正, Slackドメイン名が最大文字数より多い
+  #     通知するがfalseで、Slackドメイン名/Webhook URL/メンション/アドレスが正常値/不正値, Slackドメイン名が最大文字数より多い
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #update' do
     subject { post update_send_setting_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
 
     let_it_be(:valid_attributes) { FactoryBot.attributes_for(:send_setting, :changed, :slack, :email) }
-    let_it_be(:valid_slack_name) { Faker::Internet.domain_word }
+    let_it_be(:valid_slack_name) { 'example' }
     let(:params_attributes) do
       {
         slack: {
@@ -153,7 +153,7 @@ RSpec.describe 'SendSetting', type: :request do
       context '有効なパラメータ（Slackドメイン名が最大文字数と同じ、通知設定が存在しない、Slackドメインが存在しない）' do
         let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes }
-        let(:slack_name) { valid_slack_name + ('a' * (Settings.slack_domain_name_maximum - valid_slack_name.length)) }
+        let(:slack_name) { 'a' * Settings.slack_domain_name_maximum }
         let(:send_setting) { nil }
         let(:send_setting_inactive) { nil }
         let(:except_send_setting_inactive) { nil }
@@ -212,7 +212,7 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'OK(json)'
         it_behaves_like 'ToOK(json)'
       end
-      context '有効なパラメータ（通知するがfalseで、Slackドメイン名/Webhook URL/メンション/アドレスが正常）' do
+      context '有効なパラメータ（通知するがfalseで、Slackドメイン名/Webhook URL/メンション/アドレスが正常値）' do
         let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes.merge(slack_enabled: false, email_enabled: false) }
         let(:slack_name) { valid_slack_name }
@@ -226,7 +226,7 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'OK(json)'
         it_behaves_like 'ToOK(json)'
       end
-      context '有効なパラメータ（通知するがfalseで、Slackドメイン名/Webhook URL/メンション/アドレスが不正）' do
+      context '有効なパラメータ（通知するがfalseで、Slackドメイン名/Webhook URL/メンション/アドレスが不正値）' do
         let(:params) { { send_setting: params_attributes } }
         let(:attributes) do
           valid_attributes.merge(
@@ -251,7 +251,7 @@ RSpec.describe 'SendSetting', type: :request do
       context '有効なパラメータ（通知するがfalseで、Slackドメイン名が最大文字数より多い）' do
         let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes.merge(slack_enabled: false, email_enabled: false) }
-        let(:slack_name) { valid_slack_name + ('a' * (Settings.slack_domain_name_maximum - valid_slack_name.length + 1)) }
+        let(:slack_name) { 'a' * (Settings.slack_domain_name_maximum + 1) }
         let(:send_setting) { nil }
         let(:send_setting_inactive) { nil }
         let(:except_send_setting_inactive) { nil }
@@ -271,21 +271,21 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'NG(json)'
-        it_behaves_like 'ToNG(json)', 422, { slack_name: [get_locale('activerecord.errors.models.send_setting.attributes.slack_name.blank')] }
+        it_behaves_like 'ToNG(json)', 422, { slack_name: [get_locale('activerecord.errors.models.slack_domain.attributes.name.blank')] }
       end
       context '無効なパラメータ（Slackドメイン名が最大文字数より多い）' do
         let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes }
-        let(:slack_name) { valid_slack_name + ('a' * (Settings.slack_domain_name_maximum - valid_slack_name.length + 1)) }
+        let(:slack_name) { 'a' * (Settings.slack_domain_name_maximum + 1) }
         let(:send_setting) { nil }
         let(:send_setting_inactive) { nil }
-        message = get_locale('activerecord.errors.models.send_setting.attributes.slack_name.too_long', count: Settings.slack_domain_name_maximum)
+        message = get_locale('activerecord.errors.models.slack_domain.attributes.name.too_long', count: Settings.slack_domain_name_maximum)
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'NG(json)'
         it_behaves_like 'ToNG(json)', 422, { slack_name: [message] }
       end
-      context '無効なパラメータ（Slackドメイン名が不正）' do
+      context '無効なパラメータ（Slackドメイン名が不正値）' do
         let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes }
         let(:slack_name) { '_' }
@@ -294,7 +294,7 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'NG(json)'
-        it_behaves_like 'ToNG(json)', 422, { slack_name: [get_locale('activerecord.errors.models.send_setting.attributes.slack_name.invalid')] }
+        it_behaves_like 'ToNG(json)', 422, { slack_name: [get_locale('activerecord.errors.models.slack_domain.attributes.name.invalid')] }
       end
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|

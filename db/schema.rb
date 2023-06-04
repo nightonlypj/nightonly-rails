@@ -208,7 +208,7 @@ ActiveRecord::Schema.define(version: 2023_05_18_102109) do
   create_table "slack_users", charset: "utf8mb4", comment: "Slackユーザー", force: :cascade do |t|
     t.bigint "slack_domain_id", null: false, comment: "SlackドメインID"
     t.bigint "user_id", null: false, comment: "ユーザーID"
-    t.string "memberid", comment: "SlackのメンバーID"
+    t.string "memberid", comment: "SlackメンバーID"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["slack_domain_id", "user_id"], name: "index_slack_users1", unique: true

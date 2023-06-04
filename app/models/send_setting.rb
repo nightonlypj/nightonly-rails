@@ -4,15 +4,16 @@ class SendSetting < ApplicationRecord
   belongs_to :last_updated_user, class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
 
   URL_FORMAT = %r{\Ahttps?://[A-Za-z0-9.\-]+/[A-Za-z0-9.\-_/]+\Z}
+  MENTION_FORMAT = /\A[A-Za-z0-9!^@|]*\Z/
   validates :slack_enabled, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validates :slack_webhook_url, presence: true, if: proc { |setting| setting.slack_enabled }
   validates :slack_webhook_url, length: { maximum: Settings.slack_webhook_url_maximum }, allow_blank: true
-  validates :slack_webhook_url, format: { with: URL_FORMAT }, if: proc { |setting| setting.slack_webhook_url.present? && errors[:slack_webhook_url].blank? }
+  validates :slack_webhook_url, format: { with: URL_FORMAT }, allow_blank: true, if: proc { errors[:slack_webhook_url].blank? }
   validates :slack_mention, length: { maximum: Settings.slack_mention_maximum }, allow_blank: true
-  validates :slack_mention, format: { with: /\A[A-Za-z0-9!^@|]*\Z/ }, if: proc { |setting| setting.slack_mention.present? && errors[:slack_mention].blank? }
+  validates :slack_mention, format: { with: MENTION_FORMAT }, if: proc { errors[:slack_mention].blank? }
   validates :email_enabled, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validates :email_address, presence: true, if: proc { |setting| setting.email_enabled }
-  validates :email_address, email: true, allow_blank: true, if: proc { |setting| setting.email_address.present? }
+  validates :email_address, email: true, allow_blank: true
   validates :start_notice_start_hour, presence: true
   validates :start_notice_start_hour, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 22 }, allow_blank: true
   validates :start_notice_completed, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為

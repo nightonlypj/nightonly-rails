@@ -20,9 +20,9 @@ RSpec.describe 'Spaces', type: :request do
           expect(response_json_spaces[spaces.count - index - 1]['name']).to eq(space.name)
         end
 
-=begin
         input_params = params.to_h { |key, value| [key, key == :text ? value : value.to_i] }
         expect(response_json['search_params']).to eq(default_params.merge(input_params).stringify_keys)
+=begin
       else
         # HTML
         spaces.each do |space|
@@ -373,9 +373,11 @@ RSpec.describe 'Spaces', type: :request do
         if subject_format == :json
           # JSON
           expect(response_json_spaces.count).to eq(0)
+=begin
         else
           # HTML
           expect(response.body).to include('スペースが見つかりません。')
+=end
         end
       end
     end

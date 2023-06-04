@@ -106,6 +106,9 @@ class TasksController < ApplicationAuthController
   end
 
   def check_validation_cycles(cycles, target)
+    return @task.errors.add(:cycles, t('errors.messages.task_cycles.blank')) if cycles.blank?
+    return @task.errors.add(:cycles, t('errors.messages.task_cycles.invalid')) unless cycles.instance_of?(Array)
+
     active_task_cycles = target == :create ? {} : @task.task_cycles_active.index_by { |task_cycle| task_cycle_key(task_cycle) }
     inactive_task_cycles = target == :create ? {} : @task.task_cycles_inactive.index_by { |task_cycle| task_cycle_key(task_cycle) }
 
@@ -115,7 +118,7 @@ class TasksController < ApplicationAuthController
     @insert_task_cycles = []
     @upsert_task_cycles = []
     count = 0
-    (cycles || []).each.with_index(1) do |task_cycle, index|
+    cycles.each.with_index(1) do |task_cycle, index|
       next if task_cycle[:delete].present? && task_cycle[:delete].to_s == 'true'
 
       task_cycle = TaskCycle.new(task_cycle_params(task_cycle).merge(space: @space, task: @task))
@@ -154,7 +157,6 @@ class TasksController < ApplicationAuthController
     logger.debug("@upsert_task_cycles: #{@upsert_task_cycles}")
     logger.debug("@delete_task_cycle_ids: #{@delete_task_cycle_ids}")
 
-    @task.errors.add(:cycles, t('errors.messages.task_cycles.zero')) if count == 0
     @task.errors.add(:cycles, t('errors.messages.task_cycles.max_count', count: Settings.task_cycles_max_count)) if count > Settings.task_cycles_max_count
   end
 

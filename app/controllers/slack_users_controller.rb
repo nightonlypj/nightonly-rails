@@ -36,7 +36,8 @@ class SlackUsersController < ApplicationAuthController
   def validate_params_update
     errors = {}
     @memberids = {}
-    if params[:slack_users].blank?
+    if params[:slack_users].blank? || !params[:slack_users].instance_of?(Array)
+      errors[:name1] = [t('errors.messages.param.blank')]
       errors[:memberid1] = [t("#{MEMBERID_KEY}.blank")]
     else
       domain_names = current_members.map { |member| member.space.send_setting_active.first.slack_domain.name }.uniq
@@ -53,7 +54,7 @@ class SlackUsersController < ApplicationAuthController
 
           maximum = Settings.slack_user_memberid_maximum
           next errors[key] = [t("#{MEMBERID_KEY}.too_long", count: maximum)] if slack_user[:memberid].length > maximum
-          next errors[key] = [t("#{MEMBERID_KEY}.invalid")] if (slack_user[:memberid] =~ /^[A-Z0-9]*$/).nil?
+          next errors[key] = [t("#{MEMBERID_KEY}.invalid")] if (slack_user[:memberid] =~ SlackUser::MEMBERID_FORMAT).nil?
         end
 
         @memberids[slack_user[:name]] = slack_user[:memberid]
@@ -66,10 +67,5 @@ class SlackUsersController < ApplicationAuthController
   def current_members
     current_user.members.where(power: %i[admin writer]).joins({ space: { send_setting_active: :slack_domain } })
                 .merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:id)
-  end
-
-  # Only allow a list of trusted parameters through.
-  def slack_user_params
-    params.require(:slack_user).permit(:memberid)
   end
 end

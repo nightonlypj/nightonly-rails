@@ -9,7 +9,8 @@ RSpec.describe 'Tasks', type: :request do
   #   スペース: 存在しない, 公開, 非公開
   #   TODO: 削除予約: ある, ない
   #   権限: ある（管理者）, ない（投稿者, 閲覧者, なし）
-  #   パラメータなし, 有効なパラメータ（存在するIDのみ, 存在しないコードも含む）, 無効なパラメータ（IDなし, 存在しないコードのみ）
+  #   パラメータなし, 有効なパラメータ, 無効なパラメータ
+  #     IDなし, 存在するIDのみ, 存在しないIDのみ, 存在しないIDも含む
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #destroy' do
@@ -25,22 +26,7 @@ RSpec.describe 'Tasks', type: :request do
       let_it_be(:task_destroy) { FactoryBot.create(:task, space: space) }
       let_it_be(:task_cycles)  { [FactoryBot.create(:task_cycle, task: task_destroy, order: 1)] }
       include_context 'set_member_power', :admin
-      include_context 'set_params1'
-    end
-    shared_context 'set_params1' do
-      let(:notice_key)     { 'destroy' }
-      let(:input_count)    { 1 }
-      let(:destroy_count)  { 1 }
       let(:params) { { ids: [task_destroy.id] } }
-    end
-    shared_context 'set_params_include_notfound' do
-      let(:notice_key)     { 'destroy_include_notfound' }
-      let(:input_count)    { 2 }
-      let(:destroy_count)  { 1 }
-      let(:params) { { ids: [task_nojoin.id, task_destroy.id] } }
-    end
-    shared_context 'set_params_notfound' do
-      let(:params) { { ids: [task_nojoin.id] } }
     end
 
     # テスト内容
@@ -69,53 +55,53 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     # テストケース
-    shared_examples_for '[APIログイン中][*][ある]パラメータなし' do
-      let(:params) { nil }
-      it_behaves_like 'NG(html)'
-      it_behaves_like 'ToNG(html)', 406
-      it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(json)', 422, nil, 'alert.task.destroy.ids.blank'
-    end
-    shared_examples_for '[APIログイン中][*][ある]有効なパラメータ（存在するIDのみ）' do
-      include_context 'set_params1', false
-      it_behaves_like 'NG(html)'
-      it_behaves_like 'ToNG(html)', 406
-      it_behaves_like 'OK(json)'
-      it_behaves_like 'ToOK(json)'
-    end
-    shared_examples_for '[APIログイン中][*][ある]有効なパラメータ（存在しないコードも含む）' do
-      include_context 'set_params_include_notfound'
-      it_behaves_like 'NG(html)'
-      it_behaves_like 'ToNG(html)', 406
-      it_behaves_like 'OK(json)'
-      it_behaves_like 'ToOK(json)'
-    end
-    shared_examples_for '[APIログイン中][*][ある]無効なパラメータ（IDなし）' do
-      let(:params) { { ids: [] } }
-      it_behaves_like 'NG(html)'
-      it_behaves_like 'ToNG(html)', 406
-      it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(json)', 422, nil, 'alert.task.destroy.ids.blank'
-    end
-    shared_examples_for '[APIログイン中][*][ある]無効なパラメータ（存在しないコードのみ）' do
-      include_context 'set_params_notfound'
-      it_behaves_like 'NG(html)'
-      it_behaves_like 'ToNG(html)', 406
-      it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(json)', 422, nil, 'alert.task.destroy.ids.notfound'
-    end
-
     shared_examples_for '[APIログイン中][*]権限がある' do |power|
       include_context 'set_member_power', power
-      it_behaves_like '[APIログイン中][*][ある]パラメータなし'
-      it_behaves_like '[APIログイン中][*][ある]有効なパラメータ（存在するIDのみ）'
-      it_behaves_like '[APIログイン中][*][ある]有効なパラメータ（存在しないコードも含む）'
-      it_behaves_like '[APIログイン中][*][ある]無効なパラメータ（IDなし）'
-      it_behaves_like '[APIログイン中][*][ある]無効なパラメータ（存在しないコードのみ）'
+      context 'パラメータなし' do
+        let(:params) { nil }
+        it_behaves_like 'NG(html)'
+        it_behaves_like 'ToNG(html)', 406
+        it_behaves_like 'NG(json)'
+        it_behaves_like 'ToNG(json)', 422, nil, 'alert.task.destroy.ids.blank'
+      end
+      context '有効なパラメータ（存在するIDのみ）' do
+        let(:params) { { ids: [task_destroy.id] } }
+        let(:notice_key)     { 'destroy' }
+        let(:input_count)    { 1 }
+        let(:destroy_count)  { 1 }
+        it_behaves_like 'NG(html)'
+        it_behaves_like 'ToNG(html)', 406
+        it_behaves_like 'OK(json)'
+        it_behaves_like 'ToOK(json)'
+      end
+      context '有効なパラメータ（存在しないIDも含む）' do
+        let(:params) { { ids: [task_nojoin.id, task_destroy.id] } }
+        let(:notice_key)     { 'destroy_include_notfound' }
+        let(:input_count)    { 2 }
+        let(:destroy_count)  { 1 }
+        it_behaves_like 'NG(html)'
+        it_behaves_like 'ToNG(html)', 406
+        it_behaves_like 'OK(json)'
+        it_behaves_like 'ToOK(json)'
+      end
+      context '無効なパラメータ（IDなし）' do
+        let(:params) { { ids: [] } }
+        it_behaves_like 'NG(html)'
+        it_behaves_like 'ToNG(html)', 406
+        it_behaves_like 'NG(json)'
+        it_behaves_like 'ToNG(json)', 422, nil, 'alert.task.destroy.ids.blank'
+      end
+      context '無効なパラメータ（存在しないIDのみ）' do
+        let(:params) { { ids: [task_nojoin.id] } }
+        it_behaves_like 'NG(html)'
+        it_behaves_like 'ToNG(html)', 406
+        it_behaves_like 'NG(json)'
+        it_behaves_like 'ToNG(json)', 422, nil, 'alert.task.destroy.ids.notfound'
+      end
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
       include_context 'set_member_power', power
-      include_context 'set_params1', false
+      let(:params) { { ids: [task_destroy.id] } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403 # NOTE: HTMLもログイン状態になる
       it_behaves_like 'NG(json)'

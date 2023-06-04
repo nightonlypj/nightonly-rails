@@ -164,7 +164,7 @@ ja:
         id: 'ID'
         slack_domain: 'Slackドメイン'
         user: 'ユーザー'
-        memberid: 'SlackのメンバーID'
+        memberid: 'SlackメンバーID'
         created_at: '作成日時'
         updated_at: '更新日時'
       send_setting:
@@ -334,9 +334,17 @@ ja:
               blank: '入力してください。'
               after: '開始以降の日付を入力してください。'
               before: 翌月末までの日付を入力してください。
+        slack_domain:
+          attributes:
+            name:
+              blank: '入力してください。'
+              too_long: '%{count}文字以下で入力してください。'
+              invalid: '英字（小文字）・数字・ハイフンのみで入力してください。'
+              taken: '処理に失敗しました。しばらく時間をあけてから、やり直してください。'
         slack_user:
           attributes:
             memberid:
+              blank: '入力してください。'
               too_short: '%{count}文字以上で入力してください。'
               too_long: '%{count}文字以下で入力してください。'
               invalid: '英字（大文字）・数字のみで入力してください。'
@@ -344,10 +352,6 @@ ja:
           attributes:
             slack_enabled:
               inclusion: '選択してください。'
-            slack_name:
-              blank: '入力してください。'
-              too_long: '%{count}文字以下で入力してください。'
-              invalid: '英字（小文字）・数字・ハイフンのみで入力してください。'
             slack_webhook_url:
               blank: '入力してください。'
               too_long: '%{count}文字以下で入力してください。'
@@ -507,7 +511,8 @@ ja:
           after: '開始日以降の日付を入力してください。'
         max_month_count: '%{count}ヶ月以内で指定してください。'
       task_cycles:
-        zero: '有効な周期が存在しません。'
+        blank: '値がありません。'
+        invalid: '形式が正しくありません。'
         max_count: '有効な周期が最大件数(%{count}件)を超えています。'
   alert:
     page:

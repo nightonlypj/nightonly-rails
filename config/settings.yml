@@ -100,7 +100,7 @@ task_events_max_month_count: 4
 task_event_memo_maximum: 10240
 
 ## Slackユーザー
-# SlackのメンバーIDの最小・最大文字数
+# SlackメンバーIDの最小・最大文字数
 slack_user_memberid_minimum: 11
 slack_user_memberid_maximum: 16 # NOTE: 現在11桁っぽいけど余裕を持て
 

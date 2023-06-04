@@ -11,7 +11,8 @@ RSpec.describe 'TaskEvents', type: :request do
   #   TODO: 削除予約: ある, ない
   #   権限: ある（管理者, 投稿者）, ない（閲覧者, なし）
   #   イベントコード: 存在する, 存在しない
-  #   パラメータなし, 有効なパラメータ（通知/非通知ステータス変更なし, 通知→非通知/非通知→通知ステータス, 担当なし/自分→担当なし/自分）, 無効なパラメータ
+  #   パラメータなし, 有効なパラメータ, 無効なパラメータ
+  #     通知/非通知ステータス変更なし, 通知→非通知/非通知→通知ステータス, 担当なし/自分→担当なし/自分
   #     detailパラメータ: ない, true, false
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
@@ -86,7 +87,7 @@ RSpec.describe 'TaskEvents', type: :request do
           it_behaves_like 'NG(json)'
           it_behaves_like 'ToNG(json)', 422, { last_ended_date: [get_locale('activerecord.errors.models.task_event.attributes.last_ended_date.blank')] }
         end
-        context '有効なパラメータ（通知ステータス変更なし、担当なし→自分）, detailパラメータがない' do # 未処理 -> 処理中
+        context '有効なパラメータ（通知ステータス変更なし、担当なし→自分）、detailパラメータがない' do # 未処理 -> 処理中
           let_it_be(:task_event) { FactoryBot.create(:task_event, space: space, status: :untreated, assigned_user: nil) }
           let(:attributes) { valid_attributes.merge(status: :processing, assign_myself: true) }
           let(:params) { { task_event: attributes } }
@@ -98,7 +99,7 @@ RSpec.describe 'TaskEvents', type: :request do
           it_behaves_like 'OK(json)'
           it_behaves_like 'ToOK(json)'
         end
-        context '有効なパラメータ（非通知ステータス変更なし、自分→担当なし）, detailパラメータがtrue' do # 完了 -> 対応不要
+        context '有効なパラメータ（非通知ステータス変更なし、自分→担当なし）、detailパラメータがtrue' do # 完了 -> 対応不要
           let_it_be(:task_event) { FactoryBot.create(:task_event, :completed, space: space, assigned_user: user) }
           let(:attributes) { valid_attributes.merge(status: :unnecessary, assign_delete: true) }
           let(:params) { { task_event: attributes, detail: true } }
@@ -110,7 +111,7 @@ RSpec.describe 'TaskEvents', type: :request do
           it_behaves_like 'OK(json)'
           it_behaves_like 'ToOK(json)'
         end
-        context '有効なパラメータ（通知→非通知ステータス、自分→自分）, detailパラメータがtrue' do # 処理中 -> 完了
+        context '有効なパラメータ（通知→非通知ステータス、自分→自分）、detailパラメータがtrue' do # 処理中 -> 完了
           let_it_be(:task_event) { FactoryBot.create(:task_event, space: space, status: :processing, assigned_user: user) }
           let(:attributes) { valid_attributes.merge(status: :complete) }
           let(:params) { { task_event: attributes, detail: true } }
@@ -122,7 +123,7 @@ RSpec.describe 'TaskEvents', type: :request do
           it_behaves_like 'OK(json)'
           it_behaves_like 'ToOK(json)'
         end
-        context '有効なパラメータ（非通知→通知ステータス、担当なし→担当なし）, detailパラメータがfalse' do # 完了 -> 確認待ち
+        context '有効なパラメータ（非通知→通知ステータス、担当なし→担当なし）、detailパラメータがfalse' do # 完了 -> 確認待ち
           let_it_be(:task_event) { FactoryBot.create(:task_event, :completed, space: space, assigned_user: nil) }
           let(:attributes) { valid_attributes.merge(status: :waiting_confirm) }
           let(:params) { { task_event: attributes, detail: false } }

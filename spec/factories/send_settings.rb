@@ -25,6 +25,7 @@ FactoryBot.define do
       slack_enabled      { true }
       slack_webhook_url  { Faker::Internet.url(scheme: 'https') }
       slack_mention      { '!here' }
+      association :slack_domain
     end
 
     # メール
