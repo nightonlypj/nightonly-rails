@@ -10,14 +10,21 @@ class SlackUsersController < ApplicationAuthController
 
   # POST /slack_users/update(.json) Slackユーザー情報変更API(処理)
   def update
+    insert_datas = []
+    update_datas = []
     slack_domains = SlackDomain.where(name: @memberids.keys).index_by(&:name)
-    ActiveRecord::Base.transaction do
-      @memberids.each do |name, memberid| # TODO: バルク
-        slack_user = SlackUser.find_or_initialize_by(slack_domain: slack_domains[name], user: current_user)
-        slack_user.memberid = memberid
-        slack_user.save!
+    slack_users = SlackUser.where(slack_domain: slack_domains.values, user: current_user).index_by { |slack_user| slack_user.slack_domain.name }
+    now = Time.current
+    @memberids.each do |name, memberid|
+      slack_user = slack_users[name]
+      if slack_user.blank?
+        insert_datas.push(slack_domain_id: slack_domains[name].id, user_id: current_user.id, memberid: memberid, created_at: now, updated_at: now)
+      elsif memberid != slack_user.memberid
+        update_datas.push(slack_user.attributes.merge(memberid: memberid, updated_at: now))
       end
     end
+    SlackUser.insert_all!(insert_datas) if insert_datas.present?
+    SlackUser.upsert_all(update_datas) if update_datas.present?
 
     set_slack_users
     render :index, locals: { notice: t('notice.slack_user.update') }

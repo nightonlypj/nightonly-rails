@@ -8,7 +8,8 @@ RSpec.describe 'Tasks', type: :request do
 
   let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
   let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-  let_it_be(:space_private) { FactoryBot.create(:space, :private) }
+  let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
+  let_it_be(:other_space) { FactoryBot.create(:space) }
 
   # テスト内容（共通）
   shared_examples_for 'ToOK[ID]' do
@@ -43,6 +44,9 @@ RSpec.describe 'Tasks', type: :request do
   #   スペース: 存在しない, 公開, 非公開
   #   権限: ある（管理者〜閲覧者）, ない
   #   タスク: ない, 最大表示数と同じ, 最大表示数より多い
+  #     優先度: 高, 中, 低, 未設定
+  #     作成者: いる, アカウント削除済み
+  #     最終更新者: いない, いる, アカウント削除済み
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #index' do
@@ -112,7 +116,7 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space: space, user: user) }
       it_behaves_like 'タスク'
     end
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do
@@ -169,14 +173,11 @@ RSpec.describe 'Tasks', type: :request do
   # テストパターン
   #   部分一致（大文字・小文字を区別しない）, 不一致: タイトル
   describe 'GET #index (.search)' do
-    subject { get tasks_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
-    let(:subject_format) { :json }
-    let(:accept_headers) { ACCEPT_INC_JSON }
+    subject { get tasks_path(space_code: space.code, format: :json), params: params, headers: auth_headers.merge(ACCEPT_INC_JSON) }
 
     include_context 'APIログイン処理'
     let_it_be(:space) { space_private }
-    include_context 'set_member_power', :admin
-
+    before_all { FactoryBot.create(:member, space: space, user: user) }
     let_it_be(:task) { FactoryBot.create(:task, space: space, title: 'タイトル(Aaa)', created_user: user) }
 
     # テストケース
@@ -198,14 +199,11 @@ RSpec.describe 'Tasks', type: :request do
   # テストパターン
   #   優先度: 高, 中, 低, 未設定 の組み合わせ
   describe 'GET #index (.by_priority)' do
-    subject { get tasks_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
-    let(:subject_format) { :json }
-    let(:accept_headers) { ACCEPT_INC_JSON }
+    subject { get tasks_path(space_code: space.code, format: :json), params: params, headers: auth_headers.merge(ACCEPT_INC_JSON) }
 
     include_context 'APIログイン処理'
     let_it_be(:space) { space_private }
-    include_context 'set_member_power', :admin
-
+    before_all { FactoryBot.create(:member, space: space, user: user) }
     let_it_be(:task_high)   { FactoryBot.create(:task, :high, space: space, created_user: user) }
     let_it_be(:task_middle) { FactoryBot.create(:task, :middle, space: space, created_user: user) }
     let_it_be(:task_low)    { FactoryBot.create(:task, :low, space: space, created_user: user) }
@@ -263,14 +261,11 @@ RSpec.describe 'Tasks', type: :request do
   # テストパターン
   #   開始・終了日: 開始前, 期間内, 終了後 の組み合わせ
   describe 'GET #index (.by_start_end_date)' do
-    subject { get tasks_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
-    let(:subject_format) { :json }
-    let(:accept_headers) { ACCEPT_INC_JSON }
+    subject { get tasks_path(space_code: space.code, format: :json), params: params, headers: auth_headers.merge(ACCEPT_INC_JSON) }
 
     include_context 'APIログイン処理'
     let_it_be(:space) { space_private }
-    include_context 'set_member_power', :admin
-
+    before_all { FactoryBot.create(:member, space: space, user: user) }
     let_it_be(:tasks_before) do
       [
         FactoryBot.create(:task, :before, :no_end, space: space, created_user: user),
@@ -335,14 +330,11 @@ RSpec.describe 'Tasks', type: :request do
   #   対象: 優先度, タイトル, 周期, 開始日, 終了日, 作成者, 作成日時, 最終更新者, 最終更新日時
   #   並び順: ASC, DESC  ※ASCは1つのみ確認
   describe 'GET #index (.order)' do
-    subject { get tasks_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
-    let(:subject_format) { :json }
-    let(:accept_headers) { ACCEPT_INC_JSON }
+    subject { get tasks_path(space_code: space.code, format: :json), params: params, headers: auth_headers.merge(ACCEPT_INC_JSON) }
 
     include_context 'APIログイン処理'
     let_it_be(:space) { space_private }
-    include_context 'set_member_power', :admin
-
+    before_all { FactoryBot.create(:member, space: space, user: user) }
     let_it_be(:tasks) { FactoryBot.create_list(:task, 2, space: space, created_user: user) }
 
     # テストケース

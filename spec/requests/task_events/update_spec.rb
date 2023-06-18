@@ -18,18 +18,17 @@ RSpec.describe 'TaskEvents', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #update' do
     subject { post update_task_event_path(space_code: space.code, code: task_event.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
-
-    let(:valid_attributes) { { last_ended_date: Time.current.to_date, status: :untreated, memo: nil } }
-    let(:invalid_attributes) { valid_attributes.merge(status: nil) }
-    let(:current_task_event) { TaskEvent.last }
-
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private) }
+    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
+    let(:valid_attributes) { { last_ended_date: Time.current.to_date, status: :untreated, memo: nil } }
+    let(:invalid_attributes) { valid_attributes.merge(status: nil) }
+    let(:current_task_event) { TaskEvent.find(task_event.id) }
+
     shared_context 'valid_condition' do
       let(:params) { { task_event: valid_attributes } }
       let_it_be(:space) { space_private }
-      include_context 'set_member_power', :admin
+      before_all { FactoryBot.create(:member, space: space, user: user) if user.present? }
       let_it_be(:task_event) { FactoryBot.create(:task_event, space: space) }
     end
 
@@ -77,7 +76,7 @@ RSpec.describe 'TaskEvents', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中][*]権限がある' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space: space, user: user) }
       context 'イベントコードが存在する' do
         context 'パラメータなし' do
           let_it_be(:task_event) { FactoryBot.create(:task_event, space: space) }
@@ -154,7 +153,7 @@ RSpec.describe 'TaskEvents', type: :request do
       end
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space: space, user: user) if power.present? }
       let_it_be(:task_event) { FactoryBot.create(:task_event, space: space) }
       let(:params) { { task_event: valid_attributes } }
       it_behaves_like 'NG(html)'

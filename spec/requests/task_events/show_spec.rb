@@ -11,15 +11,20 @@ RSpec.describe 'TaskEvents', type: :request do
   #   未ログイン, APIログイン中, APIログイン中（削除予約済み）
   #   スペース: 存在しない, 公開, 非公開
   #   権限: ある（管理者〜閲覧者）, ない
-  #   イベントコード: 存在する（未完了, 完了, 担当者・更新者のアカウントが削除済み）, 存在しない
+  #   イベントコード: 存在する, 存在しない
+  #     ステータス: 未完了（未処理）, 完了
+  #     担当者: いない, いる, アカウント削除済み
+  #     最終更新者: いない, いる, アカウント削除済み
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #show' do
     subject { get task_event_path(space_code: space.code, code: task_event.code, format: subject_format), headers: auth_headers.merge(accept_headers) }
-
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private) }
+    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
+    let_it_be(:assigned_user)     { FactoryBot.create(:user) }
+    let_it_be(:last_updated_user) { FactoryBot.create(:user) }
+    let_it_be(:destroy_user)      { FactoryBot.build_stubbed(:user) }
 
     # テスト内容
     shared_examples_for 'ToOK(json/json)' do
@@ -51,11 +56,11 @@ RSpec.describe 'TaskEvents', type: :request do
     # テストケース
     shared_examples_for '[APIログイン中/削除予約済み][*]権限がある' do |power|
       before_all { FactoryBot.create(:member, power, space: space, user: user) }
-      let_it_be(:task) { FactoryBot.create(:task, space: space) }
+      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
       let_it_be(:task_cycle_deleted) { nil }
       let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, :weekly, task: task, order: 1)] }
-      context 'イベントコードが存在する（未完了）' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, task_cycle: task_cycles[0]) }
+      context 'イベントコードが存在する（ステータスが未完了（未処理）、担当者・最終更新者がいない）' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, :untreated, task_cycle: task_cycles[0], assigned_user: nil, last_updated_user: nil) }
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'
       end
@@ -66,7 +71,7 @@ RSpec.describe 'TaskEvents', type: :request do
       end
     end
     shared_examples_for '[*][公開]権限がない' do
-      let_it_be(:task) { FactoryBot.create(:task, :active, space: space) }
+      let_it_be(:task) { FactoryBot.create(:task, :active, space: space, created_user: space.created_user) }
       let_it_be(:task_cycle_deleted) { FactoryBot.create(:task_cycle, :yearly, :week, :deleted, task: task, order: nil) }
       let_it_be(:task_cycles) do
         [
@@ -74,16 +79,17 @@ RSpec.describe 'TaskEvents', type: :request do
           FactoryBot.create(:task_cycle, :yearly, :business_day, task: task, order: 2)
         ]
       end
-      context 'イベントコードが存在する（完了）' do
-        let_it_be(:last_updated_user) { FactoryBot.create(:user) }
-        let_it_be(:task_event) { FactoryBot.create(:task_event, :completed, :assigned, task_cycle: task_cycle_deleted, last_updated_user: last_updated_user) }
+      context 'イベントコードが存在する（ステータスが完了、担当者・最終更新者がいる）' do
+        let_it_be(:task_event) do
+          FactoryBot.create(:task_event, :completed, :assigned, task_cycle: task_cycle_deleted,
+                                                                assigned_user: assigned_user, last_updated_user: last_updated_user)
+        end
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'
       end
-      context 'イベントコードが存在する（担当者・更新者のアカウントが削除済み）' do
-        let_it_be(:destroy_user) { FactoryBot.build_stubbed(:user) }
+      context 'イベントコードが存在する（担当者・最終更新者がアカウント削除済み）' do
         let_it_be(:task_event) do
-          FactoryBot.create(:task_event, :assigned, task_cycle: task_cycle_deleted, last_updated_user_id: destroy_user.id, assigned_user_id: destroy_user.id)
+          FactoryBot.create(:task_event, :assigned, task_cycle: task_cycle_deleted, assigned_user_id: destroy_user.id, last_updated_user_id: destroy_user.id)
         end
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'

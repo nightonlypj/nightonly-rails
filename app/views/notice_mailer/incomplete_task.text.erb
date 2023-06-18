@@ -1,7 +1,7 @@
-<%= "(#{I18n.l(@target_date)})" if @target_date.present? %>[<%= t("enums.send_history.notice_target.#{@send_history.notice_target}") %>] <%= t('notifier.task_event.message', name: @space.name) %>
+<%= "(#{I18n.l(@target_date)})" if @target_date.present? %>[<%= @send_history.notice_target_i18n %>] <%= t('notifier.task_event.message', name: @space_name) %>
 <%= @space_url %>
 
-<% if @send_history.notice_target.to_sym == :next %>
+<% if @send_history.notice_target_next? %>
 <%= render 'processing_task_events', type: :next, task_events: @next_task_events, space_url: @space_url %>
 <% end %>
 <%= render 'processing_task_events', type: :expired, task_events: @expired_task_events, space_url: @space_url %>
@@ -9,5 +9,5 @@
 <%= render 'processing_task_events', type: :date_include, task_events: @date_include_task_events, space_url: @space_url -%>
 <% if @send_history.send_setting["#{@send_history.notice_target}_notice_completed"] %>
 
-<%= render 'complete_task_events', notice_target: @send_history.notice_target, task_events: @complete_task_events, space_url: @space_url -%>
+<%= render 'completed_task_events', notice_target: @send_history.notice_target, task_events: @completed_task_events, space_url: @space_url -%>
 <% end %>

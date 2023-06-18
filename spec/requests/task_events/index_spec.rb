@@ -13,11 +13,13 @@ RSpec.describe 'TaskEvents', type: :request do
   #   開始日: ない, YYYY-MM-DD, YYYY/MM/DD, YYYYMMDD, 存在しない日付（1/0, 2/30）
   #   終了日: ない, YYYY-MM-DD, YYYY/MM/DD, YYYYMMDD, 存在しない日付（1/0, 2/30）, 開始日より前, 開始日と同じ, 最大月数より大きい
   #   イベント・タスク: ある, ない
+  #     作成者: いる, アカウント削除済み
+  #     最終更新者: いない, いる, アカウント削除済み
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #index' do
     subject do
-      travel_to current_date do
+      travel_to(current_date) do
         get task_events_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers)
       end
     end
@@ -26,16 +28,15 @@ RSpec.describe 'TaskEvents', type: :request do
     let_it_be(:current_date) { Date.new(2022, 12, 30) }
     include_context '祝日設定(2022/11-2023/01)'
 
-    let(:valid_start_date) { current_date.beginning_of_month }
-    let(:valid_end_date)   { (valid_start_date + (Settings.task_events_max_month_count - 1).months).end_of_month } # NOTE: 最大月数
-    let(:valid_params) { { start_date: valid_start_date.strftime('%Y-%m-%d'), end_date: valid_end_date.strftime('%Y-%m-%d') } }
-
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private) }
+    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
     let_it_be(:created_user)      { FactoryBot.create(:user) }
     let_it_be(:last_updated_user) { FactoryBot.create(:user) }
     let_it_be(:destroy_user)      { FactoryBot.build_stubbed(:user) }
+    let(:valid_start_date) { current_date.beginning_of_month }
+    let(:valid_end_date)   { (valid_start_date + (Settings.task_events_max_month_count - 1).months).end_of_month } # NOTE: 最大月数
+    let(:valid_params) { { start_date: valid_start_date.strftime('%Y-%m-%d'), end_date: valid_end_date.strftime('%Y-%m-%d') } }
 
     # テスト内容
     shared_examples_for 'ToOK(json/json)' do
@@ -68,12 +69,12 @@ RSpec.describe 'TaskEvents', type: :request do
     shared_examples_for 'イベント・タスクがある' do
       let_it_be(:tasks) do
         [
-          FactoryBot.create(:task, :skip_validate, space: space, priority: :high, started_date: Date.new(2022, 12, 1), ended_date: Date.new(2023, 1, 31),
-                                                   created_user_id: destroy_user.id, last_updated_user: last_updated_user),
-          FactoryBot.create(:task, :skip_validate, space: space, priority: :middle, started_date: Date.new(2022, 12, 30), ended_date: nil,
-                                                   created_user: created_user, last_updated_user_id: destroy_user.id),
-          FactoryBot.create(:task, :skip_validate, space: space, priority: :low, started_date: Date.new(2023, 1, 4), ended_date: nil,
-                                                   created_user: created_user)
+          FactoryBot.create(:task, :skip_validate, :high, space: space, started_date: Date.new(2022, 12, 1), ended_date: Date.new(2023, 1, 31),
+                                                          created_user_id: destroy_user.id, last_updated_user: last_updated_user),
+          FactoryBot.create(:task, :skip_validate, :middle, space: space, started_date: Date.new(2022, 12, 30), ended_date: nil,
+                                                            created_user: created_user, last_updated_user_id: destroy_user.id),
+          FactoryBot.create(:task, :skip_validate, :low, space: space, started_date: Date.new(2023, 1, 4), ended_date: nil,
+                                                         created_user: created_user, last_updated_user: nil)
         ]
       end
       let_it_be(:task_cycles) do
@@ -218,7 +219,7 @@ RSpec.describe 'TaskEvents', type: :request do
     end
 
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space: space, user: user) }
       it_behaves_like '開始日'
     end
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do

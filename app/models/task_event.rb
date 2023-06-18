@@ -53,6 +53,50 @@ class TaskEvent < ApplicationRecord
     updated_at == created_at ? nil : updated_at
   end
 
+  # Slackのステータス毎のアイコンを返却
+  def slack_status_icon(type, notice_target)
+    case type.to_sym
+    when :next
+      NOT_NOTICE_STATUS.include?(status.to_sym) ? ':sunny:' : ':alarm_clock:'
+    when :expired
+      NOT_NOTICE_STATUS.include?(status.to_sym) ? ':sunny:' : ':red_circle:'
+    when :end_today
+      case status.to_sym
+      when :untreated, :waiting_premise, :confirmed_premise
+        return ':warning:' if assigned_user.blank?
+
+        notice_target.to_sym == :start ? ':cloud:' : ':umbrella:'
+      when :processing, :pending
+        ':cloud:'
+      when :waiting_confirm, :complete, :unnecessary
+        ':sunny:'
+      else
+        # :nocov:
+        raise "type, status not found.(#{type}, #{status})"
+        # :nocov:
+      end
+    when :date_include
+      case status.to_sym
+      when :untreated, :waiting_premise, :confirmed_premise
+        assigned_user.blank? ? ':warning:' : ':cloud:'
+      when :processing, :waiting_confirm, :complete, :unnecessary
+        ':sunny:'
+      when :pending
+        ':cloud:'
+      else
+        # :nocov:
+        raise "type, status not found.(#{type}, #{status})"
+        # :nocov:
+      end
+    when :completed
+      ':sunny:'
+    else
+      # :nocov:
+      raise "type not found.(#{type})"
+      # :nocov:
+    end
+  end
+
   private
 
   def validate_last_ended_date

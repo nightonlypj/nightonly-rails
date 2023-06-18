@@ -114,4 +114,171 @@ RSpec.describe TaskEvent, type: :model do
       end
     end
   end
+
+  # Slackのステータス毎のアイコンを返却
+  # テストパターン
+  #   ステータス: 未処理, 前提対応待ち, 前提確認済み, 処理中, 保留, 確認待ち, 完了, 対応不要
+  #   担当者: いない, いる
+  #   翌営業日開始のタスク, 期限切れのタスク, 本日期限のタスク, 期限内のタスク, (前営業日以降に/本日)完了したタスク
+  #   通知対象: 開始確認, 翌営業日・終了確認
+  describe '#slack_status_icon' do
+    subject { task_event.slack_status_icon(type, notice_target) }
+    let_it_be(:user) { FactoryBot.create(:user) }
+
+    # テスト内容
+    shared_examples_for 'OK' do |params, value|
+      let(:type) { params[:type] }
+      let(:notice_target) { params[:notice_target] }
+      it_behaves_like 'Value', value, "#{params}の場合、#{value}"
+    end
+
+    # テストケース
+    shared_examples_for '[未処理/前提対応待ち/前提確認済み]担当者' do
+      context 'いない' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        it_behaves_like 'OK', { type: :next, notice_target: :start }, ':alarm_clock:'
+        it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':red_circle:'
+        it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':warning:'
+        it_behaves_like 'OK', { type: :date_include, notice_target: :start }, ':warning:'
+        it_behaves_like 'OK', { type: :completed, notice_target: :start }, ':sunny:'
+        it_behaves_like 'OK', { type: :next, notice_target: :next }, ':alarm_clock:'
+        it_behaves_like 'OK', { type: :expired, notice_target: :next }, ':red_circle:'
+        it_behaves_like 'OK', { type: :end_today, notice_target: :next }, ':warning:'
+        it_behaves_like 'OK', { type: :date_include, notice_target: :next }, ':warning:'
+        it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
+      end
+      context 'いる' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        it_behaves_like 'OK', { type: :next, notice_target: :start }, ':alarm_clock:'
+        it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':red_circle:'
+        it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':cloud:' # <- warning
+        it_behaves_like 'OK', { type: :date_include, notice_target: :start }, ':cloud:' # <- warning
+        it_behaves_like 'OK', { type: :completed, notice_target: :start }, ':sunny:'
+        it_behaves_like 'OK', { type: :next, notice_target: :next }, ':alarm_clock:'
+        it_behaves_like 'OK', { type: :expired, notice_target: :next }, ':red_circle:'
+        it_behaves_like 'OK', { type: :end_today, notice_target: :next }, ':umbrella:' # <- warning
+        it_behaves_like 'OK', { type: :date_include, notice_target: :next }, ':cloud:' # <- warning
+        it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
+      end
+    end
+    shared_examples_for '[処理中]担当者がいない/いる' do
+      it_behaves_like 'OK', { type: :next, notice_target: :start }, ':alarm_clock:'
+      it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':red_circle:'
+      it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':cloud:' # <- warning/cloud
+      it_behaves_like 'OK', { type: :date_include, notice_target: :start }, ':sunny:' # <- warning/cloud
+      it_behaves_like 'OK', { type: :completed, notice_target: :start }, ':sunny:'
+      it_behaves_like 'OK', { type: :next, notice_target: :next }, ':alarm_clock:'
+      it_behaves_like 'OK', { type: :expired, notice_target: :next }, ':red_circle:'
+      it_behaves_like 'OK', { type: :end_today, notice_target: :next }, ':cloud:' # <- warning/umbrella
+      it_behaves_like 'OK', { type: :date_include, notice_target: :next }, ':sunny:' # <- warning/cloud
+      it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
+    end
+    shared_examples_for '[保留]担当者がいない/いる' do
+      it_behaves_like 'OK', { type: :next, notice_target: :start }, ':alarm_clock:'
+      it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':red_circle:'
+      it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':cloud:'
+      it_behaves_like 'OK', { type: :date_include, notice_target: :start }, ':cloud:' # <- sunny
+      it_behaves_like 'OK', { type: :completed, notice_target: :start }, ':sunny:'
+      it_behaves_like 'OK', { type: :next, notice_target: :next }, ':alarm_clock:'
+      it_behaves_like 'OK', { type: :expired, notice_target: :next }, ':red_circle:'
+      it_behaves_like 'OK', { type: :end_today, notice_target: :next }, ':cloud:'
+      it_behaves_like 'OK', { type: :date_include, notice_target: :next }, ':cloud:' # <- sunny
+      it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
+    end
+    shared_examples_for '[確認待ち]担当者がいない/いる' do
+      it_behaves_like 'OK', { type: :next, notice_target: :start }, ':alarm_clock:'
+      it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':red_circle:'
+      it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':sunny:' # <- cloud
+      it_behaves_like 'OK', { type: :date_include, notice_target: :start }, ':sunny:' # <- cloud
+      it_behaves_like 'OK', { type: :completed, notice_target: :start }, ':sunny:'
+      it_behaves_like 'OK', { type: :next, notice_target: :next }, ':alarm_clock:'
+      it_behaves_like 'OK', { type: :expired, notice_target: :next }, ':red_circle:'
+      it_behaves_like 'OK', { type: :end_today, notice_target: :next }, ':sunny:' # <- cloud
+      it_behaves_like 'OK', { type: :date_include, notice_target: :next }, ':sunny:' # <- cloud
+      it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
+    end
+    shared_examples_for '[完了/対応不要]担当者がいない/いる' do
+      it_behaves_like 'OK', { type: :next, notice_target: :start }, ':sunny:' # <- alarm_clock
+      it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':sunny:' # <- red_circle
+      it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':sunny:'
+      it_behaves_like 'OK', { type: :date_include, notice_target: :start }, ':sunny:'
+      it_behaves_like 'OK', { type: :completed, notice_target: :start }, ':sunny:'
+      it_behaves_like 'OK', { type: :next, notice_target: :next }, ':sunny:' # <- alarm_clock
+      it_behaves_like 'OK', { type: :expired, notice_target: :next }, ':sunny:' # <- red_circle
+      it_behaves_like 'OK', { type: :end_today, notice_target: :next }, ':sunny:'
+      it_behaves_like 'OK', { type: :date_include, notice_target: :next }, ':sunny:'
+      it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
+    end
+    shared_examples_for '[完了/対応不要]担当者' do
+      context '担当者がいない' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        it_behaves_like '[完了/対応不要]担当者がいない/いる'
+      end
+      context '担当者がいる' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        it_behaves_like '[完了/対応不要]担当者がいない/いる'
+      end
+    end
+
+    context 'ステータスが未処理' do
+      let_it_be(:status) { :untreated }
+      it_behaves_like '[未処理/前提対応待ち/前提確認済み]担当者'
+    end
+    context 'ステータスが前提対応待ち' do
+      let_it_be(:status) { :waiting_premise }
+      it_behaves_like '[未処理/前提対応待ち/前提確認済み]担当者'
+    end
+    context 'ステータスが前提確認済み' do
+      let_it_be(:status) { :confirmed_premise }
+      it_behaves_like '[未処理/前提対応待ち/前提確認済み]担当者'
+    end
+    context 'ステータスが処理中' do
+      let_it_be(:status) { :processing }
+      context '担当者がいない' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        it_behaves_like '[処理中]担当者がいない/いる'
+      end
+      context '担当者がいる' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        it_behaves_like '[処理中]担当者がいない/いる'
+      end
+    end
+    context 'ステータスが保留' do
+      let_it_be(:status) { :pending }
+      context '担当者がいない' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        it_behaves_like '[保留]担当者がいない/いる'
+      end
+      context '担当者がいる' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        it_behaves_like '[保留]担当者がいない/いる'
+      end
+    end
+    context 'ステータスが確認待ち' do
+      let_it_be(:status) { :waiting_confirm }
+      context '担当者がいない' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        it_behaves_like '[確認待ち]担当者がいない/いる'
+      end
+      context '担当者がいる' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        it_behaves_like '[確認待ち]担当者がいない/いる'
+      end
+    end
+    context 'ステータスが完了' do
+      let_it_be(:status) { :complete }
+      context '担当者がいない' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        it_behaves_like '[完了/対応不要]担当者がいない/いる'
+      end
+      context '担当者がいる' do
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        it_behaves_like '[完了/対応不要]担当者がいない/いる'
+      end
+    end
+    context 'ステータスが対応不要' do
+      let_it_be(:status) { :unnecessary }
+      it_behaves_like '[完了/対応不要]担当者'
+    end
+  end
 end

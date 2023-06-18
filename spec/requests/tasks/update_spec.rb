@@ -22,10 +22,13 @@ RSpec.describe 'Tasks', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #update' do
     subject do
-      travel_to current_date do
+      travel_to(current_date) do
         post update_task_path(space_code: space.code, id: task.id, format: subject_format), params: params, headers: auth_headers.merge(accept_headers)
       end
     end
+    let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
+    let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
+    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
 
     include_context '[task]作成・更新条件'
     let_it_be(:valid_task_attributes)  { FactoryBot.attributes_for(:task, started_date: current_date, ended_date: nil) }
@@ -33,17 +36,14 @@ RSpec.describe 'Tasks', type: :request do
     let_it_be(:valid_attributes)         { valid_task_attributes.merge(cycles: [valid_cycle_attributes]) }
     let_it_be(:invalid_task_attributes)  { valid_task_attributes.merge(title: nil) }
     let_it_be(:invalid_cycle_attributes) { valid_cycle_attributes.merge(cycle: nil) }
-    let(:current_task)               { Task.eager_load(:task_cycles_active).last }
+    let(:current_task)               { Task.eager_load(:task_cycles_active).find(task.id) }
     let(:current_task_cycles_active) { current_task.task_cycles_active.order(:order, :updated_at, :id) }
 
-    let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
-    let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private) }
     shared_context 'valid_condition' do
       let(:params) { { task: valid_attributes } }
       let_it_be(:space) { space_private }
-      include_context 'set_member_power', :admin
-      let_it_be(:task) { FactoryBot.create(:task, space: space) }
+      before_all { FactoryBot.create(:member, space: space, user: user) if user.present? }
+      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
       let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task: task, order: 1)] }
       let(:task_cycle_inactive) { nil }
     end
@@ -124,9 +124,9 @@ RSpec.describe 'Tasks', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中][*]権限がある' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space: space, user: user) }
       context 'タスクIDが存在する' do
-        let_it_be(:task) { FactoryBot.create(:task, space: space) }
+        let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
         it_behaves_like '[task]パラメータなし', true
         it_behaves_like '[task]有効なパラメータ', true
         it_behaves_like '[task]無効なパラメータ', true
@@ -141,8 +141,8 @@ RSpec.describe 'Tasks', type: :request do
       end
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
-      include_context 'set_member_power', power
-      let_it_be(:task) { FactoryBot.create(:task, space: space) }
+      before_all { FactoryBot.create(:member, power, space: space, user: user) if power.present? }
+      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
       let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task: task, order: 1)] }
       let(:task_cycle_inactive) { nil }
       let(:params) { { task: valid_attributes } }

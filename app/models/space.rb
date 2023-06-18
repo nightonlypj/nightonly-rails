@@ -63,6 +63,11 @@ class Space < ApplicationRecord
   scope :destroy_reserved, -> { where.not(destroy_schedule_at: nil) }
   scope :destroy_target, -> { where(destroy_schedule_at: ..Time.current) }
 
+  # 期間内のタスクイベント作成＋通知の対象
+  scope :create_send_notice_target, lambda {
+    active.order(:process_priority, :id).eager_load(:send_setting_active).merge(SendSetting.order(updated_at: :desc, id: :desc))
+  }
+
   # 削除予約済みか返却
   def destroy_reserved?
     destroy_schedule_at.present?
@@ -100,5 +105,10 @@ class Space < ApplicationRecord
   # 最終更新日時
   def last_updated_at
     updated_at == created_at ? nil : updated_at
+  end
+
+  # スペースURL
+  def url
+    "#{Settings.front_url}/-/#{code}"
   end
 end

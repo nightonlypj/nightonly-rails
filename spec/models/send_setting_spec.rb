@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe SendSetting, type: :model do
-  # [Slack]通知する
+  # (Slack)通知する
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :slack_enabled' do
@@ -27,7 +27,7 @@ RSpec.describe SendSetting, type: :model do
     end
   end
 
-  # [Slack]Webhook URL
+  # (Slack)Webhook URL
   # テストパターン
   #   Webhook URL: ない, 最大文字数と同じ, 最大文字数より多い, 不正値
   #   通知: する, しない
@@ -71,7 +71,7 @@ RSpec.describe SendSetting, type: :model do
     end
   end
 
-  # [Slack]メンション
+  # (Slack)メンション
   # テストパターン
   #   メンション: ない, 最大文字数と同じ, 最大文字数より多い, 不正値
   #   通知: する, しない
@@ -114,7 +114,7 @@ RSpec.describe SendSetting, type: :model do
     end
   end
 
-  # [メール]通知する
+  # (メール)通知する
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :email_enabled' do
@@ -140,7 +140,7 @@ RSpec.describe SendSetting, type: :model do
     end
   end
 
-  # [メール]アドレス
+  # (メール)アドレス
   # テストパターン
   #   アドレス: ない, 正常, 不正値
   #   通知: する, しない
@@ -177,9 +177,9 @@ RSpec.describe SendSetting, type: :model do
     end
   end
 
-  # [開始確認]開始時間
+  # (開始確認)開始時間
   # 前提条件
-  #   [翌営業日・終了確認]開始時間が23
+  #   (翌営業日・終了確認)開始時間が23
   # テストパターン
   #   ない, -1, 0, 22, 23, 文字
   describe 'validates :start_notice_start_hour' do
@@ -215,7 +215,7 @@ RSpec.describe SendSetting, type: :model do
     end
   end
 
-  # [開始確認]完了通知
+  # (開始確認)完了通知
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :start_notice_completed' do
@@ -241,7 +241,7 @@ RSpec.describe SendSetting, type: :model do
     end
   end
 
-  # [開始確認]必須
+  # (開始確認)必ず通知
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :start_notice_required' do
@@ -267,62 +267,62 @@ RSpec.describe SendSetting, type: :model do
     end
   end
 
-  # [翌営業日・終了確認]開始時間
+  # (翌営業日・終了確認)開始時間
   # テストパターン
-  #   [開始確認]開始時間が0
+  #   (開始確認)開始時間が0
   #     ない, 0, 1, 23, 24, 文字
-  #   [開始確認]開始時間が10
+  #   (開始確認)開始時間が10
   #     10, 11
   describe 'validates :next_notice_start_hour' do
     let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_start_hour: start_notice_start_hour, next_notice_start_hour: next_notice_start_hour) }
 
     # テストケース
-    context '[開始確認]開始時間が0' do
+    context '(開始確認)開始時間が0' do
       let(:start_notice_start_hour) { 0 }
-      context '[翌営業日・終了確認]開始時間がない' do
+      context '(翌営業日・終了確認)開始時間がない' do
         let(:next_notice_start_hour) { nil }
         let(:messages) { { next_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.next_notice_start_hour.blank')] } }
         it_behaves_like 'InValid'
       end
-      context '[翌営業日・終了確認]開始時間が0' do
+      context '(翌営業日・終了確認)開始時間が0' do
         let(:next_notice_start_hour) { 0 }
         let(:messages) { { next_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.next_notice_start_hour.greater_than_or_equal_to', count: 1)] } }
         it_behaves_like 'InValid'
       end
-      context '[翌営業日・終了確認]開始時間が1' do
+      context '(翌営業日・終了確認)開始時間が1' do
         let(:next_notice_start_hour) { 1 }
         it_behaves_like 'Valid'
       end
-      context '[翌営業日・終了確認]開始時間が23' do
+      context '(翌営業日・終了確認)開始時間が23' do
         let(:next_notice_start_hour) { 23 }
         it_behaves_like 'Valid'
       end
-      context '[翌営業日・終了確認]開始時間が24' do
+      context '(翌営業日・終了確認)開始時間が24' do
         let(:next_notice_start_hour) { 24 }
         let(:messages) { { next_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.next_notice_start_hour.less_than_or_equal_to', count: 23)] } }
         it_behaves_like 'InValid'
       end
-      context '[翌営業日・終了確認]開始時間が文字' do
+      context '(翌営業日・終了確認)開始時間が文字' do
         let(:next_notice_start_hour) { 'a' }
         let(:messages) { { next_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.next_notice_start_hour.greater_than_or_equal_to', count: 1)] } }
         it_behaves_like 'InValid' # NOTE: 0になる
       end
     end
-    context '[開始確認]開始時間が10' do
+    context '(開始確認)開始時間が10' do
       let(:start_notice_start_hour) { 10 }
-      context '[翌営業日・終了確認]開始時間が10' do
+      context '(翌営業日・終了確認)開始時間が10' do
         let(:next_notice_start_hour) { 10 }
         let(:messages) { { next_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.next_notice_start_hour.invalid')] } }
         it_behaves_like 'InValid'
       end
-      context '[翌営業日・終了確認]開始時間が11' do
+      context '(翌営業日・終了確認)開始時間が11' do
         let(:next_notice_start_hour) { 11 }
         it_behaves_like 'Valid'
       end
     end
   end
 
-  # [翌営業日・終了確認]完了通知
+  # (翌営業日・終了確認)完了通知
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :next_notice_completed' do
@@ -348,7 +348,7 @@ RSpec.describe SendSetting, type: :model do
     end
   end
 
-  # [翌営業日・終了確認]必須
+  # (翌営業日・終了確認)必ず通知
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :next_notice_required' do

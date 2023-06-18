@@ -104,6 +104,36 @@ RSpec.describe Space, type: :model do
     end
   end
 
+  # 期間内のタスクイベント作成＋通知の対象
+  # テストパターン
+  #   削除予約: 済み, なし
+  #   処理優先度: 0, 3×2件, 9
+  #   通知設定: ない, ある（1件, 2件（変更あり））
+  describe '.create_send_notice_target' do
+    subject { Space.create_send_notice_target }
+
+    before_all do
+      space = FactoryBot.create(:space, :destroy_reserved, created_user: user)
+      spaces = [
+        FactoryBot.create(:space, name: '最後', process_priority: 9, created_user: space.created_user),
+        FactoryBot.create(:space, name: '標準1', process_priority: 3, created_user: space.created_user),
+        FactoryBot.create(:space, name: '標準2', process_priority: 3, created_user: space.created_user),
+        FactoryBot.create(:space, name: '最初', process_priority: 0, created_user: space.created_user)
+      ]
+      FactoryBot.create(:send_setting, :slack, space: spaces[1])
+      FactoryBot.create(:send_setting, :deleted, :email, space: spaces[2])
+      FactoryBot.create(:send_setting, :slack, space: spaces[2])
+      FactoryBot.create(:send_setting, :email, space: spaces[3]) # NOTE: データ不正
+      FactoryBot.create(:send_setting, :slack, space: spaces[3])
+    end
+    it '最初→標準1→標準2→最後の順に返却される。通知設定がある場合、最初がSlack通知になっている' do
+      expect(subject.map(&:name)).to eq(%w[最初 標準1 標準2 最後])
+      subject.each do |space|
+        expect(space.send_setting_active.first.slack_enabled).to eq(true) if space.send_setting_active.count > 0
+      end
+    end
+  end
+
   # 削除予約済みか返却
   # テストパターン
   #   削除予定日時: ない（予約なし）, ある（予約済み）
@@ -220,6 +250,16 @@ RSpec.describe Space, type: :model do
       it '更新日時' do
         is_expected.to eq(space.updated_at)
       end
+    end
+  end
+
+  # スペースURL
+  describe '#url' do
+    subject { space.url }
+
+    let(:space) { FactoryBot.create(:space, created_user: user) }
+    it 'URLが返却される' do
+      is_expected.to eq("#{Settings.front_url}/-/#{space.code}")
     end
   end
 end

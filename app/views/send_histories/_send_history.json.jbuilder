@@ -3,23 +3,16 @@ json.target_date l(send_history.target_date, format: :json)
 
 json.notice_target send_history.notice_target
 json.notice_target_i18n send_history.notice_target_i18n
-if send_history.notice_target_start?
-  json.notice_start_hour send_history.send_setting.start_notice_start_hour
-  json.notice_completed send_history.send_setting.start_notice_completed
-  json.notice_required send_history.send_setting.start_notice_required
-end
-if send_history.notice_target_next?
-  json.notice_start_hour send_history.send_setting.next_notice_start_hour
-  json.notice_completed send_history.send_setting.next_notice_completed
-  json.notice_required send_history.send_setting.next_notice_required
-end
+json.notice_start_hour send_history.send_setting["#{send_history.notice_target}_notice_start_hour"]
+json.notice_completed send_history.send_setting["#{send_history.notice_target}_notice_completed"]
+json.notice_required send_history.send_setting["#{send_history.notice_target}_notice_required"]
 
 json.send_target send_history.send_target
 json.send_target_i18n send_history.send_target_i18n
 if detail && @current_member.present?
   if send_history.send_target_slack?
     json.slack do
-      json.name send_history.send_setting.slack_domain.name
+      json.name send_history.send_setting.slack_domain&.name
       json.webhook_url send_history.send_setting.slack_webhook_url
       json.mention send_history.send_setting.slack_mention
     end
@@ -41,8 +34,10 @@ return unless detail
 
 json.error_message send_history.error_message if @current_member.present?
 
-json.next_task_events do
-  json.partial! './send_histories/task_events', task_event_ids: @next_task_event_ids, task_events: @task_events
+if send_history.notice_target_next?
+  json.next_task_events do
+    json.partial! './send_histories/task_events', task_event_ids: @next_task_event_ids, task_events: @task_events
+  end
 end
 json.expired_task_events do
   json.partial! './send_histories/task_events', task_event_ids: @expired_task_event_ids, task_events: @task_events
@@ -53,6 +48,6 @@ end
 json.date_include_task_events do
   json.partial! './send_histories/task_events', task_event_ids: @date_include_task_event_ids, task_events: @task_events
 end
-json.complete_task_events do
+json.completed_task_events do
   json.partial! './send_histories/task_events', task_event_ids: @completed_task_event_ids, task_events: @task_events
 end

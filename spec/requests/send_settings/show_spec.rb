@@ -10,16 +10,17 @@ RSpec.describe 'SendSetting', type: :request do
   #   未ログイン, APIログイン中, APIログイン中（削除予約済み）
   #   スペース: 存在しない, 公開, 非公開
   #   権限: ある（管理者〜閲覧者）, ない
-  #   通知設定: 存在しない, 存在する（1件, 2件）
+  #   通知設定: ない, ある（1件, 2件（変更あり）
+  #     最終更新者: いない, いる, アカウント削除済み
+  #     Slack/メール通知: しない, する, しない（通知先設定あり）
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #show' do
     subject { get send_setting_path(space_code: space.code, format: subject_format), headers: auth_headers.merge(accept_headers) }
-
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private) }
-    let_it_be(:slack_domains) { FactoryBot.create_list(:slack_domain, 2) }
+    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
+    let_it_be(:slack_domain)  { FactoryBot.create(:slack_domain) }
     let_it_be(:last_updated_user) { FactoryBot.create(:user) }
     let_it_be(:destroy_user)      { FactoryBot.build_stubbed(:user) }
 
@@ -47,24 +48,34 @@ RSpec.describe 'SendSetting', type: :request do
 
     # テストケース
     shared_examples_for '通知設定' do
-      context '通知設定が存在しない' do
+      context 'ない' do
         let(:slack_user) { nil }
         let(:send_setting) { nil }
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'
       end
-      context '通知設定が存在する（1件）' do
+      context 'ある（1件）、Slack/メール通知しない、最終更新者がいない）' do
         let(:slack_user) { nil }
+        let_it_be(:send_setting) { FactoryBot.create(:send_setting, space: space, last_updated_user: nil) }
+        it_behaves_like 'ToNG(html)', 406
+        it_behaves_like 'ToOK(json)'
+      end
+      context 'ある（2件（変更あり）、Slack/メール通知する、最終更新者がいる）' do
+        before_all { FactoryBot.create(:send_setting, space: space) }
+        let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain: slack_domain, user: user) if user.present? }
         let_it_be(:send_setting) do
-          FactoryBot.create(:send_setting, :changed, :slack, :email, space: space, slack_domain: slack_domains[0], last_updated_user: last_updated_user)
+          FactoryBot.create(:send_setting, :changed, :slack, :email, space: space, slack_domain: slack_domain, last_updated_user: last_updated_user)
         end
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'
       end
-      context '通知設定が存在する（2件）' do
-        before_all { FactoryBot.create(:send_setting, :changed, :slack, :email, space: space, slack_domain: slack_domains[0]) }
-        let_it_be(:slack_user)   { FactoryBot.create(:slack_user, slack_domain: slack_domains[1], user: user) if user.present? }
-        let_it_be(:send_setting) { FactoryBot.create(:send_setting, space: space, slack_domain: slack_domains[1], last_updated_user_id: destroy_user.id) }
+      context 'ある（2件（変更あり）、Slack/メール通知しない（通知先設定あり）、最終更新者がアカウント削除済み）' do
+        before_all { FactoryBot.create(:send_setting, space: space) }
+        let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain: slack_domain, user: user) if user.present? }
+        let_it_be(:send_setting) do
+          FactoryBot.create(:send_setting, :changed, :slack, :email, space: space, slack_domain: slack_domain, last_updated_user: last_updated_user,
+                                                                     slack_enabled: false, email_enabled: false)
+        end
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'
       end

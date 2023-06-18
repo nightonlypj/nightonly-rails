@@ -14,10 +14,9 @@ RSpec.describe 'Tasks', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #show' do
     subject { get task_path(space_code: space.code, id: task.id, format: subject_format), headers: auth_headers.merge(accept_headers) }
-
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private) }
+    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
 
     # テスト内容
     shared_examples_for 'ToOK(json/json)' do
@@ -35,47 +34,47 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     # テストケース
+    shared_examples_for '[APIログイン中/削除予約済み][*][ある]タスクIDが存在する' do
+      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
+      let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, :weekly, task: task, order: 1)] }
+      it_behaves_like 'ToNG(html)', 406
+      it_behaves_like 'ToOK(json)'
+    end
+    shared_examples_for '[*][公開][ない]タスクIDが存在する' do
+      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
+      let_it_be(:task_cycles) do
+        task_cycle = FactoryBot.create(:task_cycle, :yearly, :week, task: task, order: 3)
+        [
+          FactoryBot.create(:task_cycle, :monthly, :day, task: task, order: 1),
+          FactoryBot.create(:task_cycle, :yearly, :business_day, task: task, order: 2),
+          task_cycle # NOTE: 並び順のテストの為、先にcreateする
+        ]
+      end
+      it_behaves_like 'ToNG(html)', 406
+      it_behaves_like 'ToOK(json)'
+    end
+    shared_examples_for '[*][*][*]タスクIDが存在しない' do
+      let_it_be(:task) { FactoryBot.build_stubbed(:task) }
+      it_behaves_like 'ToNG(html)', 406
+      it_behaves_like 'ToNG(json)', 404
+    end
+
     shared_examples_for '[APIログイン中/削除予約済み][*]権限がある' do |power|
       before_all { FactoryBot.create(:member, power, space: space, user: user) }
-      context 'タスクIDが存在する' do
-        let_it_be(:task) { FactoryBot.create(:task, space: space) }
-        let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, :weekly, task: task, order: 1)] }
-        it_behaves_like 'ToNG(html)', 406
-        it_behaves_like 'ToOK(json)'
-      end
-      context 'タスクIDが存在しない' do
-        let_it_be(:task) { FactoryBot.build_stubbed(:task) }
-        it_behaves_like 'ToNG(html)', 406
-        it_behaves_like 'ToNG(json)', 404
-      end
+      it_behaves_like '[APIログイン中/削除予約済み][*][ある]タスクIDが存在する'
+      it_behaves_like '[*][*][*]タスクIDが存在しない'
     end
     shared_examples_for '[*][公開]権限がない' do
-      context 'タスクIDが存在する' do
-        let_it_be(:task) { FactoryBot.create(:task, space: space) }
-        let_it_be(:task_cycles) do
-          task_cycle = FactoryBot.create(:task_cycle, :yearly, :week, task: task, order: 3)
-          [
-            FactoryBot.create(:task_cycle, :monthly, :day, task: task, order: 1),
-            FactoryBot.create(:task_cycle, :yearly, :business_day, task: task, order: 2),
-            task_cycle # NOTE: 並び順のテストの為、先にcreateする
-          ]
-        end
-        it_behaves_like 'ToNG(html)', 406
-        it_behaves_like 'ToOK(json)'
-      end
-      context 'タスクIDが存在しない' do
-        let_it_be(:task) { FactoryBot.build_stubbed(:task) }
-        it_behaves_like 'ToNG(html)', 406
-        it_behaves_like 'ToNG(json)', 404
-      end
+      it_behaves_like '[*][公開][ない]タスクIDが存在する'
+      it_behaves_like '[*][*][*]タスクIDが存在しない'
     end
     shared_examples_for '[未ログイン][非公開]権限がない' do
-      let_it_be(:task) { FactoryBot.create(:task, space: space) }
+      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 401
     end
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do
-      let_it_be(:task) { FactoryBot.create(:task, space: space) }
+      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 403
     end

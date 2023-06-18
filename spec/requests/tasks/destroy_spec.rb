@@ -15,17 +15,17 @@ RSpec.describe 'Tasks', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #destroy' do
     subject { post destroy_task_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
-
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private) }
+    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
     let_it_be(:task_nojoin)   { FactoryBot.create(:task) }
     before_all { FactoryBot.create(:task_cycle, task: task_nojoin, order: 1) }
+
     shared_context 'valid_condition' do
       let_it_be(:space) { space_public }
-      let_it_be(:task_destroy) { FactoryBot.create(:task, space: space) }
+      let_it_be(:task_destroy) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
       let_it_be(:task_cycles)  { [FactoryBot.create(:task_cycle, task: task_destroy, order: 1)] }
-      include_context 'set_member_power', :admin
+      before_all { FactoryBot.create(:member, space: space, user: user) if user.present? }
       let(:params) { { ids: [task_destroy.id] } }
     end
 
@@ -56,7 +56,7 @@ RSpec.describe 'Tasks', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中][*]権限がある' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space: space, user: user) }
       context 'パラメータなし' do
         let(:params) { nil }
         it_behaves_like 'NG(html)'
@@ -100,7 +100,7 @@ RSpec.describe 'Tasks', type: :request do
       end
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space: space, user: user) if power.present? }
       let(:params) { { ids: [task_destroy.id] } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403 # NOTE: HTMLもログイン状態になる
@@ -118,7 +118,7 @@ RSpec.describe 'Tasks', type: :request do
     end
     shared_examples_for '[APIログイン中]スペースが公開' do
       let_it_be(:space) { space_public }
-      let_it_be(:task_destroy) { FactoryBot.create(:task, space: space) }
+      let_it_be(:task_destroy) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
       let_it_be(:task_cycles)  { [FactoryBot.create(:task_cycle, task: task_destroy, order: 1)] }
       it_behaves_like '[APIログイン中][*]権限がある', :admin
       it_behaves_like '[APIログイン中][*]権限がない', :writer
@@ -127,7 +127,7 @@ RSpec.describe 'Tasks', type: :request do
     end
     shared_examples_for '[APIログイン中]スペースが非公開' do
       let_it_be(:space) { space_private }
-      let_it_be(:task_destroy) { FactoryBot.create(:task, space: space) }
+      let_it_be(:task_destroy) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
       let_it_be(:task_cycles)  { [FactoryBot.create(:task_cycle, task: task_destroy, order: 1)] }
       it_behaves_like '[APIログイン中][*]権限がある', :admin
       it_behaves_like '[APIログイン中][*]権限がない', :writer

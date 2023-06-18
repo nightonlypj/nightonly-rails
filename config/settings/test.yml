@@ -111,21 +111,27 @@ task_event_memo_maximum: 14 # NOTE: (6+8?)以上 = "memo(#{n})"
 slack_user_memberid_maximum: 16 # NOTE: Faker::Number.hexadecimal(digits: 11).upcase
 
 ## 通知設定
-# [Slack]ドメイン名（サブドメイン）の最大文字数
+# (Slack)ドメイン名（サブドメイン）の最大文字数
 slack_domain_name_maximum: 15 # NOTE: (7+8?)以上 = "example#{n}"
-# [Slack]Webhook URLの最大文字数
+# (Slack)Webhook URLの最大文字数
 slack_webhook_url_maximum: 64 # NOTE: Faker::Internet.url(scheme: 'https')
-# [Slack]メンションの最大文字数
+# (Slack)メンションの最大文字数
 slack_mention_maximum: 8 # NOTE: '!here'
-# [開始確認]デフォルト開始時間/完了通知/必須
+# (開始確認)デフォルト開始時間/完了通知/必須
 # default_start_notice_start_hour: 10
 # default_start_notice_completed: true
 # default_start_notice_required: false
-# [翌営業日・終了確認]デフォルト開始時間/完了通知/必須
+# (翌営業日・終了確認)デフォルト開始時間/完了通知/必須
 # default_next_notice_start_hour: 17
 # default_next_notice_completed: true
 # default_next_notice_required: false
 
 ## 通知履歴
 # 一覧のデフォルト最大表示件数
-default_send_histories_limit: 2
+default_send_histories_limit: 5 # NOTE: 高速化の為（下記の合計値と一致）
+test_send_histories_count:
+  waiting: 1
+  processing: 1
+  success: 1
+  skip: 1
+  failure: 1

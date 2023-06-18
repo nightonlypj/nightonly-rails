@@ -8,8 +8,7 @@ RSpec.describe 'Tasks', type: :request do
   # POST /tasks/:space_code/create(.json) タスク追加API(処理)
   # テストパターン
   #   未ログイン, APIログイン中, APIログイン中（削除予約済み）
-  #   スペース: 存在しない, 公開, 非公開
-  #   TODO: 削除予約: ある, ない
+  #   スペース: 存在しない, 公開, 非公開, 非公開（削除予約済み）
   #   権限: ある（管理者, 投稿者）, ない（閲覧者, なし）
   #   パラメータなし, 有効なパラメータ, 無効なパラメータ
   #     タスク: 正常値, 不正値
@@ -20,10 +19,14 @@ RSpec.describe 'Tasks', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #create' do
     subject do
-      travel_to current_date do
+      travel_to(current_date) do
         post create_task_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers)
       end
     end
+    let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
+    let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
+    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
+    let_it_be(:space_private_destroy_reserved) { FactoryBot.create(:space, :private, :destroy_reserved, created_user: space_public.created_user) }
 
     include_context '[task]作成・更新条件'
     let_it_be(:valid_task_attributes)  { FactoryBot.attributes_for(:task, started_date: current_date, ended_date: nil) }
@@ -34,13 +37,10 @@ RSpec.describe 'Tasks', type: :request do
     let(:current_task)               { Task.eager_load(:task_cycles_active).last }
     let(:current_task_cycles_active) { current_task.task_cycles_active.order(:order, :updated_at, :id) }
 
-    let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
-    let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private) }
     shared_context 'valid_condition' do
       let(:params) { { task: valid_attributes } }
       let_it_be(:space) { space_private }
-      include_context 'set_member_power', :admin
+      before_all { FactoryBot.create(:member, space: space, user: user) if user.present? }
     end
 
     # テスト内容
@@ -116,13 +116,13 @@ RSpec.describe 'Tasks', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中][*]権限がある' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space: space, user: user) }
       it_behaves_like '[task]パラメータなし'
       it_behaves_like '[task]有効なパラメータ'
       it_behaves_like '[task]無効なパラメータ'
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space: space, user: user) if power.present? }
       let(:params) { { task: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
@@ -152,6 +152,9 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like '[APIログイン中][*]権限がない', :reader
       it_behaves_like '[APIログイン中][*]権限がない', nil
     end
+    shared_examples_for '[APIログイン中]スペースが非公開（削除予約済み）' do
+      let_it_be(:space) { space_private_destroy_reserved }
+    end
 
     context '未ログイン' do
       include_context '未ログイン処理'
@@ -166,6 +169,7 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like '[APIログイン中]スペースが存在しない'
       it_behaves_like '[APIログイン中]スペースが公開'
       it_behaves_like '[APIログイン中]スペースが非公開'
+      it_behaves_like '[APIログイン中]スペースが非公開（削除予約済み）'
     end
     context 'APIログイン中（削除予約済み）' do
       include_context 'APIログイン処理', :destroy_reserved

@@ -27,12 +27,38 @@ FactoryBot.define do
     # :nocov:
 
     # 開始・終了日
-    trait :yesterday do
-      started_date    { Time.current.to_date - 1.day }
+    trait :tommorow_start do
+      started_date { Time.current.to_date + 1.day }
+      # ended_date   { started_date }
+    end
+    trait :yesterday_end do
+      ended_date   { Time.current.to_date - 1.day }
+      started_date { ended_date }
+    end
+    trait :today_end do
+      # ended_date   { Time.current.to_date }
+      # started_date { ended_date }
+    end
+    trait :tommorow_end do
+      # started_date { Time.current.to_date }
+      ended_date { Time.current.to_date + 1.day }
+    end
+    trait :update_end do
+      last_ended_date { Time.current.to_date + 3.days }
       ended_date      { Time.current.to_date }
+      started_date    { ended_date }
     end
 
     # ステータス
+    trait :untreated do
+      # status { :untreated }
+    end
+    trait :waiting_premise do
+      status { :waiting_premise }
+    end
+    trait :processing do
+      status { :processing }
+    end
     trait :completed do
       status            { :complete }
       last_completed_at { Time.current - 1.hour }
