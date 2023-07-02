@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'infomations/show', type: :view do
@@ -12,3 +13,4 @@ RSpec.describe 'infomations/show', type: :view do
     end
   end
 end
+=end

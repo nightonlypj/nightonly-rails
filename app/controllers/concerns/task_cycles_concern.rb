@@ -7,6 +7,10 @@ module TaskCyclesConcern
     @holidays = Holiday.where(date: start_date..end_date).index_by(&:date)
   end
 
+  def set_exist_task_events
+    @exist_task_events = @task_events.to_h { |task_event| [{ task_id: task_event.task_cycle.task_id, ended_date: task_event.ended_date }, true] }
+  end
+
   def cycle_months(start_date, end_date)
     return [*start_date.month..end_date.month] if start_date.year == end_date.year
     return [*start_date.month..12, *1..end_date.month].uniq.sort if start_date.year == end_date.year + 1
@@ -34,9 +38,10 @@ module TaskCyclesConcern
 
   def weekly_set_next_events(task_cycle, task_start_date, task_end_date)
     result = false
-    date = task_start_date + ((task_cycle.wday_before_type_cast - task_start_date.wday) % 7).days
+    month = task_start_date.beginning_of_month
+    date = month + ((task_cycle.wday_before_type_cast - month.wday) % 7).days
     while date <= task_end_date # NOTE: 終了日が期間内のもの。開始日のみ期間内のものは含まれない
-      result = true if set_next_events(date, task_cycle, task_start_date)
+      result = true if set_next_events(date, task_cycle, task_start_date, task_end_date)
       date += 1.week
     end
 
@@ -47,7 +52,7 @@ module TaskCyclesConcern
     result = false
     month = task_start_date.beginning_of_month
     while month <= task_end_date # NOTE: 終了日が期間内のもの。開始日のみ期間内のものは含まれない
-      result = true if target_set_next_events(month, task_cycle, task_start_date)
+      result = true if target_set_next_events(month, task_cycle, task_start_date, task_end_date)
       month += 1.month
     end
 
@@ -59,7 +64,7 @@ module TaskCyclesConcern
     month = task_start_date.beginning_of_month
     while month <= task_end_date # NOTE: 終了日が期間内のもの。開始日のみ期間内のものは含まれない
       if month.month == task_cycle.month
-        result = true if target_set_next_events(month, task_cycle, task_start_date)
+        result = true if target_set_next_events(month, task_cycle, task_start_date, task_end_date)
         break if month.year >= task_end_date.year
       end
       month += 1.month
@@ -68,14 +73,14 @@ module TaskCyclesConcern
     result
   end
 
-  def target_set_next_events(month, task_cycle, task_start_date)
+  def target_set_next_events(month, task_cycle, task_start_date, task_end_date)
     case task_cycle.target&.to_sym
     when :day
-      day_set_next_events(month, task_cycle, task_start_date)
+      day_set_next_events(month, task_cycle, task_start_date, task_end_date)
     when :business_day
-      business_day_set_next_events(month, task_cycle, task_start_date)
+      business_day_set_next_events(month, task_cycle, task_start_date, task_end_date)
     when :week
-      week_set_next_events(month, task_cycle, task_start_date)
+      week_set_next_events(month, task_cycle, task_start_date, task_end_date)
     else
       # :nocov:
       raise "task_cycle.target not found.(#{task_cycle.target})[id: #{task_cycle.id}]"
@@ -83,13 +88,13 @@ module TaskCyclesConcern
     end
   end
 
-  def day_set_next_events(month, task_cycle, task_start_date)
+  def day_set_next_events(month, task_cycle, task_start_date, task_end_date)
     date = month + (task_cycle.day - 1).days
     date = (date - 1.month).end_of_month if date.day != task_cycle.day # NOTE: 存在しない日付は丸められる為
-    set_next_events(date, task_cycle, task_start_date)
+    set_next_events(date, task_cycle, task_start_date, task_end_date)
   end
 
-  def business_day_set_next_events(month, task_cycle, task_start_date)
+  def business_day_set_next_events(month, task_cycle, task_start_date, task_end_date)
     date = month.end_of_month
     if task_cycle.business_day < date.day # NOTE: 最終営業日は月末（後続処理で休日の場合は前日）
       count = 0
@@ -102,25 +107,25 @@ module TaskCyclesConcern
         date += 1.day
       end
     end
-    set_next_events(date, task_cycle, task_start_date)
+    set_next_events(date, task_cycle, task_start_date, task_end_date)
   end
 
-  def week_set_next_events(month, task_cycle, task_start_date)
+  def week_set_next_events(month, task_cycle, task_start_date, task_end_date)
     date = month + ((task_cycle.wday_before_type_cast - month.wday) % 7).days + ((task_cycle.week_before_type_cast - 1) * 7).days
     date -= 7.days while date.month > month.month
-    set_next_events(date, task_cycle, task_start_date)
+    set_next_events(date, task_cycle, task_start_date, task_end_date)
   end
 
-  def set_next_events(date, task_cycle, task_start_date)
+  def set_next_events(date, task_cycle, task_start_date, task_end_date)
     event_end_date = handling_holiday_date(date, task_cycle.handling_holiday&.to_sym)
-    return if event_end_date < task_start_date
+    return if event_end_date < task_start_date || event_end_date > task_end_date
     return unless @months.blank? || @months.include?(event_end_date.strftime('%Y%m'))
 
     event_start_date = end_to_start_date(event_end_date, task_cycle.period)
-    if @exist_task_events.key?(task_cycle_id: task_cycle.id, ended_date: event_end_date)
+    if @exist_task_events.key?(task_id: task_cycle.task_id, ended_date: event_end_date)
       false
     else
-      @next_events.push([task_cycle, event_start_date, event_end_date])
+      @next_events[{ task_id: task_cycle.task_id, ended_date: event_end_date }] = [task_cycle, event_start_date, event_end_date]
       true
     end
   end

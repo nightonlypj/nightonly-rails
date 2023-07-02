@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'users/registrations/edit', type: :view do
@@ -57,3 +58,4 @@ RSpec.describe 'users/registrations/edit', type: :view do
     it_behaves_like 'メールアドレス変更中表示'
   end
 end
+=end

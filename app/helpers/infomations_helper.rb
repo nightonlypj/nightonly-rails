@@ -1,4 +1,5 @@
 module InfomationsHelper
+=begin
   # ラベルのクラス名を返却
   def label_class_name(label)
     case label.to_sym
@@ -10,4 +11,5 @@ module InfomationsHelper
       'bg-info'
     end
   end
+=end
 end

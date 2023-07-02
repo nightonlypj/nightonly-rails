@@ -1,8 +1,11 @@
-[<%= t("enums.send_history.notice_target.#{@send_history.notice_target}") %>]<%= "(#{I18n.l(@target_date)})" if @target_date.present? %> <%= t('notifier.task_event.message', name: link_to(html_escape(@space.name), @space_url)).html_safe %><br>
+<%= "(#{I18n.l(@target_date)})" if @target_date.present? %>[<%= @send_history.notice_target_i18n %>] <%= t('notifier.task_event.message', name: link_to(html_escape(@space_name), @space_url)).html_safe %><br>
 <br>
-<% if @send_history.notice_target.to_sym == :next %>
-<%= render 'task_events', type: :next, task_events: @next_task_events, space_url: @space_url, color: 'green' %>
+<% if @send_history.notice_target_next? %>
+<%= render 'processing_task_events', type: :next, task_events: @next_task_events, space_url: @space_url %>
 <% end %>
-<%= render 'task_events', type: :expired, task_events: @expired_task_events, space_url: @space_url, color: 'red' %>
-<%= render 'task_events', type: :end_today, task_events: @end_today_task_events, space_url: @space_url, color: 'orange' %>
-<%= render 'task_events', type: :date_include, task_events: @date_include_task_events, space_url: @space_url, color: 'green' %>
+<%= render 'processing_task_events', type: :expired, task_events: @expired_task_events, space_url: @space_url %>
+<%= render 'processing_task_events', type: :end_today, task_events: @end_today_task_events, space_url: @space_url %>
+<%= render 'processing_task_events', type: :date_include, task_events: @date_include_task_events, space_url: @space_url %>
+<% if @send_history.send_setting["#{@send_history.notice_target}_notice_completed"] %>
+<%= render 'completed_task_events', notice_target: @send_history.notice_target, task_events: @completed_task_events, space_url: @space_url %>
+<% end %>

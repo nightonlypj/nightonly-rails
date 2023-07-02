@@ -11,9 +11,11 @@ class DownloadsController < ApplicationAuthController
     @downloads = Download.where(user: current_user).search(@id).order(id: :desc)
                          .page(params[:page]).per(Settings.default_downloads_limit)
 
+=begin
     if format_html? && @downloads.current_page > [@downloads.total_pages, 1].max
       return redirect_to @downloads.total_pages <= 1 ? downloads_path : downloads_path(page: @downloads.total_pages)
     end
+=end
 
     set_flash_index
   end
@@ -25,7 +27,7 @@ class DownloadsController < ApplicationAuthController
     return response_not_found('alert.download.notfound') if @download.blank? || @download.user != current_user
 
     if @download.model.to_sym == :member
-      current_member = Member.where(space: @download.space, user: current_user).first
+      current_member = Member.find_by(space: @download.space, user: current_user)
       return response_forbidden if current_member.blank? || !current_member.power_admin?
     end
 
@@ -35,32 +37,30 @@ class DownloadsController < ApplicationAuthController
     send_data(@download.download_files.first.body, filename: "#{@download.model}_#{l(@download.requested_at, format: :file)}.#{@download.format}")
   end
 
+=begin
   # GET /downloads/create ダウンロード依頼
   def new
     output_items = @items.stringify_keys.keys
 
     @download = Download.new(model: @model, space: @space, search_params: params[:search_params], select_items: params[:select_items],
-                             target: @enable_target[0], format: :csv, char_code: :sjis, newline_code: :crlf, output_items: output_items)
+                             target: @enable_target[0], format: :csv, char_code: :sjis, newline_code: :crlf, output_items:)
   end
+=end
 
   # POST /downloads/create ダウンロード依頼(処理)
   # POST /downloads/create(.json) ダウンロード依頼API(処理)
   def create
     @download = Download.new(download_params.merge(model: @model, space: @space, user: current_user, requested_at: Time.current))
     unless @download.save
-      if format_html?
-        return render :new, status: :unprocessable_entity
-      else
-        return render './failure', locals: { errors: @download.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
-      end
+      return render :new, status: :unprocessable_entity if format_html?
+
+      return render './failure', locals: { errors: @download.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
     end
 
-    DownloadJob.perform_later(@download)
-    if format_html?
-      redirect_to downloads_path(target_id: @download.id)
-    else
-      render locals: { notice: t('notice.download.create') }, status: :created
-    end
+    DownloadJob.perform_later(@download.id)
+    return redirect_to downloads_path(target_id: @download.id) if format_html?
+
+    render locals: { notice: t('notice.download.create') }, status: :created
   end
 
   private
@@ -79,7 +79,7 @@ class DownloadsController < ApplicationAuthController
       end
     end
 
-    @download = Download.where(id: @target_id, user: current_user).first if @download.blank?
+    @download = Download.find_by(id: @target_id, user: current_user) if @download.blank?
     return if @download.blank? || @download.last_downloaded_at.present?
 
     if @download.status.to_sym == :failure
@@ -106,10 +106,13 @@ class DownloadsController < ApplicationAuthController
       @current_member = Member.where(space: @space, user: current_user).eager_load(:user).first
       return response_forbidden if @current_member.blank? || !@current_member.power_admin?
     else
+      # :nocov:
       @space = nil
       @current_member = nil
+      # :nocov:
     end
 
+=begin
     if format_html?
       @enable_target = []
       @enable_target.push('select') if target_params[:select_items].present?
@@ -118,6 +121,7 @@ class DownloadsController < ApplicationAuthController
 
       @items = t("items.#{@model}")
     end
+=end
   end
 
   def set_params_create
@@ -125,15 +129,14 @@ class DownloadsController < ApplicationAuthController
   end
 
   def response_param_error(key, error)
-    if format_html?
-      head :not_found
-    else
-      render './failure', locals: { errors: { key => [t("errors.messages.param.#{error}")] }, alert: t('errors.messages.not_saved.one') }, status: :not_found
-    end
+    return head :not_found if format_html?
+
+    render './failure', locals: { errors: { key => [t("errors.messages.param.#{error}")] }, alert: t('errors.messages.not_saved.one') }, status: :not_found
   end
 
   # Only allow a list of trusted parameters through.
   def download_params
+=begin
     if format_html?
       params[:download][:output_items] = []
       @items.each do |key, _label|
@@ -141,6 +144,7 @@ class DownloadsController < ApplicationAuthController
       end
       params[:download][:select_items] = params[:download][:select_items]&.split(',')
     end
+=end
 
     # NOTE: ArgumentError対策
     params[:download][:target]       = nil if Download.targets[params[:download][:target]].blank?

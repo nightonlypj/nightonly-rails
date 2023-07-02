@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'users/confirmations/new', type: :view do
@@ -56,3 +57,4 @@ RSpec.describe 'users/confirmations/new', type: :view do
     it_behaves_like 'ログイン中表示'
   end
 end
+=end

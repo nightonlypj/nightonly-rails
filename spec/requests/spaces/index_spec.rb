@@ -4,26 +4,31 @@ RSpec.describe 'Spaces', type: :request do
   let(:response_json) { JSON.parse(response.body) }
   let(:response_json_space)  { response_json['space'] }
   let(:response_json_spaces) { response_json['spaces'] }
+  let(:default_params) { { text: nil, public: 1, private: 1, join: 1, nojoin: 1, active: 1, destroy: 0 } }
 
   # テスト内容（共通）
   shared_examples_for 'ToOK[名称]' do
+    let!(:default_spaces_limit) { Settings.default_spaces_limit }
+    before { Settings.default_spaces_limit = [default_spaces_limit, spaces.count].max }
+    after  { Settings.default_spaces_limit = default_spaces_limit }
     it 'HTTPステータスが200。対象の名称が一致する/含まれる' do
-      Settings.default_spaces_limit = spaces.count if spaces.count.positive?
       is_expected.to eq(200)
       if subject_format == :json
         # JSON
         expect(response_json_spaces.count).to eq(spaces.count)
         spaces.each_with_index do |space, index|
-          expect(response_json_spaces[index]['name']).to eq(space.name)
+          expect(response_json_spaces[spaces.count - index - 1]['name']).to eq(space.name)
         end
 
-        default_params = { text: nil, public: 1, private: 1, join: 1, nojoin: 1, active: 1, destroy: 0 }
-        expect(response_json['search_params']).to eq(default_params.merge(params).stringify_keys)
+        input_params = params.to_h { |key, value| [key, key == :text ? value : value.to_i] }
+        expect(response_json['search_params']).to eq(default_params.merge(input_params).stringify_keys)
+=begin
       else
         # HTML
         spaces.each do |space|
           expect(response.body).to include(space.name)
         end
+=end
       end
     end
   end
@@ -35,32 +40,42 @@ RSpec.describe 'Spaces', type: :request do
   # テストパターン
   #   未ログイン, ログイン中, ログイン中（削除予約済み）, APIログイン中, APIログイン中（削除予約済み）
   #   スペース: 存在しない, 最大表示数と同じ, 最大表示数より多い
+  #     スペース: 公開, 非公開, 削除予約済み, 削除対象
+  #     権限: ある（管理者〜閲覧者）, ない
+  #     作成者: いる, アカウント削除済み
+  #     最終更新者: いない, いる, アカウント削除済み
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #index' do
     subject { get spaces_path(page: subject_page, format: subject_format), headers: auth_headers.merge(accept_headers) }
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200' do
         is_expected.to eq(200)
       end
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
         expect(response_json['success']).to eq(true)
-        search_params = { text: nil, public: 1, private: 1, join: 1, nojoin: 1, active: 1, destroy: 0 }
-        expect(response_json['search_params']).to eq(search_params.stringify_keys)
+        expect(response_json['search_params']).to eq(default_params.stringify_keys)
+
         expect(response_json_space['total_count']).to eq(spaces.count)
         expect(response_json_space['current_page']).to eq(subject_page)
         expect(response_json_space['total_pages']).to eq((spaces.count - 1).div(Settings.default_spaces_limit) + 1)
         expect(response_json_space['limit_value']).to eq(Settings.default_spaces_limit)
+        expect(response_json_space.count).to eq(4)
+
+        expect(response_json.count).to eq(4)
       end
     end
 
+=begin
     shared_examples_for 'ページネーション表示' do |page, link_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -117,6 +132,7 @@ RSpec.describe 'Spaces', type: :request do
         end
       end
     end
+=end
     shared_examples_for 'リスト表示(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -129,19 +145,24 @@ RSpec.describe 'Spaces', type: :request do
         (start_no..end_no).each do |no|
           data = response_json_spaces[no - start_no]
           space = spaces[spaces.count - no]
-          expect_space_basic_json(data, space)
+          count = expect_space_basic_json(data, space)
 
           power = members[space.id]
+          data_current_member = data['current_member']
           if power.present?
-            expect(data['current_member']['power']).to eq(power)
-            expect(data['current_member']['power_i18n']).to eq(Member.powers_i18n[power])
+            expect(data_current_member['power']).to eq(power)
+            expect(data_current_member['power_i18n']).to eq(Member.powers_i18n[power])
+            expect(data_current_member.count).to eq(2)
+            count += 1
           else
-            expect(data['current_member']).to be_nil
+            expect(data_current_member).to be_nil
           end
+          expect(data.count).to eq(count)
         end
       end
     end
 
+=begin
     shared_examples_for 'リダイレクト' do |page, redirect_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -151,6 +172,7 @@ RSpec.describe 'Spaces', type: :request do
         is_expected.to redirect_to(spaces_path(page: url_page))
       end
     end
+=end
     shared_examples_for 'リダイレクト(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -165,11 +187,13 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', 0, 0, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示（0件）'
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -180,11 +204,13 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', 0, count.public_admin + count.public_none + count.private_admin + count.private_reader, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -195,11 +221,13 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', count.public_admin, count.public_none, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -210,11 +238,13 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', count.public_admin, count.public_none, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -226,6 +256,7 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', 0, all + 1, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ToOK(html)', 2
@@ -234,6 +265,7 @@ RSpec.describe 'Spaces', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'ToOK(json)', 2
@@ -246,6 +278,7 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', count.public_admin, count.public_none + 1, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ToOK(html)', 2
@@ -254,6 +287,7 @@ RSpec.describe 'Spaces', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       # it_behaves_like 'ToOK(json)', 1 # NOTE: APIは未ログイン扱いの為
       # it_behaves_like 'ToOK(json)', 2
@@ -266,6 +300,7 @@ RSpec.describe 'Spaces', type: :request do
       include_context 'スペース一覧作成', count.public_admin, count.public_none + 1, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ToOK(html)', 2
@@ -274,6 +309,7 @@ RSpec.describe 'Spaces', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'ToOK(json)', 2
@@ -325,96 +361,121 @@ RSpec.describe 'Spaces', type: :request do
 
   # 前提条件
   #   ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）, APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）
-  #   公開スペース（未参加） + 公開スペース（参加）
-  #   検索文字列あり（部分一致, 大文字・小文字を区別しない）: name, description
-  #   オプションなし
+  #   公開スペース（未参加） + 公開スペース（参加）, 検索オプションなし
+  # テストパターン
+  #   部分一致（大文字・小文字を区別しない）, 不一致: 名称, 説明
   describe 'GET #index (.search)' do
-    subject { get spaces_path(format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
-    let_it_be(:nojoin_space) { FactoryBot.create(:space, :public, name: 'space(Aaa)', description: 'description(Bbb)') }
-    let_it_be(:join_space)   { FactoryBot.create(:space, :public, name: 'space(Bbb)', description: 'description(Aaa)') }
-    before_all { FactoryBot.create(:space) } # NOTE: 対象外
-    let(:params) { { text: 'aaa' } }
+    subject { get spaces_path(format: subject_format), params:, headers: auth_headers.merge(accept_headers) }
+    let_it_be(:created_user) { FactoryBot.create(:user) }
+    let_it_be(:nojoin_space) { FactoryBot.create(:space, :public, name: 'space(Aaa)', description: 'description(Bbb)', created_user:) }
+    let_it_be(:join_space)   { FactoryBot.create(:space, :public, name: 'space(Bbb)', description: 'description(Aaa)', created_user:) }
+    before_all { FactoryBot.create(:space, created_user:) } # NOTE: 対象外
+
+    # テスト内容
+    shared_examples_for 'ToNG[0件]' do
+      it '0件/存在しないメッセージが含まれる' do
+        is_expected.to eq(200)
+        if subject_format == :json
+          # JSON
+          expect(response_json_spaces.count).to eq(0)
+=begin
+        else
+          # HTML
+          expect(response.body).to include('スペースが見つかりません。')
+=end
+        end
+      end
+    end
 
     # テストケース
-    shared_examples_for '検索文字列あり' do
-      let(:spaces) { [join_space, nojoin_space] }
+    shared_examples_for '部分一致' do
+      let(:params) { { text: 'aaa' } }
+      let(:spaces) { [nojoin_space, join_space] }
       it_behaves_like 'ToOK[名称]'
+    end
+    shared_examples_for '不一致' do
+      let(:params) { { text: 'zzz' } }
+      it_behaves_like 'ToNG[0件]'
     end
 
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
+=begin
       include_context 'ログイン処理'
-      before_all { FactoryBot.create(:member, :admin, space: join_space, user: user) }
+      before_all { FactoryBot.create(:member, :admin, space: join_space, user:) }
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
-      it_behaves_like '検索文字列あり'
+      it_behaves_like '部分一致'
+      it_behaves_like '不一致'
+=end
     end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
-      before_all { FactoryBot.create(:member, :admin, space: join_space, user: user) }
+      before_all { FactoryBot.create(:member, :admin, space: join_space, user:) }
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
-      it_behaves_like '検索文字列あり'
+      it_behaves_like '部分一致'
+      it_behaves_like '不一致'
     end
   end
 
   # 前提条件
   #   ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）, APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）
-  #   検索文字列なし
+  #   検索テキストなし
   # テストパターン
   #   公開・非公開、参加・未参加、有効・削除予定: 全て1, 1と0, 0と1, 0と0
   describe 'GET #index (.by_target)' do
-    subject { get spaces_path(format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
+    subject { get spaces_path(format: subject_format), params:, headers: auth_headers.merge(accept_headers) }
 
     # テストケース
     shared_examples_for '全て1' do
-      let(:params) { { public: 1, private: 1, join: 1, nojoin: 1, active: 1, destroy: 1 } }
-      let(:spaces) { (@public_spaces + @public_nojoin_spaces + @public_nojoin_destroy_spaces + @private_spaces).reverse }
+      let(:params) { { public: '1', private: '1', join: '1', nojoin: '1', active: '1', destroy: '1' } }
+      let(:spaces) { @public_spaces + @public_nojoin_spaces + @public_nojoin_destroy_spaces + @private_spaces }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '公開・非公開が1と0' do
-      let(:params) { { public: 1, private: 0 } }
-      let(:spaces) { (@public_spaces + @public_nojoin_spaces).reverse }
+      let(:params) { { public: '1', private: '0' } }
+      let(:spaces) { @public_spaces + @public_nojoin_spaces }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '公開・非公開が0と1' do
-      let(:params) { { public: 0, private: 1 } }
-      let(:spaces) { @private_spaces.reverse }
+      let(:params) { { public: '0', private: '1' } }
+      let(:spaces) { @private_spaces }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '公開・非公開が0と0' do
-      let(:params) { { public: 0, private: 0 } }
+      let(:params) { { public: '0', private: '0' } }
       let(:spaces) { [] }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '参加・未参加が1と0' do
-      let(:params) { { join: 1, nojoin: 0 } }
-      let(:spaces) { (@public_spaces + @private_spaces).reverse }
+      let(:params) { { join: '1', nojoin: '0' } }
+      let(:spaces) { @public_spaces + @private_spaces }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '参加・未参加が0と1' do
-      let(:params) { { join: 0, nojoin: 1 } }
+      let(:params) { { join: '0', nojoin: '1' } }
       let(:spaces) { @public_nojoin_spaces }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '参加・未参加が0と0' do
-      let(:params) { { join: 0, nojoin: 0 } }
+      let(:params) { { join: '0', nojoin: '0' } }
       let(:spaces) { [] }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '有効・削除予定が1と0' do
-      let(:params) { { active: 1, destroy: 0 } }
-      let(:spaces) { (@public_spaces + @public_nojoin_spaces + @private_spaces).reverse }
+      let(:params) { { active: '1', destroy: '0' } }
+      let(:spaces) { @public_spaces + @public_nojoin_spaces + @private_spaces }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '有効・削除予定が0と1' do
-      let(:params) { { active: 0, destroy: 1 } }
-      let(:spaces) { @public_nojoin_destroy_spaces.reverse }
+      let(:params) { { active: '0', destroy: '1' } }
+      let(:spaces) { @public_nojoin_destroy_spaces }
       it_behaves_like 'ToOK[名称]'
     end
     shared_examples_for '有効・削除予定が0と0' do
-      let(:params) { { active: 0, destroy: 0 } }
+      let(:params) { { active: '0', destroy: '0' } }
       let(:spaces) { [] }
       it_behaves_like 'ToOK[名称]'
     end
@@ -435,11 +496,13 @@ RSpec.describe 'Spaces', type: :request do
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
+=begin
       include_context 'ログイン処理'
       include_context 'スペース一覧作成', 1, 1, 1, 1
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like 'オプション'
+=end
     end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'

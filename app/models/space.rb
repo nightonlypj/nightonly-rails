@@ -49,12 +49,12 @@ class Space < ApplicationRecord
   scope :search, lambda { |text|
     return if text&.strip.blank?
 
+    sql = "name #{search_like} ? OR description #{search_like} ?"
+
     space = all
-    collate = connection_db_config.configuration_hash[:adapter] == 'mysql2' ? ' COLLATE utf8_unicode_ci' : ''
-    like = connection_db_config.configuration_hash[:adapter] == 'postgresql' ? 'ILIKE' : 'LIKE'
     text.split(/[[:blank:]]+/).each do |word|
       value = "%#{word}%"
-      space = space.where("name#{collate} #{like} ? OR description#{collate} #{like} ?", value, value)
+      space = space.where(sql, value, value)
     end
 
     space
@@ -62,6 +62,11 @@ class Space < ApplicationRecord
   scope :active, -> { where(destroy_schedule_at: nil) }
   scope :destroy_reserved, -> { where.not(destroy_schedule_at: nil) }
   scope :destroy_target, -> { where(destroy_schedule_at: ..Time.current) }
+
+  # 期間内のタスクイベント作成＋通知の対象
+  scope :create_send_notice_target, lambda {
+    active.order(:process_priority, :id).eager_load(:send_setting_active).merge(SendSetting.order(updated_at: :desc, id: :desc))
+  }
 
   # 削除予約済みか返却
   def destroy_reserved?
@@ -100,5 +105,10 @@ class Space < ApplicationRecord
   # 最終更新日時
   def last_updated_at
     updated_at == created_at ? nil : updated_at
+  end
+
+  # スペースURL
+  def url
+    "#{Settings.front_url}/-/#{code}"
   end
 end

@@ -1,6 +1,7 @@
 ja:
-  app_name: '忘れん坊（β版）'
+  app_name: '忘れん坊'
   sub_title: ': 定期タスクの管理・リマインダー（Slack・メールに対応）'
+  sub_title_short: ': 定期タスクの管理・リマインダー'
   my_name: 'Night Only Project.'
   my_url: 'https://nightonly.com/'
   activerecord:
@@ -134,6 +135,7 @@ ja:
         wday: '曜日'
         handling_holiday: '休日の扱い'
         period: '期間（日）'
+        order: '並び順'
         deleted_at: '削除日時'
         created_at: '作成日時'
         updated_at: '更新日時'
@@ -144,6 +146,8 @@ ja:
         task_cycle: 'タスク周期'
         started_date: '開始日'
         ended_date: '終了日'
+        last_ended_date: '最終終了日'
+        last_completed_at: '最終完了日時'
         status: 'ステータス'
         assigned_user: '担当者ID'
         assigned_at: '担当日時'
@@ -160,22 +164,24 @@ ja:
         id: 'ID'
         slack_domain: 'Slackドメイン'
         user: 'ユーザー'
-        memberid: 'SlackのメンバーID'
+        memberid: 'SlackメンバーID'
         created_at: '作成日時'
         updated_at: '更新日時'
       send_setting:
         id: 'ID'
         space: 'スペース'
         slack_domain: 'Slackドメイン'
-        slack_enabled: '[Slack]通知する'
-        slack_webhook_url: '[Slack]Webhook URL'
-        slack_mention: '[Slack]メンション'
-        email_enabled: '[メール]通知する'
-        email_address: '[メール]アドレス'
-        start_notice_start_hour: '[開始確認]開始時間'
-        start_notice_required: '[開始確認]必須'
-        next_notice_start_hour: '[翌営業日・終了確認]開始時間'
-        next_notice_required: '[翌営業日・終了確認]必須'
+        slack_enabled: '(Slack)通知する'
+        slack_webhook_url: '(Slack)Webhook URL'
+        slack_mention: '(Slack)メンション'
+        email_enabled: '(メール)通知する'
+        email_address: '(メール)アドレス'
+        start_notice_start_hour: '(開始確認)開始時間'
+        start_notice_completed: '(開始確認)完了通知'
+        start_notice_required: '(開始確認)必ず通知'
+        next_notice_start_hour: '(翌営業日・終了確認)開始時間'
+        next_notice_completed: '(翌営業日・終了確認)完了通知'
+        next_notice_required: '(翌営業日・終了確認)必ず通知'
         last_updated_user: '最終更新者'
         deleted_at: '削除日時'
         created_at: '作成日時'
@@ -183,22 +189,43 @@ ja:
       send_history:
         id: 'ID'
         space: 'スペース'
+        send_setting: '通知設定'
+        target_date: '対象日'
+        notice_target: '通知対象'
+        send_target: '送信対象'
         status: 'ステータス'
         started_at: '開始日時'
         completed_at: '完了日時'
-        error_message: 'エラーメッセージ'
-        notice_target: '通知対象'
-        send_target: '送信対象'
-        target_date: '対象日'
         next_task_event_ids: '翌営業日開始のタスクイベントIDs'
         expired_task_event_ids: '期限切れのタスクイベントIDs'
         end_today_task_event_ids: '本日までのタスクイベントIDs'
         date_include_task_event_ids: '期間内のタスクイベントIDs'
-        sended_data: '送信データ'
+        completed_task_event_ids: '完了したタスクイベントIDs'
+        error_message: 'エラーメッセージ'
+        send_data: '送信データ'
         created_at: '作成日時'
         updated_at: '更新日時'
     errors:
       models:
+        holiday:
+          attributes:
+            date:
+              blank: '入力してください。'
+              taken: '同じ日付が存在します。'
+            name:
+              blank: '入力してください。'
+        infomation:
+          attributes:
+            label:
+              blank: '選択してください。'
+            title:
+              blank: '入力してください。'
+            started_at:
+              blank: '入力してください。'
+            target:
+              blank: '選択してください。'
+            user:
+              blank: '選択してください。'
         space:
           attributes:
             code:
@@ -279,9 +306,9 @@ ja:
               too_long: '%{count}文字以下で入力してください。'
             started_date:
               blank: '入力してください。'
-              taken: '今日より後の日付を入力してください。'
+              before: '今日以降の日付を入力してください。'
             ended_date:
-              taken: '開始日より後の日付を入力してください。'
+              after: '開始日以降の日付を入力してください。'
         task_cycle:
           attributes:
             cycle:
@@ -313,22 +340,44 @@ ja:
               blank: '入力してください。'
               greater_than_or_equal_to: '%{count}以上の値を入力してください。'
               less_than_or_equal_to: '%{count}以下の値を入力してください。'
+        task_event:
+          attributes:
+            code:
+              blank: 'お問い合わせ頂くか、最初からやり直してください。'
+              taken: '処理に失敗しました。しばらく時間をあけてから、やり直してください。'
+            status:
+              blank: '選択してください。'
+            memo:
+              too_long: '%{count}文字以下で入力してください。'
+            last_ended_date:
+              blank: '入力してください。'
+              after: '開始以降の日付を入力してください。'
+              before: 翌月末までの日付を入力してください。
+        slack_domain:
+          attributes:
+            name:
+              blank: '入力してください。'
+              too_long: '%{count}文字以下で入力してください。'
+              invalid: '英字（小文字）・数字・ハイフンのみで入力してください。'
+              taken: '処理に失敗しました。しばらく時間をあけてから、やり直してください。'
         slack_user:
           attributes:
             memberid:
+              blank: '入力してください。'
+              too_short: '%{count}文字以上で入力してください。'
               too_long: '%{count}文字以下で入力してください。'
+              invalid: '英字（大文字）・数字のみで入力してください。'
         send_setting:
           attributes:
             slack_enabled:
               inclusion: '選択してください。'
-            slack_name:
-              blank: '入力してください。'
             slack_webhook_url:
               blank: '入力してください。'
               too_long: '%{count}文字以下で入力してください。'
               invalid: '形式が正しくありません。'
             slack_mention:
               too_long: '%{count}文字以下で入力してください。'
+              invalid: '形式が正しくありません。'
             email_enabled:
               inclusion: '選択してください。'
             email_address:
@@ -338,15 +387,19 @@ ja:
               blank: '入力してください。'
               greater_than_or_equal_to: '%{count}以上の値を入力してください。'
               less_than_or_equal_to: '%{count}以下の値を入力してください。'
+            start_notice_completed:
+              inclusion: '選択してください。'
             start_notice_required:
               inclusion: '選択してください。'
             next_notice_start_hour:
               blank: '入力してください。'
               greater_than_or_equal_to: '%{count}以上の値を入力してください。'
               less_than_or_equal_to: '%{count}以下の値を入力してください。'
+              invalid: '開始確認より後の時間を入力してください。'
+            next_notice_completed:
+              inclusion: '選択してください。'
             next_notice_required:
               inclusion: '選択してください。'
-              invalid: '開始確認よりも後の時間を入力してください。'
   items:
     member:
       user.name: 'メンバー'
@@ -362,6 +415,7 @@ ja:
         not: ''
         maintenance: 'メンテナンス'
         hindrance: '障害'
+        update: 'アップデート'
         other: 'その他'
       target:
         all: '全員'
@@ -472,9 +526,12 @@ ja:
         months:
           invalid: '形式が正しくありません。%{month}'
       task_events:
+        end_date:
+          after: '開始日以降の日付を入力してください。'
         max_month_count: '%{count}ヶ月以内で指定してください。'
       task_cycles:
-        zero: '有効な周期が存在しません。'
+        blank: '値がありません。'
+        invalid: '形式が正しくありません。'
         max_count: '有効な周期が最大件数(%{count}件)を超えています。'
   alert:
     page:
@@ -503,6 +560,11 @@ ja:
       notfound: 'ファイルが見つかりません。'
       status:
         failure: 'ダウンロードファイルの作成に失敗しました。お問い合わせ頂くか、やり直してください。'
+    task:
+      destroy:
+        ids:
+          blank: '削除対象が指定されていません。'
+          notfound: '削除対象が見つかりません。'
   notice:
     user:
       image_update: '画像を変更しました。'
@@ -531,8 +593,10 @@ ja:
     task:
       create: 'タスクを追加しました。'
       update: 'タスクの設定を変更しました。'
+      destroy: '%{destroy_count}件のタスクを削除しました。'
+      destroy_include_notfound: '%{count}件中%{destroy_count}件のタスクを削除しました。'
     task_event:
-      update: 'イベントの情報を変更しました。'
+      update: '通知イベントの情報を変更しました。'
     slack_user:
       update: 'メンバーIDを変更しました。'
     send_setting:
@@ -554,17 +618,32 @@ ja:
       list:
         notfound: 'なし'
       assigned:
-        notfound: '担当を決めましょう！'
+        notfound:
+          not_notice: '未設定'
+          notice: '担当を決めましょう！'
       type:
         next:
           title: '翌営業日開始のタスク'
           slack_color: 'good'
+          email_color: 'green'
         expired:
           title: '期限切れのタスク'
           slack_color: 'danger'
+          email_color: 'red'
         end_today:
           title: '本日期限のタスク'
           slack_color: 'warning'
+          email_color: 'orange'
         date_include:
           title: '期限内のタスク'
           slack_color: 'good'
+          email_color: 'green'
+        completed:
+          start:
+            title: '前営業日以降に完了したタスク'
+            slack_color: '#9E9E9E'
+            email_color: 'black'
+          next:
+            title: '本日完了したタスク'
+            slack_color: '#9E9E9E'
+            email_color: 'black'

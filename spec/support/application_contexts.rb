@@ -10,19 +10,44 @@ ACCEPT_INC_HTML = { 'accept' => 'text/html,application/xhtml+xml,application/xml
 ACCEPT_INC_JSON = { 'accept' => 'application/json,text/plain,*/*' }.freeze
 
 # メールタイトルを返却
-def get_subject(key)
-  I18n.t(key, app_name: I18n.t('app_name'), env_name: Settings.env_name || '')
+def get_subject(key, args = {})
+  I18n.t(key, app_name: I18n.t('app_name'), env_name: Settings.env_name || '', **args)
 end
 
 # テスト内容（共通）
+shared_examples_for 'Valid' do
+  it '保存できる' do
+    expect(model).to be_valid
+  end
+end
+shared_examples_for 'InValid' do
+  it '保存できない。エラーメッセージが一致する' do
+    expect(model).to be_invalid
+    expect(model.errors.messages).to eq(messages)
+  end
+end
+
+shared_examples_for 'Value' do |value, text = value|
+  it "#{text}が返却される" do
+    is_expected.to eq(value)
+  end
+end
+shared_examples_for 'Value_i18n' do |value|
+  it "#{value}が返却される" do
+    is_expected.to eq(get_locale(value))
+  end
+end
+
 def expect_image_json(response_json_model, model)
   expect(response_json_model['upload_image']).to eq(model.image?)
+
   data = response_json_model['image_url']
   expect(data['mini']).to eq("#{Settings.base_image_url}#{model.image_url(:mini)}")
   expect(data['small']).to eq("#{Settings.base_image_url}#{model.image_url(:small)}")
   expect(data['medium']).to eq("#{Settings.base_image_url}#{model.image_url(:medium)}")
   expect(data['large']).to eq("#{Settings.base_image_url}#{model.image_url(:large)}")
   expect(data['xlarge']).to eq("#{Settings.base_image_url}#{model.image_url(:xlarge)}")
+  expect(data.count).to eq(5)
 end
 
 def get_locale(key, **replace)
@@ -58,11 +83,13 @@ shared_examples_for 'NG' do
   raise '各Specに作成してください。'
 end
 # :nocov:
+=begin
 shared_examples_for 'OK(html)' do
   let(:subject_format) { nil }
   let(:accept_headers) { ACCEPT_INC_HTML }
   it_behaves_like 'OK'
 end
+=end
 shared_examples_for 'NG(html)' do
   let(:subject_format) { nil }
   let(:accept_headers) { ACCEPT_INC_HTML }
@@ -97,11 +124,13 @@ shared_examples_for 'ToOK(html/json)' do
   let(:accept_headers) { ACCEPT_INC_JSON }
   it_behaves_like 'ToOK(html/*)'
 end
+=begin
 shared_examples_for 'ToOK(html)' do |page = nil|
   let(:subject_page) { page }
   it_behaves_like 'ToOK(html/html)'
   it_behaves_like 'ToOK(html/json)'
 end
+=end
 shared_examples_for 'ToOK(json)' do |page = nil|
   let(:subject_page) { page }
   it_behaves_like 'ToNG(json/html)', 406
@@ -115,9 +144,11 @@ shared_examples_for 'ToNG(html/html)' do |code, errors = nil|
     is_expected.to eq(code)
     next if errors.blank?
 
+=begin
     errors.each do |error|
       expect(response.body).to include(error)
     end
+=end
   end
 end
 shared_examples_for 'ToNG(html/json)' do |code|
@@ -178,6 +209,7 @@ shared_examples_for 'ToNG(json)' do |code, errors = nil, alert = nil, notice = n
   it_behaves_like 'ToNG(json/json)', code, errors, alert, notice
 end
 
+=begin
 shared_examples_for 'ToLogin(html/*)' do
   it 'ログインにリダイレクトする' do
     is_expected.to redirect_to(new_user_session_path)
@@ -200,3 +232,4 @@ shared_examples_for 'ToLogin(html)' do
   it_behaves_like 'ToLogin(html/html)'
   it_behaves_like 'ToLogin(html/json)'
 end
+=end

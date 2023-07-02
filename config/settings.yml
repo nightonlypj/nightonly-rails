@@ -100,17 +100,26 @@ task_events_max_month_count: 4
 task_event_memo_maximum: 10240
 
 ## Slackユーザー
-# SlackのメンバーIDの最大文字数
-slack_user_memberid_maximum: 16
+# SlackメンバーIDの最小・最大文字数
+slack_user_memberid_minimum: 11
+slack_user_memberid_maximum: 16 # NOTE: 現在11桁っぽいけど余裕を持て
 
 ## 通知設定
-# [Slack]Webhook URLの最大文字数
+# (Slack)ドメイン名（サブドメイン）の最大文字数
+slack_domain_name_maximum: 32
+# (Slack)Webhook URLの最大文字数
 slack_webhook_url_maximum: 128
-# [Slack]メンションの最大文字数
-slack_mention_maximum: 32
-# [開始確認]デフォルト開始時間/必須
+# (Slack)メンションの最大文字数
+slack_mention_maximum: 64
+# (開始確認)デフォルト開始時間/完了通知/必須
 default_start_notice_start_hour: 10
+default_start_notice_completed: true
 default_start_notice_required: false
-# [翌営業日・終了確認]デフォルト開始時間/必須
+# (翌営業日・終了確認)デフォルト開始時間/完了通知/必須
 default_next_notice_start_hour: 17
+default_next_notice_completed: true
 default_next_notice_required: false
+
+## 通知履歴
+# 一覧のデフォルト最大表示件数
+default_send_histories_limit: 25

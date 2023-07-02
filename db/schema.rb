@@ -10,9 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_04_08_084721) do
+ActiveRecord::Schema.define(version: 2023_06_11_212805) do
 
-  create_table "admin_users", charset: "utf8", collation: "utf8_bin", comment: "管理者", force: :cascade do |t|
+  create_table "admin_users", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "管理者", force: :cascade do |t|
     t.string "name", null: false, comment: "氏名"
     t.string "email", default: "", null: false, comment: "メールアドレス"
     t.string "encrypted_password", default: "", null: false, comment: "暗号化されたパスワード"
@@ -39,7 +39,22 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["unlock_token"], name: "index_admin_users4", unique: true
   end
 
-  create_table "download_files", charset: "utf8", collation: "utf8_bin", comment: "ダウンロードファイル", force: :cascade do |t|
+  create_table "delayed_jobs", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.integer "priority", default: 0, null: false
+    t.integer "attempts", default: 0, null: false
+    t.text "handler", null: false
+    t.text "last_error"
+    t.datetime "run_at"
+    t.datetime "locked_at"
+    t.datetime "failed_at"
+    t.string "locked_by"
+    t.string "queue"
+    t.datetime "created_at", precision: 6
+    t.datetime "updated_at", precision: 6
+    t.index ["priority", "run_at"], name: "delayed_jobs_priority"
+  end
+
+  create_table "download_files", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "ダウンロードファイル", force: :cascade do |t|
     t.bigint "download_id", null: false, comment: "ダウンロードID"
     t.binary "body", size: :long, comment: "内容"
     t.datetime "created_at", precision: 6, null: false
@@ -47,7 +62,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["download_id"], name: "index_download_files_on_download_id"
   end
 
-  create_table "downloads", charset: "utf8", collation: "utf8_bin", comment: "ダウンロード", force: :cascade do |t|
+  create_table "downloads", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "ダウンロード", force: :cascade do |t|
     t.bigint "user_id", null: false, comment: "ユーザーID"
     t.integer "status", default: 0, null: false, comment: "ステータス"
     t.datetime "requested_at", null: false, comment: "依頼日時"
@@ -71,7 +86,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["user_id"], name: "index_downloads_on_user_id"
   end
 
-  create_table "holidays", charset: "utf8", collation: "utf8_bin", comment: "祝日", force: :cascade do |t|
+  create_table "holidays", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "祝日", force: :cascade do |t|
     t.date "date", null: false, comment: "日付"
     t.string "name", null: false, comment: "名称"
     t.datetime "created_at", precision: 6, null: false
@@ -79,7 +94,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["date"], name: "index_holidays1", unique: true
   end
 
-  create_table "infomations", charset: "utf8", collation: "utf8_bin", comment: "お知らせ", force: :cascade do |t|
+  create_table "infomations", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "お知らせ", force: :cascade do |t|
     t.string "title", null: false, comment: "タイトル"
     t.string "summary", comment: "概要"
     t.text "body", comment: "本文"
@@ -99,7 +114,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["user_id"], name: "index_infomations_on_user_id"
   end
 
-  create_table "invitations", charset: "utf8", collation: "utf8_bin", comment: "招待", force: :cascade do |t|
+  create_table "invitations", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "招待", force: :cascade do |t|
     t.string "code", null: false, comment: "コード"
     t.bigint "space_id", null: false, comment: "スペースID"
     t.string "email", comment: "メールアドレス"
@@ -125,7 +140,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["space_id"], name: "index_invitations_on_space_id"
   end
 
-  create_table "members", charset: "utf8", collation: "utf8_bin", comment: "メンバー", force: :cascade do |t|
+  create_table "members", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "メンバー", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "user_id", null: false, comment: "ユーザーID"
     t.integer "power", null: false, comment: "権限"
@@ -147,45 +162,49 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["user_id"], name: "index_members_on_user_id"
   end
 
-  create_table "send_histories", charset: "utf8", collation: "utf8_bin", comment: "通知履歴", force: :cascade do |t|
+  create_table "send_histories", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "通知履歴", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "send_setting_id", null: false, comment: "通知設定ID"
+    t.date "target_date", null: false, comment: "対象日"
+    t.integer "notice_target", null: false, comment: "通知対象"
+    t.integer "send_target", null: false, comment: "送信対象"
     t.integer "status", default: 0, null: false, comment: "ステータス"
     t.datetime "started_at", null: false, comment: "開始日時"
     t.datetime "completed_at", comment: "完了日時"
-    t.text "error_message", comment: "エラーメッセージ"
-    t.integer "notice_target", null: false, comment: "通知対象"
-    t.integer "send_target", null: false, comment: "送信対象"
-    t.date "target_date", null: false, comment: "対象日"
+    t.integer "target_count", null: false, comment: "対象件数"
     t.text "next_task_event_ids", comment: "翌営業日開始のタスクイベントIDs"
     t.text "expired_task_event_ids", comment: "期限切れのタスクイベントIDs"
     t.text "end_today_task_event_ids", comment: "本日までのタスクイベントIDs"
     t.text "date_include_task_event_ids", comment: "期間内のタスクイベントIDs"
-    t.text "sended_data", comment: "送信データ"
+    t.text "error_message", comment: "エラーメッセージ"
+    t.text "send_data", comment: "送信データ"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.text "completed_task_event_ids", comment: "完了したタスクイベントIDs"
     t.index ["send_setting_id"], name: "index_send_histories_on_send_setting_id"
-    t.index ["space_id", "notice_target", "target_date"], name: "send_histories1"
+    t.index ["space_id", "target_date", "notice_target"], name: "send_histories1"
     t.index ["space_id"], name: "index_send_histories_on_space_id"
     t.index ["target_date", "completed_at", "id"], name: "send_histories2"
   end
 
-  create_table "send_settings", charset: "utf8", collation: "utf8_bin", comment: "通知設定", force: :cascade do |t|
+  create_table "send_settings", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "通知設定", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "slack_domain_id", comment: "SlackドメインID"
-    t.boolean "slack_enabled", default: false, null: false, comment: "[Slack]通知する"
-    t.string "slack_webhook_url", comment: "[Slack]Webhook URL"
-    t.string "slack_mention", comment: "[Slack]メンション"
-    t.boolean "email_enabled", default: false, null: false, comment: "[メール]通知する"
-    t.string "email_address", comment: "[メール]アドレス"
-    t.integer "start_notice_start_hour", comment: "[開始確認]開始時間"
-    t.boolean "start_notice_required", default: false, null: false, comment: "[開始確認]必須"
-    t.integer "next_notice_start_hour", comment: "[翌営業日・終了確認]開始時間"
-    t.boolean "next_notice_required", default: false, null: false, comment: "[翌営業日・終了確認]必須"
+    t.boolean "slack_enabled", default: false, null: false, comment: "(Slack)通知する"
+    t.string "slack_webhook_url", comment: "(Slack)Webhook URL"
+    t.string "slack_mention", comment: "(Slack)メンション"
+    t.boolean "email_enabled", default: false, null: false, comment: "(メール)通知する"
+    t.string "email_address", comment: "(メール)アドレス"
+    t.integer "start_notice_start_hour", comment: "(開始確認)開始時間"
+    t.boolean "start_notice_required", default: false, null: false, comment: "(開始確認)必ず通知"
+    t.integer "next_notice_start_hour", comment: "(翌営業日・終了確認)開始時間"
+    t.boolean "next_notice_required", default: false, null: false, comment: "(翌営業日・終了確認)必ず通知"
     t.bigint "last_updated_user_id", comment: "最終更新者ID"
     t.datetime "deleted_at", comment: "削除日時"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.boolean "start_notice_completed", default: true, null: false, comment: "(開始確認)完了通知"
+    t.boolean "next_notice_completed", default: true, null: false, comment: "(翌営業日・終了確認)完了通知"
     t.index ["deleted_at", "id"], name: "send_settings3"
     t.index ["last_updated_user_id"], name: "index_send_settings_on_last_updated_user_id"
     t.index ["slack_domain_id"], name: "index_send_settings_on_slack_domain_id"
@@ -194,17 +213,17 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["updated_at", "id"], name: "send_settings2"
   end
 
-  create_table "slack_domains", charset: "utf8", collation: "utf8_bin", comment: "Slackドメイン", force: :cascade do |t|
+  create_table "slack_domains", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "Slackドメイン", force: :cascade do |t|
     t.string "name", null: false, comment: "ドメイン名"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["name"], name: "index_slack_domains1", unique: true
   end
 
-  create_table "slack_users", charset: "utf8", collation: "utf8_bin", comment: "Slackユーザー", force: :cascade do |t|
+  create_table "slack_users", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "Slackユーザー", force: :cascade do |t|
     t.bigint "slack_domain_id", null: false, comment: "SlackドメインID"
     t.bigint "user_id", null: false, comment: "ユーザーID"
-    t.string "memberid", comment: "SlackのメンバーID"
+    t.string "memberid", comment: "SlackメンバーID"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["slack_domain_id", "user_id"], name: "index_slack_users1", unique: true
@@ -213,7 +232,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["user_id"], name: "index_slack_users_on_user_id"
   end
 
-  create_table "spaces", charset: "utf8", collation: "utf8_bin", comment: "スペース", force: :cascade do |t|
+  create_table "spaces", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "スペース", force: :cascade do |t|
     t.string "code", null: false, comment: "コード"
     t.string "image", comment: "画像"
     t.string "name", null: false, comment: "名称"
@@ -235,7 +254,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["process_priority", "id"], name: "index_spaces5"
   end
 
-  create_table "task_cycles", charset: "utf8", collation: "utf8_bin", comment: "タスク周期", force: :cascade do |t|
+  create_table "task_cycles", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "タスク周期", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "task_id", null: false, comment: "タスクID"
     t.integer "cycle", null: false, comment: "周期"
@@ -250,14 +269,16 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.datetime "deleted_at", comment: "削除日時"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "order", comment: "並び順"
     t.index ["deleted_at", "id"], name: "index_task_cycles3"
     t.index ["deleted_at", "space_id", "cycle", "month"], name: "index_task_cycles1"
+    t.index ["order", "updated_at", "id"], name: "index_task_cycles4"
     t.index ["space_id"], name: "index_task_cycles_on_space_id"
     t.index ["task_id"], name: "index_task_cycles_on_task_id"
     t.index ["updated_at", "id"], name: "index_task_cycles2"
   end
 
-  create_table "task_events", charset: "utf8", collation: "utf8_bin", comment: "タスクイベント", force: :cascade do |t|
+  create_table "task_events", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "タスクイベント", force: :cascade do |t|
     t.string "code", null: false, comment: "コード"
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "task_cycle_id", null: false, comment: "タスク周期ID"
@@ -270,17 +291,20 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.bigint "last_updated_user_id", comment: "最終更新者ID"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.date "last_ended_date", null: false, comment: "最終終了日"
+    t.datetime "last_completed_at", comment: "最終完了日時"
     t.index ["assigned_user_id"], name: "index_task_events_on_assigned_user_id"
     t.index ["code"], name: "index_task_events1", unique: true
     t.index ["last_updated_user_id"], name: "index_task_events_on_last_updated_user_id"
-    t.index ["space_id", "started_date", "ended_date", "id"], name: "index_task_events3"
+    t.index ["space_id", "started_date", "id"], name: "index_task_events3"
     t.index ["space_id", "status", "id"], name: "index_task_events4"
+    t.index ["space_id", "status", "last_completed_at"], name: "index_task_events5"
     t.index ["space_id"], name: "index_task_events_on_space_id"
     t.index ["task_cycle_id", "ended_date"], name: "index_task_events2", unique: true
     t.index ["task_cycle_id"], name: "index_task_events_on_task_cycle_id"
   end
 
-  create_table "tasks", charset: "utf8", collation: "utf8_bin", comment: "タスク", force: :cascade do |t|
+  create_table "tasks", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "タスク", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.integer "priority", default: 0, null: false, comment: "優先度"
     t.string "title", null: false, comment: "タイトル"
@@ -306,7 +330,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["updated_at", "id"], name: "index_tasks8"
   end
 
-  create_table "users", charset: "utf8", collation: "utf8_bin", comment: "ユーザー", force: :cascade do |t|
+  create_table "users", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "ユーザー", force: :cascade do |t|
     t.string "code", null: false, comment: "コード"
     t.string "image", comment: "画像"
     t.string "name", null: false, comment: "氏名"
@@ -345,7 +369,7 @@ ActiveRecord::Schema.define(version: 2023_04_08_084721) do
     t.index ["unlock_token"], name: "index_users4", unique: true
   end
 
-  create_table "versions", charset: "utf8", collation: "utf8_bin", force: :cascade do |t|
+  create_table "versions", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "item_type", null: false
     t.bigint "item_id", null: false
     t.string "event", null: false

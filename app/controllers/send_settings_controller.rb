@@ -1,9 +1,11 @@
 class SendSettingsController < ApplicationAuthController
   before_action :response_not_acceptable_for_not_api
+  before_action :authenticate_user!, only: :update
   before_action :set_space_current_member_auth_private
   before_action :response_api_for_user_destroy_reserved, only: :update
   before_action :check_power_admin, only: :update
   before_action :set_send_setting, only: %i[show update]
+  before_action :set_current_slack_user, only: :show
   before_action :validate_params_update, only: :update
 
   # GET /send_settings/:space_code/detail(.json) 通知設定詳細API
@@ -13,7 +15,7 @@ class SendSettingsController < ApplicationAuthController
   def update
     slack_domain = @slack_name.present? ? SlackDomain.find_or_initialize_by(name: @slack_name) : nil
     if slack_domain.present? && slack_domain.id.present?
-      exist_send_setting = SendSetting.where(send_setting_params.merge(space: @space, slack_domain: slack_domain)).order(updated_at: :desc, id: :desc).first
+      exist_send_setting = SendSetting.where(send_setting_params.merge(space: @space, slack_domain:)).order(updated_at: :desc, id: :desc).first
     else
       exist_send_setting = nil
     end
@@ -21,8 +23,10 @@ class SendSettingsController < ApplicationAuthController
     now = Time.current
     ActiveRecord::Base.transaction do
       if exist_send_setting.present?
-        exist_send_setting.update!(last_updated_user: current_user, deleted_at: nil, updated_at: now) if exist_send_setting.deleted_at.present?
-        @send_setting.update!(last_updated_user: current_user, deleted_at: now, updated_at: now) if exist_send_setting.id != @send_setting&.id
+        exist_send_setting.update!(last_updated_user: current_user, deleted_at: nil)
+        if @send_setting.present? && @send_setting.id != exist_send_setting.id
+          @send_setting.update!(last_updated_user: current_user, deleted_at: now, updated_at: now)
+        end
       else
         if slack_domain.present?
           slack_domain.save!
@@ -34,6 +38,7 @@ class SendSettingsController < ApplicationAuthController
     end
 
     set_send_setting
+    set_current_slack_user
     render :show, locals: { notice: t('notice.send_setting.update') }
   end
 
@@ -42,8 +47,11 @@ class SendSettingsController < ApplicationAuthController
   # Use callbacks to share common setup or constraints between actions.
   def set_send_setting
     @send_setting = SendSetting.active.where(space: @space).eager_load(:slack_domain, :last_updated_user).order(updated_at: :desc, id: :desc).first
+  end
+
+  def set_current_slack_user
     if @send_setting.present? && @send_setting.slack_domain.present? && current_user.present?
-      @current_slack_user = SlackUser.where(slack_domain: @send_setting.slack_domain, user: current_user).first
+      @current_slack_user = SlackUser.find_by(slack_domain: @send_setting.slack_domain, user: current_user)
     else
       @current_slack_user = nil
     end
@@ -52,13 +60,47 @@ class SendSettingsController < ApplicationAuthController
   def validate_params_update
     @new_send_setting = SendSetting.new(send_setting_params.merge(space: @space, last_updated_user: current_user))
     @new_send_setting.valid?
+    delete_invalid_value(:slack_enabled, :slack_webhook_url)
+    delete_invalid_value(:slack_enabled, :slack_mention)
+    delete_invalid_value(:email_enabled, :email_address)
 
-    @slack_name = param_slack_name
-    @new_send_setting.errors.add(:slack_name, t('activerecord.errors.models.send_setting.attributes.slack_name.blank')) if @new_send_setting.slack_enabled && @slack_name.blank?
-    # TODO: 英字（小文字）・数字・ハイフンのみ（slack_enabledがfalseでも）
+    validate_slack_name
     return unless @new_send_setting.errors.any?
 
     render './failure', locals: { errors: @new_send_setting.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
+  end
+
+  def delete_invalid_value(enabled_key, targey_key)
+    return if @new_send_setting[enabled_key] || @new_send_setting.errors[targey_key].blank?
+
+    @new_send_setting[targey_key] = nil # NOTE: バリデーションエラーにならないように空にする
+    @new_send_setting.errors.delete(targey_key)
+  end
+
+  SLACK_NAME_KEY = 'activerecord.errors.models.slack_domain.attributes.name'.freeze
+  def validate_slack_name
+    @slack_name = param_slack_name
+    if @new_send_setting.slack_enabled && @slack_name.blank?
+      @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.blank"))
+      return
+    end
+    return if @slack_name.blank?
+
+    if @slack_name.length > Settings.slack_domain_name_maximum
+      if @new_send_setting.slack_enabled
+        @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.too_long", count: Settings.slack_domain_name_maximum))
+      else
+        @slack_name = nil # NOTE: 不正値がINSERTされないように空にする
+      end
+      return
+    end
+    if (@slack_name =~ SlackDomain::NAME_FORMAT).nil?
+      if @new_send_setting.slack_enabled
+        @new_send_setting.errors.add(:slack_name, t("#{SLACK_NAME_KEY}.invalid"))
+      else
+        @slack_name = nil
+      end
+    end
   end
 
   # Only allow a list of trusted parameters through.
@@ -76,8 +118,10 @@ class SendSettingsController < ApplicationAuthController
       email_enabled: email[:enabled],
       email_address: email[:address].present? ? email[:address] : nil,
       start_notice_start_hour: start_notice[:start_hour],
+      start_notice_completed: start_notice[:completed],
       start_notice_required: start_notice[:required],
       next_notice_start_hour: next_notice[:start_hour],
+      next_notice_completed: next_notice[:completed],
       next_notice_required: next_notice[:required]
     }
   end

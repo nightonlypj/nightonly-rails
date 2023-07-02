@@ -4,9 +4,9 @@ class DownloadJob < ApplicationJob
   rescue_from StandardError, with: :status_failure
 
   # ダウンロードファイル作成
-  def perform(download)
-    @download = download
-    logger.info("=== START #{self.class.name}.#{__method__}(#{download.id}) ===")
+  def perform(download_id)
+    logger.info("=== START #{self.class.name}.#{__method__}(#{download_id}) ===")
+    @download = Download.find(download_id)
 
     ActiveRecord::Base.connection_pool.with_connection do
       @download.status = :processing
@@ -20,7 +20,7 @@ class DownloadJob < ApplicationJob
       @download.save!
     end
 
-    logger.info("=== END #{self.class.name}.#{__method__}(#{download.id}) ===")
+    logger.info("=== END #{self.class.name}.#{__method__}(#{download_id}) ===")
   end
 
   # ステータスを失敗に変更 # NOTE: テストの為、publicに記載
@@ -65,7 +65,7 @@ class DownloadJob < ApplicationJob
     @space = @download.space
     raise 'space not found.' if @space.blank?
 
-    @current_member = Member.where(space: @space, user: @download.user).first
+    @current_member = Member.find_by(space: @space, user: @download.user)
     raise 'current_member not found.' if @current_member.blank?
     raise 'power not found.' unless @current_member.power_admin?
   end

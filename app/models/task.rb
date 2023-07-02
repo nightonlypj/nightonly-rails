@@ -19,9 +19,7 @@ class Task < ApplicationRecord
   scope :search, lambda { |text|
     return if text&.strip.blank?
 
-    collate = connection_db_config.configuration_hash[:adapter] == 'mysql2' ? ' COLLATE utf8_unicode_ci' : ''
-    like = connection_db_config.configuration_hash[:adapter] == 'postgresql' ? 'ILIKE' : 'LIKE'
-    sql = "tasks.title#{collate} #{like} ?"
+    sql = "tasks.title #{search_like} ?"
 
     task = all
     text.split(/[[:blank:]]+/).each do |word|
@@ -32,7 +30,7 @@ class Task < ApplicationRecord
     task
   }
   scope :by_priority, lambda { |priorities|
-    return none if priorities.count.zero?
+    return none if priorities.count == 0
     return if priorities.count >= Task.priorities.count
 
     where(priority: priorities)
@@ -42,9 +40,9 @@ class Task < ApplicationRecord
     return if before && active && after
 
     task = none
-    task = task.or(where(started_date: (Time.current.to_date + 1.day)..)) if before
-    task = task.or(where('started_date <= ? AND (ended_date IS NULL OR ended_date >= ?)', Time.current.to_date, Time.current.to_date)) if active
-    task = task.or(where(ended_date: ..(Time.current.to_date - 1.day))) if after
+    task = task.or(where(started_date: (Time.zone.today + 1.day)..)) if before
+    task = task.or(where('started_date <= ? AND (ended_date IS NULL OR ended_date >= ?)', Time.zone.today, Time.zone.today)) if active
+    task = task.or(where(ended_date: ..(Time.zone.today - 1.day))) if after
 
     task
   }
@@ -67,12 +65,12 @@ class Task < ApplicationRecord
   def validate_started_date
     return if started_date.blank? || (id.present? && !started_date_changed?)
 
-    errors.add(:started_date, :taken) if started_date < Time.current.to_date
+    errors.add(:started_date, :before) if started_date < Time.zone.today
   end
 
   def validate_ended_date
     return if started_date.blank? || ended_date.blank?
 
-    errors.add(:ended_date, :taken) if started_date > ended_date
+    errors.add(:ended_date, :after) if ended_date < started_date
   end
 end

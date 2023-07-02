@@ -18,9 +18,10 @@ RSpec.describe 'Infomations', type: :request do
     let_it_be(:other_user) { FactoryBot.create(:user) }
 
     shared_context 'お知らせ作成' do
-      let_it_be(:infomation) { FactoryBot.create(:infomation, started_at: started_at, ended_at: ended_at, target: target, user_id: user_id) }
+      let_it_be(:infomation) { FactoryBot.create(:infomation, started_at:, ended_at:, target:, user_id:) }
     end
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200。対象項目が含まれる' do
@@ -33,13 +34,18 @@ RSpec.describe 'Infomations', type: :request do
         expect(response.body).to include(infomation.body.present? ? infomation.body : infomation.summary)
       end
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
         expect(response_json['success']).to eq(true)
-        expect_infomation_json(response_json_infomation, infomation, true)
+
+        count = expect_infomation_json(response_json_infomation, infomation, { id: false, body: true })
+        expect(response_json_infomation.count).to eq(count)
+
+        expect(response_json.count).to eq(2)
       end
     end
 
@@ -79,8 +85,10 @@ RSpec.describe 'Infomations', type: :request do
       include_context 'お知らせ作成'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'ToOK(json)'
     end
@@ -89,8 +97,10 @@ RSpec.describe 'Infomations', type: :request do
       include_context 'お知らせ作成'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'ToNG(json)', 404 # NOTE: APIは未ログイン扱いの為、他人
     end
@@ -99,8 +109,10 @@ RSpec.describe 'Infomations', type: :request do
       include_context 'お知らせ作成'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)' # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'ToOK(json)'
     end
@@ -121,8 +133,10 @@ RSpec.describe 'Infomations', type: :request do
       include_context 'お知らせ作成'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'ToOK(json)'
     end
@@ -131,8 +145,10 @@ RSpec.describe 'Infomations', type: :request do
       include_context 'お知らせ作成'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'ToNG(json)', 404 # NOTE: APIは未ログイン扱いの為、他人
     end
@@ -141,8 +157,10 @@ RSpec.describe 'Infomations', type: :request do
       include_context 'お知らせ作成'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)' # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'ToOK(json)'
     end

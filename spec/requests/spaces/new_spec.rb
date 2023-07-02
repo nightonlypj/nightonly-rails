@@ -11,12 +11,14 @@ RSpec.describe 'Spaces', type: :request do
   describe 'GET #new' do
     subject { get new_space_path(format: subject_format), headers: auth_headers.merge(accept_headers) }
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200' do
         is_expected.to eq(200)
       end
     end
+=end
 
     # テストケース
     if Settings.api_only_mode
@@ -26,6 +28,7 @@ RSpec.describe 'Spaces', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       include_context '未ログイン処理'
       it_behaves_like 'ToLogin(html)'
@@ -51,5 +54,6 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'ToSpaces(html)', 'alert.user.destroy_reserved' # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 406
     end
+=end
   end
 end

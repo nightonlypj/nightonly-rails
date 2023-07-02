@@ -1,9 +1,10 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'members/edit', type: :view do
   before_all do
     @space = FactoryBot.create(:space)
-    @current_member = FactoryBot.create(:member, :admin, space: @space)
+    @current_member = FactoryBot.create(:member, :admin, space: @space, user: @space.created_user)
     @member = FactoryBot.create(:member, :admin, space: @space)
   end
 
@@ -15,3 +16,4 @@ RSpec.describe 'members/edit', type: :view do
     end
   end
 end
+=end

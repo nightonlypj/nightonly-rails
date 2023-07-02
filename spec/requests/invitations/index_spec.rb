@@ -5,6 +5,7 @@ RSpec.describe 'Invitations', type: :request do
   let(:response_json_space)       { response_json['space'] }
   let(:response_json_invitation)  { response_json['invitation'] }
   let(:response_json_invitations) { response_json['invitations'] }
+  let(:response_json_space_current_member) { response_json_space['current_member'] }
 
   # GET /invitations/:space_code 招待URL一覧
   # GET /invitations/:space_code(.json) 招待URL一覧API
@@ -13,15 +14,18 @@ RSpec.describe 'Invitations', type: :request do
   #   スペース: 存在しない, 公開, 非公開
   #   権限: ある（管理者）, ない（投稿者, 閲覧者, なし）
   #   招待URL: ない, 最大表示数と同じ, 最大表示数より多い
+  #     ステータス:  有効, 期限切れ, 削除済み, 参加済み
+  #     作成者: いる, アカウント削除済み
+  #     最終更新者: いない, いる, アカウント削除済み
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #index' do
     subject { get invitations_path(space_code: space.code, page: subject_page, format: subject_format), headers: auth_headers.merge(accept_headers) }
-
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private) }
+    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200。対象項目が含まれる' do
@@ -30,6 +34,7 @@ RSpec.describe 'Invitations', type: :request do
         expect(response.body).to include("href=\"#{new_invitation_path(space.code)}\"") # 招待URL作成
       end
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -47,16 +52,22 @@ RSpec.describe 'Invitations', type: :request do
         expect(response_json_space['destroy_requested_at']).to eq(I18n.l(space.destroy_requested_at, format: :json, default: nil))
         expect(response_json_space['destroy_schedule_at']).to eq(I18n.l(space.destroy_schedule_at, format: :json, default: nil))
 
-        expect(response_json_space['current_member']['power']).to eq(:admin.to_s)
-        expect(response_json_space['current_member']['power_i18n']).to eq(Invitation.powers_i18n[:admin])
+        expect(response_json_space_current_member['power']).to eq(:admin.to_s)
+        expect(response_json_space_current_member['power_i18n']).to eq(Invitation.powers_i18n[:admin])
+        expect(response_json_space_current_member.count).to eq(2)
+        expect(response_json_space.count).to eq(9)
 
         expect(response_json_invitation['total_count']).to eq(invitations.count)
         expect(response_json_invitation['current_page']).to eq(subject_page)
         expect(response_json_invitation['total_pages']).to eq((invitations.count - 1).div(Settings.default_invitations_limit) + 1)
         expect(response_json_invitation['limit_value']).to eq(Settings.default_invitations_limit)
+        expect(response_json_invitation.count).to eq(4)
+
+        expect(response_json.count).to eq(4)
       end
     end
 
+=begin
     shared_examples_for 'ページネーション表示' do |page, link_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -143,6 +154,7 @@ RSpec.describe 'Invitations', type: :request do
         end
       end
     end
+=end
     shared_examples_for 'リスト表示(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -153,11 +165,14 @@ RSpec.describe 'Invitations', type: :request do
         subject
         expect(response_json_invitations.count).to eq(end_no - start_no + 1)
         (start_no..end_no).each do |no|
-          expect_invitation_json(response_json_invitations[no - start_no], invitations[invitations.count - no])
+          data = response_json_invitations[no - start_no]
+          count = expect_invitation_json(data, invitations[invitations.count - no])
+          expect(data.count).to eq(count)
         end
       end
     end
 
+=begin
     shared_examples_for 'リダイレクト' do |page, redirect_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
@@ -167,6 +182,7 @@ RSpec.describe 'Invitations', type: :request do
         is_expected.to redirect_to(invitations_path(space_code: space.code, page: url_page))
       end
     end
+=end
     shared_examples_for 'リダイレクト(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
@@ -181,11 +197,13 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', 0, 0, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示（0件）'
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -193,11 +211,13 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', 0, 0, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示（0件）'
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -208,11 +228,13 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -221,11 +243,13 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'ページネーション非表示', 1, 2
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リダイレクト', 2, 1
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リスト表示(json)', 1
@@ -236,6 +260,7 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1
         it_behaves_like 'ToOK(html)', 2
@@ -244,6 +269,7 @@ RSpec.describe 'Invitations', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
@@ -252,6 +278,7 @@ RSpec.describe 'Invitations', type: :request do
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToOK(html)', 1 # NOTE: HTMLもログイン状態になる
         it_behaves_like 'ToOK(html)', 2
@@ -260,6 +287,7 @@ RSpec.describe 'Invitations', type: :request do
         it_behaves_like 'リスト表示', 1
         it_behaves_like 'リスト表示', 2
         it_behaves_like 'リダイレクト', 3, 2
+=end
       end
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'ToOK(json)', 2
@@ -269,24 +297,24 @@ RSpec.describe 'Invitations', type: :request do
     end
 
     shared_examples_for '[ログイン中/削除予約済み][*]権限がある' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '[ログイン中/削除予約済み][*][ある]招待URLがない'
       it_behaves_like '[ログイン中/削除予約済み][*][ある]招待URLが最大表示数と同じ'
       it_behaves_like '[ログイン中/削除予約済み][*][ある]招待URLが最大表示数より多い'
     end
     shared_examples_for '[APIログイン中/削除予約済み][*]権限がある' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '[APIログイン中/削除予約済み][*][ある]招待URLがない'
       it_behaves_like '[APIログイン中/削除予約済み][*][ある]招待URLが最大表示数と同じ'
       it_behaves_like '[APIログイン中/削除予約済み][*][ある]招待URLが最大表示数より多い'
     end
     shared_examples_for '[ログイン中/削除予約済み][*]権限がない' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space:, user:) if power.present? }
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中/削除予約済み][*]権限がない' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space:, user:) if power.present? }
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403
       it_behaves_like 'ToNG(json)', 403
     end
@@ -346,8 +374,10 @@ RSpec.describe 'Invitations', type: :request do
       let_it_be(:space) { space_public }
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToLogin(html)'
+=end
       end
       it_behaves_like 'ToNG(json)', 401
     end

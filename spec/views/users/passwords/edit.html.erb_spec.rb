@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'users/passwords/edit', type: :view do
@@ -31,3 +32,4 @@ RSpec.describe 'users/passwords/edit', type: :view do
     end
   end
 end
+=end

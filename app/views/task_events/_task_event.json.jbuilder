@@ -1,11 +1,14 @@
 json.code task_event.code
 json.cycle_id task_event.task_cycle_id
 json.task_id task_event.task_cycle.task_id
-json.start l(task_event.started_date, format: :json)
-json.end l(task_event.ended_date, format: :json) if task_event.started_date != task_event.ended_date
+json.priority_order Settings.priority_order[task.present? ? task.priority : task_event.task_cycle.task.priority]
+json.started_date l(task_event.started_date, format: :json)
+json.last_ended_date l(task_event.last_ended_date, format: :json)
 json.status task_event.status
 json.status_i18n task_event.status_i18n
 return unless detail
+
+json.last_completed_at l(task_event.last_completed_at, format: :json, default: nil)
 
 if task_event.assigned_user_id.present?
   json.assigned_user do

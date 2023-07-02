@@ -1,6 +1,12 @@
 class Infomation < ApplicationRecord
   belongs_to :user, optional: true
 
+  validates :label, presence: true
+  validates :title, presence: true
+  validates :started_at, presence: true
+  validates :target, presence: true
+  validates :user, presence: true, if: proc { |infomation| infomation.target_user? }
+
   scope :by_target, lambda { |current_user|
     where('target = ? OR (target = ? AND user_id = ?)', targets[:all], targets[:user], current_user&.id)
       .where('started_at <= ? AND (ended_at IS NULL OR ended_at >= ?)', Time.current, Time.current)
@@ -15,7 +21,8 @@ class Infomation < ApplicationRecord
     not: 0,         # （なし）
     maintenance: 1, # メンテナンス
     hindrance: 2,   # 障害
-    other: 999      # その他
+    update: 3,      # アップデート
+    other: 9        # その他
   }, _prefix: true
 
   # 対象

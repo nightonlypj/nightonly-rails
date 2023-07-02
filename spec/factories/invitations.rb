@@ -26,10 +26,11 @@ FactoryBot.define do
       # domains { [Faker::Internet.domain_name].to_s }
     end
     trait :email do
-      email   { Faker::Internet.safe_email }
+      email   { Faker::Internet.email }
       domains { nil }
     end
 
+    # ステータス
     trait :active do
       # ended_at { nil }
       # destroy_requested_at { nil }
@@ -47,7 +48,7 @@ FactoryBot.define do
       # email_joined_at { nil }
     end
     trait :email_joined do
-      email   { Faker::Internet.safe_email }
+      email   { Faker::Internet.email }
       domains { nil }
       email_joined_at { Time.current }
     end

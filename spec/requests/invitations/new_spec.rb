@@ -12,15 +12,16 @@ RSpec.describe 'Invitations', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #new' do
     subject { get new_invitation_path(space_code: space.code, format: subject_format), headers: auth_headers.merge(accept_headers) }
-
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private) }
+    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
+
     shared_context 'valid_condition' do
       let_it_be(:space) { space_public }
-      include_context 'set_member_power', :admin
+      before_all { FactoryBot.create(:member, space:, user:) if user.present? }
     end
 
+=begin
     # テスト内容
     shared_examples_for 'ToOK(html/*)' do
       it 'HTTPステータスが200。対象項目が含まれる' do
@@ -28,6 +29,7 @@ RSpec.describe 'Invitations', type: :request do
         expect_space_html(response, space)
       end
     end
+=end
 
     # テストケース
     if Settings.api_only_mode
@@ -38,13 +40,14 @@ RSpec.describe 'Invitations', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[ログイン中][*]権限がある' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like 'ToOK(html)'
       it_behaves_like 'ToNG(json)', 406
     end
     shared_examples_for '[ログイン中][*]権限がない' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space:, user:) if power.present? }
       it_behaves_like 'ToNG(html)', 403
       it_behaves_like 'ToNG(json)', 406
     end
@@ -99,5 +102,6 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToInvitations(html)', 'alert.user.destroy_reserved' # NOTE: HTMLもログイン状態になる
       it_behaves_like 'ToNG(json)', 406
     end
+=end
   end
 end

@@ -10,9 +10,11 @@ class InfomationsController < ApplicationAuthController
                              .page(params[:page]).per(Settings.default_infomations_limit)
     update_infomation_check
 
+=begin
     if format_html? && @infomations.current_page > [@infomations.total_pages, 1].max
       redirect_to @infomations.total_pages <= 1 ? infomations_path : infomations_path(page: @infomations.total_pages)
     end
+=end
   end
 
   # GET /infomations/important(.json) 大切なお知らせ一覧API

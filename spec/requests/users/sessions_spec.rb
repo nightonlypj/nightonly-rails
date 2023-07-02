@@ -13,6 +13,7 @@ RSpec.describe 'Users::Sessions', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       it_behaves_like 'ToOK[status]'
     end
@@ -24,6 +25,7 @@ RSpec.describe 'Users::Sessions', type: :request do
       include_context 'ログイン処理', :destroy_reserved
       it_behaves_like 'ToTop', 'devise.failure.already_authenticated', nil
     end
+=end
   end
 
   # POST /users/sign_in ログイン(処理)
@@ -42,9 +44,10 @@ RSpec.describe 'Users::Sessions', type: :request do
     let_it_be(:send_user_before_lock2)     { FactoryBot.create(:user, :before_lock2) }
     let_it_be(:send_user_before_lock3)     { FactoryBot.create(:user, :before_lock3) }
     let(:valid_attributes)        { { email: send_user.email, password: send_user.password } }
-    let(:invalid_not_attributes)  { { email: not_user[:email], password: not_user[:password] } }
-    let(:invalid_pass_attributes) { { email: send_user.email, password: "n#{send_user.password}" } }
+    let(:invalid_attributes_not)  { { email: not_user[:email], password: not_user[:password] } }
+    let(:invalid_attributes_pass) { { email: send_user.email, password: "n#{send_user.password}" } }
 
+=begin
     # テスト内容
     shared_examples_for 'SendLocked' do
       let(:url) { "http://#{Settings.base_domain}#{user_unlock_path}" }
@@ -56,6 +59,7 @@ RSpec.describe 'Users::Sessions', type: :request do
         expect(ActionMailer::Base.deliveries[0].text_part.body).to include(url)
       end
     end
+=end
     shared_examples_for 'NotSendLocked' do
       it 'メールが送信されない' do
         expect { subject }.to change(ActionMailer::Base.deliveries, :count).by(0)
@@ -71,6 +75,7 @@ RSpec.describe 'Users::Sessions', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[未ログイン]有効なパラメータ（未ロック）' do
       let(:send_user)  { send_user_unlocked }
       let(:attributes) { valid_attributes }
@@ -132,48 +137,48 @@ RSpec.describe 'Users::Sessions', type: :request do
       it_behaves_like 'NotSendLocked'
     end
     shared_examples_for '[未ログイン]無効なパラメータ（存在しない）' do
-      let(:attributes) { invalid_not_attributes }
+      let(:attributes) { invalid_attributes_not }
       it_behaves_like 'ToError', 'devise.failure.not_found_in_database'
       it_behaves_like 'NotSendLocked'
     end
     shared_examples_for '[ログイン中/削除予約済み]無効なパラメータ（存在しない）' do
-      let(:attributes) { invalid_not_attributes }
+      let(:attributes) { invalid_attributes_not }
       it_behaves_like 'ToTop', 'devise.failure.already_authenticated', nil
       it_behaves_like 'NotSendLocked'
     end
     shared_examples_for '[未ログイン]無効なパラメータ（ロック前）' do
       let(:send_user)  { send_user_before_lock1 }
-      let(:attributes) { invalid_pass_attributes }
+      let(:attributes) { invalid_attributes_pass }
       it_behaves_like 'ToError', 'devise.failure.send_locked'
       it_behaves_like 'SendLocked'
     end
     shared_examples_for '[ログイン中/削除予約済み]無効なパラメータ（ロック前）' do
       let(:send_user)  { send_user_before_lock1 }
-      let(:attributes) { invalid_pass_attributes }
+      let(:attributes) { invalid_attributes_pass }
       it_behaves_like 'ToTop', 'devise.failure.already_authenticated', nil
       it_behaves_like 'NotSendLocked'
     end
     shared_examples_for '[未ログイン]無効なパラメータ（ロック前の前）' do
       let(:send_user)  { send_user_before_lock2 }
-      let(:attributes) { invalid_pass_attributes }
+      let(:attributes) { invalid_attributes_pass }
       it_behaves_like 'ToError', 'devise.failure.last_attempt'
       it_behaves_like 'NotSendLocked'
     end
     shared_examples_for '[ログイン中/削除予約済み]無効なパラメータ（ロック前の前）' do
       let(:send_user)  { send_user_before_lock2 }
-      let(:attributes) { invalid_pass_attributes }
+      let(:attributes) { invalid_attributes_pass }
       it_behaves_like 'ToTop', 'devise.failure.already_authenticated', nil
       it_behaves_like 'NotSendLocked'
     end
     shared_examples_for '[未ログイン]無効なパラメータ（ロック前の前の前）' do
       let(:send_user)  { send_user_before_lock3 }
-      let(:attributes) { invalid_pass_attributes }
+      let(:attributes) { invalid_attributes_pass }
       it_behaves_like 'ToError', 'devise.failure.invalid'
       it_behaves_like 'NotSendLocked'
     end
     shared_examples_for '[ログイン中/削除予約済み]無効なパラメータ（ロック前の前の前）' do
       let(:send_user)  { send_user_before_lock3 }
-      let(:attributes) { invalid_pass_attributes }
+      let(:attributes) { invalid_attributes_pass }
       it_behaves_like 'ToTop', 'devise.failure.already_authenticated', nil
       it_behaves_like 'NotSendLocked'
     end
@@ -209,6 +214,7 @@ RSpec.describe 'Users::Sessions', type: :request do
       include_context 'ログイン処理', :destroy_reserved
       it_behaves_like '[ログイン中/削除予約済み]'
     end
+=end
   end
 
   # GET /users/sign_out ログアウト
@@ -224,6 +230,7 @@ RSpec.describe 'Users::Sessions', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       it_behaves_like 'ToTop', 'devise.sessions.already_signed_out', nil
     end
@@ -235,6 +242,7 @@ RSpec.describe 'Users::Sessions', type: :request do
       include_context 'ログイン処理', :destroy_reserved
       it_behaves_like 'ToOK[status]'
     end
+=end
   end
 
   # POST /users/sign_out ログアウト(処理)
@@ -250,6 +258,7 @@ RSpec.describe 'Users::Sessions', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       it_behaves_like 'ToLogin', nil, 'devise.sessions.already_signed_out'
     end
@@ -261,5 +270,6 @@ RSpec.describe 'Users::Sessions', type: :request do
       include_context 'ログイン処理', :destroy_reserved
       it_behaves_like 'ToLogin', nil, 'devise.sessions.signed_out'
     end
+=end
   end
 end

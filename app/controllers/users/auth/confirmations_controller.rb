@@ -81,13 +81,15 @@ class Users::Auth::ConfirmationsController < DeviseTokenAuth::ConfirmationsContr
 
   def render_not_found_error
     if Devise.paranoid
+      # :nocov:
       # render_error(404, I18n.t('devise_token_auth.confirmations.sended_paranoid'))
       render './failure', locals: { alert: t('devise_token_auth.confirmations.sended_paranoid') }, status: :unprocessable_entity
+      # :nocov:
     else
       # render_error(404, I18n.t('devise_token_auth.confirmations.user_not_found', email: @email))
       errors = { email: t('devise_token_auth.confirmations.user_not_found') }
       errors[:full_messages] = ["#{t('activerecord.attributes.user.email')} #{errors[:email]}"]
-      render './failure', locals: { errors: errors, alert: t('errors.messages.not_saved.one') }, status: :unprocessable_entity
+      render './failure', locals: { errors:, alert: t('errors.messages.not_saved.one') }, status: :unprocessable_entity
     end
   end
 end

@@ -10,34 +10,25 @@ class TaskEvent < ApplicationRecord
   validates :code, uniqueness: { case_sensitive: true }, allow_blank: true
   validates :status, presence: true
   validates :memo, length: { maximum: Settings.task_event_memo_maximum }, allow_blank: true
+  validates :last_ended_date, presence: true
+  validate :validate_last_ended_date
 
-  scope :by_month, lambda { |months, last_date|
-    return none if months.count.zero?
-
-    task_event = all
+  scope :by_month, lambda { |months| # NOTE: monthsの形式が正しく、昇順の前提
+    task_event = none
     index = 0
     while index < months.count
-      start_date = "#{months[index]}01".to_date
-      break if start_date > last_date
+      start_month = "#{months[index]}01".to_date
+      end_month = start_month
 
       while index + 1 < months.count
-        end_date = "#{months[index + 1]}01".to_date
-        break if start_date + 1.month != end_date || end_date.end_of_month >= last_date
+        next_start_month = "#{months[index + 1]}01".to_date
+        break if next_start_month != end_month + 1.month
 
+        end_month = next_start_month
         index += 1
       end
-      if index + 1 < months.count
-        end_date = end_date.end_of_month
-        index += 1
-      else
-        end_date = start_date.end_of_month
-      end
-      if end_date >= last_date
-        task_event = task_event.where(ended_date: start_date..last_date)
-        break
-      end
 
-      task_event = task_event.where(ended_date: start_date..end_date)
+      task_event = task_event.or(where(started_date: start_month..end_month.end_of_month))
       index += 1
     end
 
@@ -45,6 +36,7 @@ class TaskEvent < ApplicationRecord
   }
 
   # ステータス
+  NOT_NOTICE_STATUS = %i[complete unnecessary].freeze
   enum status: {
     untreated: 0,         # 未処理
     waiting_premise: 1,   # 前提対応待ち
@@ -59,5 +51,58 @@ class TaskEvent < ApplicationRecord
   # 最終更新日時
   def last_updated_at
     updated_at == created_at ? nil : updated_at
+  end
+
+  # Slackのステータス毎のアイコンを返却
+  def slack_status_icon(type, notice_target)
+    case type.to_sym
+    when :next
+      NOT_NOTICE_STATUS.include?(status.to_sym) ? ':sunny:' : ':alarm_clock:'
+    when :expired
+      NOT_NOTICE_STATUS.include?(status.to_sym) ? ':sunny:' : ':red_circle:'
+    when :end_today
+      case status.to_sym
+      when :untreated, :waiting_premise, :confirmed_premise
+        return ':warning:' if assigned_user.blank?
+
+        notice_target.to_sym == :start ? ':cloud:' : ':umbrella:'
+      when :processing, :pending
+        ':cloud:'
+      when :waiting_confirm, :complete, :unnecessary
+        ':sunny:'
+      else
+        # :nocov:
+        raise "type, status not found.(#{type}, #{status})"
+        # :nocov:
+      end
+    when :date_include
+      case status.to_sym
+      when :untreated, :waiting_premise, :confirmed_premise
+        assigned_user.blank? ? ':warning:' : ':cloud:'
+      when :processing, :waiting_confirm, :complete, :unnecessary
+        ':sunny:'
+      when :pending
+        ':cloud:'
+      else
+        # :nocov:
+        raise "type, status not found.(#{type}, #{status})"
+        # :nocov:
+      end
+    when :completed
+      ':sunny:'
+    else
+      # :nocov:
+      raise "type not found.(#{type})"
+      # :nocov:
+    end
+  end
+
+  private
+
+  def validate_last_ended_date
+    return if started_date.blank? || last_ended_date.blank?
+
+    return errors.add(:last_ended_date, :after) if last_ended_date < started_date
+    return errors.add(:last_ended_date, :before) if last_ended_date > (started_date + 1.month).end_of_month
   end
 end

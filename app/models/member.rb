@@ -11,10 +11,8 @@ class Member < ApplicationRecord
   scope :search, lambda { |text, current_member|
     return if text&.strip.blank?
 
-    collate = connection_db_config.configuration_hash[:adapter] == 'mysql2' ? ' COLLATE utf8_unicode_ci' : ''
-    like = connection_db_config.configuration_hash[:adapter] == 'postgresql' ? 'ILIKE' : 'LIKE'
-    sql = "users.name#{collate} #{like} ?"
-    sql += " OR users.email#{collate} #{like} ?" if current_member.power_admin?
+    sql = "users.name #{search_like} ?"
+    sql += " OR users.email #{search_like} ?" if current_member.power_admin?
 
     member = all.joins(:user)
     text.split(/[[:blank:]]+/).each do |word|
@@ -29,10 +27,10 @@ class Member < ApplicationRecord
     member
   }
   scope :by_power, lambda { |power|
-    return none if power.count.zero?
+    return none if power.count == 0
     return if power.count >= Member.powers.count
 
-    where(power: power)
+    where(power:)
   }
 
   # 権限

@@ -77,7 +77,7 @@ class ApplicationController < ActionController::Base
   # パスワードリセットトークンのユーザーを返却
   def user_reset_password_token(token)
     reset_password_token = Devise.token_generator.digest(self, :reset_password_token, token)
-    resource_class.find_by(reset_password_token: reset_password_token)
+    resource_class.find_by(reset_password_token:)
   end
 
   # 有効なパスワードリセットトークンかを返却
@@ -85,6 +85,7 @@ class ApplicationController < ActionController::Base
     user_reset_password_token(token)&.reset_password_period_valid?
   end
 
+=begin
   # メールアドレス確認済みかを返却
   def already_confirmed?(token)
     resource = resource_class.find_by(confirmation_token: token)
@@ -98,14 +99,17 @@ class ApplicationController < ActionController::Base
     resource = resource_class.find_by(confirmation_token: token)
     resource&.confirmation_sent_at&.present? && (Time.now.utc <= resource.confirmation_sent_at.utc + resource_class.confirm_within)
   end
+=end
 
   # ログイン後の遷移先
   def after_sign_in_path_for(resource)
     stored_location_for(resource) ||
       if resource.is_a?(AdminUser)
         rails_admin_url
+=begin
       else
         super
+=end
       end
   end
 
@@ -113,25 +117,31 @@ class ApplicationController < ActionController::Base
   def after_sign_out_path_for(scope)
     if scope == :admin_user
       new_admin_user_session_path
+=begin
     else
       new_user_session_path
+=end
     end
   end
 
+=begin
   # 削除予約済みの場合、リダイレクトしてメッセージを表示
   def redirect_for_user_destroy_reserved(path = root_path)
     redirect_to path, alert: t('alert.user.destroy_reserved') if current_user.destroy_reserved?
   end
+=end
 
   # 削除予約済みの場合、JSONでメッセージを返却
   def response_api_for_user_destroy_reserved
     render './failure', locals: { alert: t('alert.user.destroy_reserved') }, status: :unprocessable_entity if current_user&.destroy_reserved?
   end
 
+=begin
   # 削除予約済みでない場合、リダイレクトしてメッセージを表示
   def redirect_for_not_user_destroy_reserved
     redirect_to root_path, alert: t('alert.user.not_destroy_reserved') unless current_user.destroy_reserved?
   end
+=end
 
   # 削除予約済みでない場合、JSONでメッセージを返却
   def response_api_for_not_user_destroy_reserved

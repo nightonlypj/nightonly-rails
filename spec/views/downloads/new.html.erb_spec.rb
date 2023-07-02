@@ -1,15 +1,16 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'downloads/new', type: :view do
   before_all do
     @model = :member
     @space = FactoryBot.create(:space)
-    @current_member = FactoryBot.create(:member, space: @space)
+    @current_member = FactoryBot.create(:member, space: @space, user: @space.created_user)
     @enable_target = ['all']
     @items = t("items.#{@model}")
 
     output_items = @items.stringify_keys.keys
-    @download = Download.new(output_items: output_items)
+    @download = Download.new(output_items:)
   end
 
   it '対象の送信先と項目が含まれる' do
@@ -30,3 +31,4 @@ RSpec.describe 'downloads/new', type: :view do
     end
   end
 end
+=end

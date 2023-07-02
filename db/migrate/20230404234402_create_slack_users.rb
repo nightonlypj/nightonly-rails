@@ -4,7 +4,7 @@ class CreateSlackUsers < ActiveRecord::Migration[6.1]
       t.references :slack_domain, null: false, type: :bigint, foreign_key: true, comment: 'SlackドメインID'
       t.references :user,  null: false, type: :bigint, foreign_key: true, comment: 'ユーザーID'
 
-      t.string :memberid, comment: 'SlackのメンバーID'
+      t.string :memberid, comment: 'SlackメンバーID'
 
       t.timestamps
     end

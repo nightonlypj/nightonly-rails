@@ -2,17 +2,6 @@ require 'rails_helper'
 
 RSpec.describe User, type: :model do
   # テスト内容（共通）
-  shared_examples_for 'Valid' do
-    it '保存できる' do
-      expect(user).to be_valid
-    end
-  end
-  shared_examples_for 'InValid' do
-    it '保存できない。エラーメッセージが一致する' do
-      expect(user).to be_invalid
-      expect(user.errors.messages).to eq(messages)
-    end
-  end
   shared_examples_for 'Count' do |count|
     it "#{count}が返却され、キャッシュされる" do
       is_expected.to eq(count)
@@ -24,7 +13,7 @@ RSpec.describe User, type: :model do
   # テストパターン
   #   ない, 正常値, 重複
   describe 'validates :code' do
-    let(:user)       { FactoryBot.build_stubbed(:user, code: code) }
+    let(:model) { FactoryBot.build_stubbed(:user, code:) }
     let(:valid_code) { Digest::MD5.hexdigest(SecureRandom.uuid) }
 
     # テストケース
@@ -38,7 +27,7 @@ RSpec.describe User, type: :model do
       it_behaves_like 'Valid'
     end
     context '重複' do
-      before { FactoryBot.create(:user, code: code) }
+      before { FactoryBot.create(:user, code:) }
       let(:code) { valid_code }
       let(:messages) { { code: [get_locale('activerecord.errors.models.user.attributes.code.taken')] } }
       it_behaves_like 'InValid'
@@ -47,9 +36,9 @@ RSpec.describe User, type: :model do
 
   # 氏名
   # テストパターン
-  #   ない, 最小文字数よりも少ない, 最小文字数と同じ, 最大文字数と同じ, 最大文字数よりも多い
+  #   ない, 最小文字数より少ない, 最小文字数と同じ, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :name' do
-    let(:user) { FactoryBot.build_stubbed(:user, name: name) }
+    let(:model) { FactoryBot.build_stubbed(:user, name:) }
 
     # テストケース
     context 'ない' do
@@ -57,7 +46,7 @@ RSpec.describe User, type: :model do
       let(:messages) { { name: [get_locale('activerecord.errors.models.user.attributes.name.blank')] } }
       it_behaves_like 'InValid'
     end
-    context '最小文字数よりも少ない' do
+    context '最小文字数より少ない' do
       let(:name) { 'a' * (Settings.user_name_minimum - 1) }
       let(:messages) { { name: [get_locale('activerecord.errors.models.user.attributes.name.too_short', count: Settings.user_name_minimum)] } }
       it_behaves_like 'InValid'
@@ -70,7 +59,7 @@ RSpec.describe User, type: :model do
       let(:name) { 'a' * Settings.user_name_maximum }
       it_behaves_like 'Valid'
     end
-    context '最大文字数よりも多い' do
+    context '最大文字数より多い' do
       let(:name) { 'a' * (Settings.user_name_maximum + 1) }
       let(:messages) { { name: [get_locale('activerecord.errors.models.user.attributes.name.too_long', count: Settings.user_name_maximum)] } }
       it_behaves_like 'InValid'
@@ -82,19 +71,16 @@ RSpec.describe User, type: :model do
   #   削除予定日時: ない（予約なし）, ある（予約済み）
   describe '#destroy_reserved?' do
     subject { user.destroy_reserved? }
-    let(:user) { FactoryBot.build_stubbed(:user, destroy_schedule_at: destroy_schedule_at) }
+    let(:user) { FactoryBot.build_stubbed(:user, destroy_schedule_at:) }
 
+    # テストケース
     context '削除予定日時がない（予約なし）' do
       let(:destroy_schedule_at) { nil }
-      it 'false' do
-        is_expected.to eq(false)
-      end
+      it_behaves_like 'Value', false
     end
     context '削除予定日時がある（予約済み）' do
       let(:destroy_schedule_at) { Time.current }
-      it 'true' do
-        is_expected.to eq(true)
-      end
+      it_behaves_like 'Value', true
     end
   end
 
@@ -170,7 +156,7 @@ RSpec.describe User, type: :model do
     end
     context '画像がある' do
       let_it_be(:image) { fixture_file_upload(TEST_IMAGE_FILE, TEST_IMAGE_TYPE) }
-      let_it_be(:user)  { FactoryBot.create(:user, image: image) }
+      let_it_be(:user)  { FactoryBot.create(:user, image:) }
       it_behaves_like 'OK', :mini, false
       it_behaves_like 'OK', :small, false
       it_behaves_like 'OK', :medium, false
@@ -191,6 +177,7 @@ RSpec.describe User, type: :model do
     end
     let(:cache) { user.cache_infomation_unread_count }
 
+    # テストケース
     shared_examples_for '[*]0件' do
       include_context 'お知らせ一覧作成', 0, 0, 0, 0
       it_behaves_like 'Count', 0

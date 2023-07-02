@@ -3,6 +3,7 @@
 class Users::UnlocksController < Devise::UnlocksController
   prepend_before_action :response_not_found_for_api_mode_not_api
 
+=begin
   # GET /users/unlock/resend アカウントロック解除[メール再送]
   # def new
   #   super
@@ -29,4 +30,5 @@ class Users::UnlocksController < Devise::UnlocksController
   # def after_unlock_path_for(resource)
   #   super(resource)
   # end
+=end
 end

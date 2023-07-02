@@ -1,0 +1,11 @@
+<span style="font-weight: bold; color: <%= t("notifier.task_event.type.completed.#{notice_target}.email_color") %>">■ <%= t("notifier.task_event.type.completed.#{notice_target}.title") %></span><br>
+<% if task_events.blank? %>
+<%= t('notifier.task_event.list.notfound') %><br>
+<br>
+<% else %>
+<% task_events.each do |task_event| %>
+[<%= task_event.status_i18n %>] <%= task_event.assigned_user.blank? ? t('notifier.task_event.assigned.notfound.not_notice') : task_event.assigned_user.name %><br>
+<%= task_event.task_cycle.task.priority_none? ? '' : "[#{task_event.task_cycle.task.priority_i18n}]" %><%= link_to task_event.task_cycle.task.title, "#{space_url}?code=#{task_event.code}" %> (<%= l(task_event.started_date) %><%= "〜#{l(task_event.last_ended_date)}" if task_event.started_date != task_event.last_ended_date %>)<br>
+<br>
+<% end %>
+<% end %>

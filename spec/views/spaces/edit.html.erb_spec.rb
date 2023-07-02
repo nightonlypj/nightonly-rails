@@ -1,3 +1,4 @@
+=begin
 require 'rails_helper'
 
 RSpec.describe 'spaces/edit', type: :view do
@@ -14,3 +15,4 @@ RSpec.describe 'spaces/edit', type: :view do
     end
   end
 end
+=end

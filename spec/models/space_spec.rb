@@ -1,24 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe Space, type: :model do
-  # テスト内容（共通）
-  shared_examples_for 'Valid' do
-    it '保存できる' do
-      expect(space).to be_valid
-    end
-  end
-  shared_examples_for 'InValid' do
-    it '保存できない。エラーメッセージが一致する' do
-      expect(space).to be_invalid
-      expect(space.errors.messages).to eq(messages)
-    end
-  end
+  let_it_be(:user) { FactoryBot.create(:user) }
 
   # コード
   # テストパターン
   #   ない, 正常値, 重複
   describe 'validates :code' do
-    let(:space)      { FactoryBot.build_stubbed(:space, code: code) }
+    let(:model) { FactoryBot.build_stubbed(:space, code:) }
     let(:valid_code) { Digest::MD5.hexdigest(SecureRandom.uuid) }
 
     # テストケース
@@ -32,7 +21,7 @@ RSpec.describe Space, type: :model do
       it_behaves_like 'Valid'
     end
     context '重複' do
-      before { FactoryBot.create(:space, code: code) }
+      before { FactoryBot.create(:space, code:, created_user: user) }
       let(:code) { valid_code }
       let(:messages) { { code: [get_locale('activerecord.errors.models.space.attributes.code.taken')] } }
       it_behaves_like 'InValid'
@@ -41,9 +30,9 @@ RSpec.describe Space, type: :model do
 
   # 名称
   # テストパターン
-  #   ない, 最小文字数よりも少ない, 最小文字数と同じ, 最大文字数と同じ, 最大文字数よりも多い
+  #   ない, 最小文字数より少ない, 最小文字数と同じ, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :name' do
-    let(:space) { FactoryBot.build_stubbed(:space, name: name) }
+    let(:model) { FactoryBot.build_stubbed(:space, name:) }
 
     # テストケース
     context 'ない' do
@@ -51,7 +40,7 @@ RSpec.describe Space, type: :model do
       let(:messages) { { name: [get_locale('activerecord.errors.models.space.attributes.name.blank')] } }
       it_behaves_like 'InValid'
     end
-    context '最小文字数よりも少ない' do
+    context '最小文字数より少ない' do
       let(:name) { 'a' * (Settings.space_name_minimum - 1) }
       let(:messages) { { name: [get_locale('activerecord.errors.models.space.attributes.name.too_short', count: Settings.space_name_minimum)] } }
       it_behaves_like 'InValid'
@@ -64,7 +53,7 @@ RSpec.describe Space, type: :model do
       let(:name) { 'a' * Settings.space_name_maximum }
       it_behaves_like 'Valid'
     end
-    context '最大文字数よりも多い' do
+    context '最大文字数より多い' do
       let(:name) { 'a' * (Settings.space_name_maximum + 1) }
       let(:messages) { { name: [get_locale('activerecord.errors.models.space.attributes.name.too_long', count: Settings.space_name_maximum)] } }
       it_behaves_like 'InValid'
@@ -73,9 +62,9 @@ RSpec.describe Space, type: :model do
 
   # 説明
   # テストパターン
-  #   ない, 最大文字数と同じ, 最大文字数よりも多い
+  #   ない, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :description' do
-    let(:space) { FactoryBot.build_stubbed(:space, description: description) }
+    let(:model) { FactoryBot.build_stubbed(:space, description:) }
 
     # テストケース
     context 'ない' do
@@ -86,7 +75,7 @@ RSpec.describe Space, type: :model do
       let(:description) { 'a' * Settings.space_description_maximum }
       it_behaves_like 'Valid'
     end
-    context '最大文字数よりも多い' do
+    context '最大文字数より多い' do
       let(:description) { 'a' * (Settings.space_description_maximum + 1) }
       let(:messages) { { description: [get_locale('activerecord.errors.models.space.attributes.description.too_long', count: Settings.space_description_maximum)] } }
       it_behaves_like 'InValid'
@@ -97,7 +86,7 @@ RSpec.describe Space, type: :model do
   # テストパターン
   #   ない, true, false
   describe 'validates :private' do
-    let(:space) { FactoryBot.build_stubbed(:space, private: private) }
+    let(:model) { FactoryBot.build_stubbed(:space, private:) }
 
     # テストケース
     context 'ない' do
@@ -115,24 +104,51 @@ RSpec.describe Space, type: :model do
     end
   end
 
+  # 期間内のタスクイベント作成＋通知の対象
+  # テストパターン
+  #   削除予約: 済み, なし
+  #   処理優先度: 0, 3×2件, 9
+  #   通知設定: ない, ある（1件, 2件（変更あり））
+  describe '.create_send_notice_target' do
+    subject { Space.create_send_notice_target }
+
+    before_all do
+      space = FactoryBot.create(:space, :destroy_reserved, created_user: user)
+      spaces = [
+        FactoryBot.create(:space, name: '最後', process_priority: 9, created_user: space.created_user),
+        FactoryBot.create(:space, name: '標準1', process_priority: 3, created_user: space.created_user),
+        FactoryBot.create(:space, name: '標準2', process_priority: 3, created_user: space.created_user),
+        FactoryBot.create(:space, name: '最初', process_priority: 0, created_user: space.created_user)
+      ]
+      FactoryBot.create(:send_setting, :slack, space: spaces[1])
+      FactoryBot.create(:send_setting, :deleted, :email, space: spaces[2])
+      FactoryBot.create(:send_setting, :slack, space: spaces[2])
+      FactoryBot.create(:send_setting, :email, space: spaces[3]) # NOTE: データ不正
+      FactoryBot.create(:send_setting, :slack, space: spaces[3])
+    end
+    it '最初→標準1→標準2→最後の順に返却される。通知設定がある場合、最初がSlack通知になっている' do
+      expect(subject.map(&:name)).to eq(%w[最初 標準1 標準2 最後])
+      subject.each do |space|
+        expect(space.send_setting_active.first.slack_enabled).to eq(true) if space.send_setting_active.count > 0
+      end
+    end
+  end
+
   # 削除予約済みか返却
   # テストパターン
   #   削除予定日時: ない（予約なし）, ある（予約済み）
   describe '#destroy_reserved?' do
     subject { space.destroy_reserved? }
-    let(:space) { FactoryBot.build_stubbed(:space, destroy_schedule_at: destroy_schedule_at) }
+    let(:space) { FactoryBot.build_stubbed(:space, destroy_schedule_at:) }
 
+    # テストケース
     context '削除予定日時がない（予約なし）' do
       let(:destroy_schedule_at) { nil }
-      it 'false' do
-        is_expected.to eq(false)
-      end
+      it_behaves_like 'Value', false
     end
     context '削除予定日時がある（予約済み）' do
       let(:destroy_schedule_at) { Time.current }
-      it 'true' do
-        is_expected.to eq(true)
-      end
+      it_behaves_like 'Value', true
     end
   end
 
@@ -141,7 +157,7 @@ RSpec.describe Space, type: :model do
   #   削除予約なし
   describe '#set_destroy_reserve!' do
     subject { space.set_destroy_reserve! }
-    let(:space) { FactoryBot.create(:space) }
+    let(:space) { FactoryBot.create(:space, created_user: user) }
     let(:current_space) { Space.find(space.id) }
 
     let!(:start_time) { Time.current.floor }
@@ -158,7 +174,7 @@ RSpec.describe Space, type: :model do
   #   削除予約済み
   describe '#set_undo_destroy_reserve!' do
     subject { space.set_undo_destroy_reserve! }
-    let(:space) { FactoryBot.create(:space, :destroy_reserved) }
+    let(:space) { FactoryBot.create(:space, :destroy_reserved, created_user: user) }
     let(:current_space) { Space.find(space.id) }
 
     it '削除依頼日時・削除予定日時がなしに変更される' do
@@ -198,7 +214,7 @@ RSpec.describe Space, type: :model do
 
     # テストケース
     context '画像がない' do
-      let_it_be(:space) { FactoryBot.create(:space) }
+      let_it_be(:space) { FactoryBot.create(:space, created_user: user) }
       it_behaves_like 'Def', :mini, true
       it_behaves_like 'Def', :small, true
       it_behaves_like 'Def', :medium, true
@@ -208,7 +224,7 @@ RSpec.describe Space, type: :model do
     end
     context '画像がある' do
       let_it_be(:image) { fixture_file_upload(TEST_IMAGE_FILE, TEST_IMAGE_TYPE) }
-      let_it_be(:space) { FactoryBot.create(:space, image: image) }
+      let_it_be(:space) { FactoryBot.create(:space, image:, created_user: user) }
       it_behaves_like 'OK', :mini, false
       it_behaves_like 'OK', :small, false
       it_behaves_like 'OK', :medium, false
@@ -226,16 +242,24 @@ RSpec.describe Space, type: :model do
 
     # テストケース
     context '更新日時が作成日時と同じ' do
-      let(:space) { FactoryBot.create(:space) }
-      it 'なし' do
-        is_expected.to eq(nil)
-      end
+      let(:space) { FactoryBot.create(:space, created_user: user) }
+      it_behaves_like 'Value', nil, 'nil'
     end
     context '更新日時が作成日時以降' do
-      let(:space) { FactoryBot.create(:space, created_at: Time.current - 1.hour, updated_at: Time.current) }
+      let(:space) { FactoryBot.create(:space, created_user: user, created_at: Time.current - 1.hour, updated_at: Time.current) }
       it '更新日時' do
         is_expected.to eq(space.updated_at)
       end
+    end
+  end
+
+  # スペースURL
+  describe '#url' do
+    subject { space.url }
+
+    let(:space) { FactoryBot.create(:space, created_user: user) }
+    it 'URLが返却される' do
+      is_expected.to eq("#{Settings.front_url}/-/#{space.code}")
     end
   end
 end

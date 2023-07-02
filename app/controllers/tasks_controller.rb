@@ -2,13 +2,16 @@ class TasksController < ApplicationAuthController
   include TasksConcern
   include TaskCyclesConcern
   before_action :response_not_acceptable_for_not_api
+  before_action :authenticate_user!, only: %i[create update destroy]
   before_action :set_space_current_member_auth_private
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy]
-  before_action :check_power_writer, only: %i[create update destroy]
+  before_action :check_power_admin, only: :destroy
+  before_action :check_power_writer, only: %i[create update]
   before_action :set_task, only: %i[show update]
   before_action :set_params_index, only: :index
   before_action :validate_params_create, only: :create
   before_action :validate_params_update, only: :update
+  before_action :set_params_destroy, :validate_params_destroy, only: :destroy
 
   # GET /tasks/:space_code(.json) タスク一覧API
   def index
@@ -28,55 +31,56 @@ class TasksController < ApplicationAuthController
       end
     end
 
-    render_success('notice.task.create', :created)
+    render_success(:create)
   end
 
   # POST /tasks/:space_code/update/:id(.json) タスク設定変更API(処理)
   def update
-    if @task.changed? || @insert_task_cycles.present? || @delete_task_cycle_ids.present? || @revert_delete_task_cycle_ids.present?
+    if @task.changed? || @insert_task_cycles.present? || @upsert_task_cycles.present? || @delete_task_cycle_ids.present?
       ActiveRecord::Base.transaction do
         @task.update!(last_updated_user: current_user, updated_at: @now)
         TaskCycle.insert_all!(@insert_task_cycles) if @insert_task_cycles.present?
+        TaskCycle.upsert_all(@upsert_task_cycles) if @upsert_task_cycles.present?
         TaskCycle.where(id: @delete_task_cycle_ids).update_all(deleted_at: @now, updated_at: @now) if @delete_task_cycle_ids.present?
-        TaskCycle.where(id: @revert_delete_task_cycle_ids).update_all(deleted_at: nil, updated_at: @now) if @revert_delete_task_cycle_ids.present?
       end
     end
 
-    render_success('notice.task.update')
+    render_success(:update)
   end
 
-  # POST /tasks/:space_code/delete/:id(.json) タスク削除API(処理)
+  # POST /tasks/:space_code/delete(.json) タスク削除API(処理)
   def destroy
-    # TODO
+    key = @ids.count == @tasks.count ? 'destroy' : 'destroy_include_notfound'
+    @destroy_count = @tasks.count
+    notice = t("notice.task.#{key}", count: @ids.count.to_s(:delimited), destroy_count: @destroy_count.to_s(:delimited))
+
+    @tasks.destroy_all
+    render locals: { notice: }
   end
 
   private
 
-  def render_success(notice, status = nil)
+  def render_success(target)
     set_task(@task.id)
-    return render :show_index, locals: { notice: t(notice) }, status: status if @months.blank?
+    return render :show_index, locals: { notice: t("notice.task.#{target}") }, status: target == :create ? :created : nil if @months.blank?
 
-    tomorrow = Time.current.to_date.tomorrow
-    set_holidays(tomorrow, tomorrow + 1.month) # NOTE: 1ヶ月以上の休みはない前提
-    next_business_date = handling_holiday_date(tomorrow, :after)
-
-    if @start_date <= next_business_date
-      @task_events = TaskEvent.joins(:task_cycle).where(space: @space, task_cycle: { task_id: @task.id }).by_month(@months, next_business_date).order(:id)
-    else
+    if target == :create
       @task_events = []
+    else
+      @task_events = TaskEvent.joins(:task_cycle).where(space: @space, task_cycle: { task_id: @task.id }).by_month(@months).order(:id)
     end
-
-    @next_events = []
-    @exist_task_events = @task_events.map { |task_event| [{ task_cycle_id: task_event.task_cycle_id, ended_date: task_event.ended_date }, true] }.to_h
+    set_exist_task_events
     logger.debug("@exist_task_events: #{@exist_task_events}")
 
     set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
-    next_start_date = [@start_date, Time.current.to_date].max
+    next_start_date = [@start_date, Time.zone.today].max
+
+    @next_events = {}
     @task.task_cycles_active.each do |task_cycle|
       cycle_set_next_events(task_cycle, @task, next_start_date, @end_date)
     end
 
-    render :show_events, locals: { notice: t(notice) }, status: status
+    render :show_events, locals: { notice: t("notice.task.#{target}") }, status: target == :create ? :created : nil
   end
 
   # Use callbacks to share common setup or constraints between actions.
@@ -91,7 +95,7 @@ class TasksController < ApplicationAuthController
   end
 
   def check_validation(target)
-    @detail = params[:detail]
+    @detail = params[:detail].to_s == 'true'
     @task.valid?
 
     @now = Time.current
@@ -102,16 +106,20 @@ class TasksController < ApplicationAuthController
   end
 
   def check_validation_cycles(cycles, target)
+    return @task.errors.add(:cycles, t('errors.messages.task_cycles.blank')) if cycles.blank?
+    return @task.errors.add(:cycles, t('errors.messages.task_cycles.invalid')) unless cycles.instance_of?(Array)
+
     active_task_cycles = target == :create ? {} : @task.task_cycles_active.index_by { |task_cycle| task_cycle_key(task_cycle) }
     inactive_task_cycles = target == :create ? {} : @task.task_cycles_inactive.index_by { |task_cycle| task_cycle_key(task_cycle) }
 
     cycle_error = 0
     @used_task_cycle_keys = {} # NOTE: used_task_cycle_targetで使用
     active_task_cycle_ids = []
-    @revert_delete_task_cycle_ids = []
     @insert_task_cycles = []
+    @upsert_task_cycles = []
+    count = 0
     cycles.each.with_index(1) do |task_cycle, index|
-      next if task_cycle[:delete].present? && task_cycle[:delete] == true
+      next if task_cycle[:delete].present? && task_cycle[:delete].to_s == 'true'
 
       task_cycle = TaskCycle.new(task_cycle_params(task_cycle).merge(space: @space, task: @task))
       if task_cycle.invalid?
@@ -126,29 +134,30 @@ class TasksController < ApplicationAuthController
       if target.present?
         @task.errors.add("cycle#{index}_#{target}", t("activerecord.errors.models.task_cycle.attributes.#{target}.taken"))
         cycle_error += 1
-        next
       end
+      next if cycle_error > 0
 
+      count += 1
       key = task_cycle_key(task_cycle)
       if active_task_cycles[key].present?
         active_task_cycle_ids.push(active_task_cycles[key].id)
+        if active_task_cycles[key].order != count
+          @upsert_task_cycles.push(active_task_cycles[key].attributes.symbolize_keys.merge(order: count, updated_at: @now))
+        end
       elsif inactive_task_cycles[key].present?
-        @revert_delete_task_cycle_ids.push(inactive_task_cycles[key].id)
+        @upsert_task_cycles.push(inactive_task_cycles[key].attributes.symbolize_keys.merge(order: count, deleted_at: nil, updated_at: @now))
       else
-        @insert_task_cycles.push(task_cycle.attributes.symbolize_keys.merge(created_at: @now, updated_at: @now))
+        @insert_task_cycles.push(task_cycle.attributes.symbolize_keys.merge(order: count, created_at: @now, updated_at: @now))
       end
     end
-    logger.debug("@insert_task_cycles: #{@insert_task_cycles}")
-    logger.debug("@revert_delete_task_cycle_ids: #{@revert_delete_task_cycle_ids}")
+    return if cycle_error > 0
 
     @delete_task_cycle_ids = active_task_cycles.values.pluck(:id) - active_task_cycle_ids
+    logger.debug("@insert_task_cycles: #{@insert_task_cycles}")
+    logger.debug("@upsert_task_cycles: #{@upsert_task_cycles}")
     logger.debug("@delete_task_cycle_ids: #{@delete_task_cycle_ids}")
 
-    if cycle_error.zero?
-      count = active_task_cycle_ids.count + @revert_delete_task_cycle_ids.count + @insert_task_cycles.count
-      @task.errors.add(:cycles, t('errors.messages.task_cycles.zero')) if count.zero?
-      @task.errors.add(:cycles, t('errors.messages.task_cycles.max_count', count: Settings.task_cycles_max_count)) if count > Settings.task_cycles_max_count
-    end
+    @task.errors.add(:cycles, t('errors.messages.task_cycles.max_count', count: Settings.task_cycles_max_count)) if count > Settings.task_cycles_max_count
   end
 
   def task_cycle_key(task_cycle)
@@ -179,19 +188,19 @@ class TasksController < ApplicationAuthController
     case task_cycle.cycle.to_sym
     when :weekly
       keys = []
-      [*1..12].each do |month|
-        keys += TaskCycle.weeks.keys.map { |week| { month: month, week: week, wday: task_cycle.wday } }
+      (1..12).each do |month|
+        keys += TaskCycle.weeks.keys.map { |week| { month:, week:, wday: task_cycle.wday } }
       end
       [:wday, keys]
     when :monthly, :yearly
       months = task_cycle.cycle.to_sym == :yearly ? [task_cycle.month] : [*1..12]
       case task_cycle.target.to_sym
       when :day
-        [:day, months.map { |month| { month: month, day: task_cycle.day } }]
+        [:day, months.map { |month| { month:, day: task_cycle.day } }]
       when :business_day
-        [:business_day, months.map { |month| { month: month, business_day: task_cycle.business_day } }]
+        [:business_day, months.map { |month| { month:, business_day: task_cycle.business_day } }]
       when :week
-        [:wday, months.map { |month| { month: month, week: task_cycle.week, wday: task_cycle.wday } }]
+        [:wday, months.map { |month| { month:, week: task_cycle.week, wday: task_cycle.wday } }]
       else
         # :nocov:
         raise "task_cycle.target not found.(#{task_cycle.target})[id: #{task_cycle.id}]"
@@ -208,11 +217,11 @@ class TasksController < ApplicationAuthController
     @months = months
     return if @months.blank?
 
-    @months = @months.compact.uniq.sort
+    @months = @months.instance_of?(Array) ? @months.compact.uniq.sort : [@months]
     @months.each do |month|
       valid = month.length == 6
       valid = false if valid && get_date(month).blank?
-      @task.errors.add(:months, t('errors.messages.task.months.invalid', month: month)) unless valid
+      @task.errors.add(:months, t('errors.messages.task.months.invalid', month:)) unless valid
     end
     return if @task.errors.any?
 
@@ -223,7 +232,24 @@ class TasksController < ApplicationAuthController
   def get_date(month)
     "#{month}01".to_date
   rescue StandardError
+    # :nocov:
     nil
+    # :nocov:
+  end
+
+  def set_params_destroy
+    @ids = params[:ids].instance_of?(Array) ? params[:ids].compact_blank.uniq : []
+  end
+
+  def validate_params_destroy
+    alert = nil
+    alert = 'alert.task.destroy.ids.blank' if @ids.blank?
+    if alert.blank?
+      @tasks = Task.where(space: @space, id: @ids).order(:id)
+      alert = 'alert.task.destroy.ids.notfound' if @tasks.empty?
+    end
+
+    render './failure', locals: { alert: t(alert) }, status: :unprocessable_entity if alert.present?
   end
 
   # Only allow a list of trusted parameters through.

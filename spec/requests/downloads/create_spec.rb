@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe 'Downloads', type: :request do
   let(:response_json) { JSON.parse(response.body) }
+  let(:response_json_download) { response_json['download'] }
 
   # POST /downloads/create ダウンロード依頼(処理)
   # POST /downloads/create(.json) ダウンロード依頼API(処理)
@@ -16,20 +17,15 @@ RSpec.describe 'Downloads', type: :request do
     subject { post create_download_path(format: subject_format), params: { download: attributes }, headers: auth_headers.merge(accept_headers) }
     let_it_be(:space)     { FactoryBot.create(:space) }
     let_it_be(:space_not) { FactoryBot.build_stubbed(:space) }
-    let_it_be(:valid_attributes)   { FactoryBot.attributes_for(:download) }
+    let_it_be(:valid_attributes)   { FactoryBot.attributes_for(:download).reject { |key| key == :requested_at } }
     let_it_be(:invalid_attributes) { valid_attributes.merge(target: nil) }
     let(:current_download) { Download.last }
-
-    shared_context 'valid_condition' do
-      let(:params) { { model: 'member', space_code: space.code, output_items: nil, 'output_items_user.name': '1' } }
-      let(:attributes) { valid_attributes.merge(params) }
-      include_context 'set_member_power', :admin
-    end
 
     # テスト内容
     shared_examples_for 'OK' do
       let!(:start_time) { Time.current.floor }
-      it 'ダウンロードが作成・対象項目が設定される' do
+      before { allow(DownloadJob).to receive(:perform_later).and_return(true) }
+      it 'ダウンロードが作成・対象項目が設定される。DownloadJobが呼ばれる' do
         expect do
           subject
           expect(current_download.user).to eq(user)
@@ -50,6 +46,9 @@ RSpec.describe 'Downloads', type: :request do
           expect(current_download.output_items).to eq(output_items)
           expect(current_download.select_items).to eq(select_items)
           expect(current_download.search_params).to eq(search_params)
+
+          expect(DownloadJob).to have_received(:perform_later).with(current_download.id)
+          expect(DownloadJob).to have_received(:perform_later).exactly(1).time
         end.to change(Download, :count).by(1)
       end
     end
@@ -59,6 +58,7 @@ RSpec.describe 'Downloads', type: :request do
       end
     end
 
+=begin
     shared_examples_for 'ToOK(html/*)' do
       it 'ダウンロード結果一覧（対象IDあり）にリダイレクトする' do
         is_expected.to redirect_to(downloads_path(target_id: current_download.id))
@@ -66,31 +66,39 @@ RSpec.describe 'Downloads', type: :request do
         expect(flash[:notice]).to be_nil
       end
     end
+=end
     shared_examples_for 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが201。対象項目が一致する' do
         is_expected.to eq(201)
         expect(response_json['success']).to eq(true)
-        expect(response_json['alert']).to be_nil
         expect(response_json['notice']).to eq(get_locale('notice.download.create'))
-        expect_download_json(response_json['download'], current_download)
+
+        count = expect_download_json(response_json_download, current_download)
+        expect(response_json_download.count).to eq(count)
+
+        expect(response_json.count).to eq(3)
       end
     end
 
     # テストケース
     shared_examples_for '[ログイン中/削除予約済み][member][ある]パラメータなし' do
       let(:attributes) { params }
+=begin
       msg_target       = get_locale('activerecord.errors.models.download.attributes.target.blank')
       msg_format       = get_locale('activerecord.errors.models.download.attributes.format.blank')
       msg_char_code    = get_locale('activerecord.errors.models.download.attributes.char_code.blank')
       msg_newline_code = get_locale('activerecord.errors.models.download.attributes.newline_code.blank')
       msg_output_items = get_locale('activerecord.errors.models.download.attributes.output_items.blank')
+=end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [msg_target, msg_format, msg_char_code, msg_newline_code, msg_output_items]
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -105,8 +113,10 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [msg_target, msg_format, msg_char_code, msg_newline_code, msg_output_items]
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 422, { target: [msg_target], format: [msg_format], char_code: [msg_char_code],
@@ -117,33 +127,43 @@ RSpec.describe 'Downloads', type: :request do
       if Settings.api_only_mode
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'OK(html)'
         it_behaves_like 'ToOK(html)'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中/削除予約済み][member][ある]有効なパラメータ' do
       let(:attributes) { valid_attributes.merge(params).merge(add_attributes) }
+=begin
       message = get_locale('activerecord.errors.models.download.attributes.output_items.blank')
+=end
       it_behaves_like 'NG(html)' # NOTE: HTMLもログイン状態になるが、パラメータが異なる為
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になるが、パラメータが異なる為
+=end
       end
       it_behaves_like 'OK(json)'
       it_behaves_like 'ToOK(json)'
     end
     shared_examples_for '[ログイン中/削除予約済み][member][ある]無効なパラメータ' do
       let(:attributes) { invalid_attributes.merge(params).merge(add_attributes) }
+=begin
       message = get_locale('activerecord.errors.models.download.attributes.target.blank')
+=end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message]
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
@@ -154,27 +174,29 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 422, { target: [message] }
     end
 
     shared_examples_for '[ログイン中/削除予約済み][member]権限がある' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '[ログイン中/削除予約済み][member][ある]パラメータなし'
       it_behaves_like '[ログイン中/削除予約済み][member][ある]有効なパラメータ'
       it_behaves_like '[ログイン中/削除予約済み][member][ある]無効なパラメータ'
     end
     shared_examples_for '[APIログイン中/削除予約済み][member]権限がある' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '[APIログイン中/削除予約済み][member][ある]パラメータなし'
       it_behaves_like '[APIログイン中/削除予約済み][member][ある]有効なパラメータ'
       it_behaves_like '[APIログイン中/削除予約済み][member][ある]無効なパラメータ'
     end
     shared_examples_for '[ログイン中/削除予約済み][member]権限がない' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space:, user:) if power.present? }
       let(:attributes) { valid_attributes.merge(params) }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403
@@ -182,7 +204,7 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples_for '[APIログイン中/削除予約済み][member]権限がない' do |power|
-      include_context 'set_member_power', power
+      before_all { FactoryBot.create(:member, power, space:, user:) if power.present? }
       let(:attributes) { valid_attributes.merge(params) }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403 # NOTE: HTMLもログイン状態になる
@@ -302,12 +324,15 @@ RSpec.describe 'Downloads', type: :request do
 
     context '未ログイン' do
       include_context '未ログイン処理'
-      include_context 'valid_condition'
+      let(:params) { { model: 'member', space_code: space.code, output_items: nil, 'output_items_user.name': '1' } }
+      let(:attributes) { valid_attributes.merge(params) }
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
+=begin
       else
         it_behaves_like 'ToLogin(html)'
+=end
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401

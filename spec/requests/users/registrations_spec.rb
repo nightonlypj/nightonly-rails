@@ -1,6 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Users::Registrations', type: :request do
+=begin
   # テスト内容（共通）
   shared_examples_for 'ToEdit' do |alert, notice|
     it 'ユーザー情報変更にリダイレクトする' do
@@ -9,6 +10,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       expect(flash[:notice]).to notice.present? ? eq(get_locale(notice)) : be_nil
     end
   end
+=end
 
   # GET /users/sign_up アカウント登録
   # テストパターン
@@ -22,6 +24,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       it_behaves_like 'ToOK[status]'
     end
@@ -29,6 +32,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       include_context 'ログイン処理'
       it_behaves_like 'ToTop', 'devise.failure.already_authenticated', nil
     end
+=end
   end
 
   # POST /users/sign_up アカウント登録(処理)
@@ -41,15 +45,17 @@ RSpec.describe 'Users::Registrations', type: :request do
     let_it_be(:exist_user) { FactoryBot.create(:user) }
     let(:valid_attributes)   { { name: new_user[:name], email: new_user[:email], password: new_user[:password] } }
     let(:invalid_attributes) { { name: exist_user.name, email: exist_user.email, password: exist_user.password } }
-    let(:current_user) { User.find_by!(email: attributes[:email]) }
+    let(:current_user) { User.last }
 
+=begin
     # テスト内容
     shared_examples_for 'OK' do
       let(:url) { "http://#{Settings.base_domain}#{user_confirmation_path}" }
-      it '作成・対象項目が設定される。メールが送信される' do
+      it 'ユーザーが作成・対象項目が設定される。メールが送信される' do
         expect do
           subject
-          expect(current_user.name).to eq(attributes[:name]) # メールアドレス、氏名
+          expect(current_user.email).to eq(attributes[:email])
+          expect(current_user.name).to eq(attributes[:name])
 
           expect(ActionMailer::Base.deliveries.count).to eq(1)
           expect(ActionMailer::Base.deliveries[0].subject).to eq(get_subject('devise.mailer.confirmation_instructions.subject')) # メールアドレス確認のお願い
@@ -58,6 +64,7 @@ RSpec.describe 'Users::Registrations', type: :request do
         end.to change(User, :count).by(1)
       end
     end
+=end
     shared_examples_for 'NG' do
       it '作成されない。メールが送信されない' do
         expect { subject }.to change(User, :count).by(0) && change(ActionMailer::Base.deliveries, :count).by(0)
@@ -72,6 +79,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[未ログイン]有効なパラメータ' do
       let(:attributes) { valid_attributes }
       it_behaves_like 'OK'
@@ -102,6 +110,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       it_behaves_like '[ログイン中]有効なパラメータ'
       it_behaves_like '[ログイン中]無効なパラメータ'
     end
+=end
   end
 
   # GET /users/update ユーザー情報変更
@@ -117,6 +126,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       it_behaves_like 'ToLogin', 'devise.failure.unauthenticated', nil
     end
@@ -132,6 +142,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       include_context 'ログイン処理', :destroy_reserved
       it_behaves_like 'ToTop', 'alert.user.destroy_reserved', nil
     end
+=end
   end
 
   # PUT /users/update ユーザー情報変更(処理)
@@ -147,6 +158,7 @@ RSpec.describe 'Users::Registrations', type: :request do
     let(:invalid_attributes)  { { name: exist_user.name, email: exist_user.email, password: exist_user.password } }
     let(:current_user) { User.find(user.id) }
 
+=begin
     # テスト内容
     shared_examples_for 'OK' do |change_email|
       let(:url) { "http://#{Settings.base_domain}#{user_confirmation_path}" }
@@ -166,6 +178,7 @@ RSpec.describe 'Users::Registrations', type: :request do
         end
       end
     end
+=end
     shared_examples_for 'NG' do
       it '対象項目が変更されない。メールが送信されない' do
         subject
@@ -186,6 +199,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[ログイン中]有効なパラメータ（変更なし）' do
       let(:attributes) { nochange_attributes.merge(current_password: user.password) }
       it_behaves_like 'OK', false
@@ -267,6 +281,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       it_behaves_like '[削除予約済み]無効なパラメータ'
       it_behaves_like '[削除予約済み]現在のパスワードがない'
     end
+=end
   end
 
   # POST /users/image/update ユーザー画像変更(処理)
@@ -279,6 +294,7 @@ RSpec.describe 'Users::Registrations', type: :request do
     let(:invalid_attributes) { nil }
     let(:current_user) { User.find(user.id) }
 
+=begin
     # テスト内容
     shared_examples_for 'OK' do
       it '画像が変更される' do
@@ -286,6 +302,7 @@ RSpec.describe 'Users::Registrations', type: :request do
         expect(current_user.image.url).not_to eq(user.image.url)
       end
     end
+=end
     shared_examples_for 'NG' do
       it '画像が変更されない' do
         subject
@@ -302,6 +319,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       next
     end
 
+=begin
     shared_examples_for '[未ログイン]有効なパラメータ' do
       let(:attributes) { valid_attributes }
       # it_behaves_like 'NG' # NOTE: 未ログインの為、対象がない
@@ -347,6 +365,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       it_behaves_like '[削除予約済み]有効なパラメータ'
       it_behaves_like '[削除予約済み]無効なパラメータ'
     end
+=end
   end
 
   # POST /users/image/destroy ユーザー画像削除(処理)
@@ -356,6 +375,7 @@ RSpec.describe 'Users::Registrations', type: :request do
     subject { post delete_user_image_registration_path }
     let(:current_user) { User.find(user.id) }
 
+=begin
     # テスト内容
     shared_examples_for 'OK' do
       it '画像が削除される' do
@@ -363,6 +383,7 @@ RSpec.describe 'Users::Registrations', type: :request do
         expect(current_user.image.url).to be_nil
       end
     end
+=end
     shared_examples_for 'NG' do
       it '画像が変更されない' do
         subject
@@ -378,6 +399,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       # it_behaves_like 'NG' # NOTE: 未ログインの為、対象がない
       it_behaves_like 'ToLogin', 'devise.failure.unauthenticated', nil
@@ -392,6 +414,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       it_behaves_like 'NG'
       it_behaves_like 'ToTop', 'alert.user.destroy_reserved', nil
     end
+=end
   end
 
   # GET /users/delete アカウント削除
@@ -407,6 +430,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       it_behaves_like 'ToLogin', 'devise.failure.unauthenticated', nil
     end
@@ -418,6 +442,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       include_context 'ログイン処理', :destroy_reserved
       it_behaves_like 'ToTop', 'alert.user.destroy_reserved', nil
     end
+=end
   end
 
   # POST /users/delete アカウント削除(処理)
@@ -427,6 +452,7 @@ RSpec.describe 'Users::Registrations', type: :request do
     subject { post destroy_user_registration_path }
     let(:current_user) { User.find(user.id) }
 
+=begin
     # テスト内容
     shared_examples_for 'OK' do
       let!(:start_time) { Time.current.floor }
@@ -442,6 +468,7 @@ RSpec.describe 'Users::Registrations', type: :request do
         expect(ActionMailer::Base.deliveries[0].text_part.body).to include(url)
       end
     end
+=end
     shared_examples_for 'NG' do
       it '削除依頼日時・削除予定日時が変更されない。メールが送信されない' do
         subject
@@ -459,6 +486,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       # it_behaves_like 'NG' # NOTE: 未ログインの為、対象がない
       it_behaves_like 'ToLogin', 'devise.failure.unauthenticated', nil
@@ -476,6 +504,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       it_behaves_like 'NG'
       it_behaves_like 'ToTop', 'alert.user.destroy_reserved', nil
     end
+=end
   end
 
   # GET /users/undo_delete アカウント削除取り消し
@@ -491,6 +520,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       it_behaves_like 'ToLogin', 'devise.failure.unauthenticated', nil
     end
@@ -502,6 +532,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       include_context 'ログイン処理', :destroy_reserved
       it_behaves_like 'ToOK[status]'
     end
+=end
   end
 
   # POST /users/undo_delete アカウント削除取り消し(処理)
@@ -511,6 +542,7 @@ RSpec.describe 'Users::Registrations', type: :request do
     subject { post undo_destroy_user_registration_path }
     let(:current_user) { User.find(user.id) }
 
+=begin
     # テスト内容
     shared_examples_for 'OK' do
       it '削除依頼日時・削除予定日時がなしに変更される。メールが送信される' do
@@ -521,6 +553,7 @@ RSpec.describe 'Users::Registrations', type: :request do
         expect(ActionMailer::Base.deliveries[0].subject).to eq(get_subject('mailer.user.undo_destroy_reserved.subject')) # アカウント削除取り消し完了のお知らせ
       end
     end
+=end
     shared_examples_for 'NG' do
       it '削除依頼日時・削除予定日時が変更されない。メールが送信されない' do
         subject
@@ -538,6 +571,7 @@ RSpec.describe 'Users::Registrations', type: :request do
       next
     end
 
+=begin
     context '未ログイン' do
       # it_behaves_like 'NG' # NOTE: 未ログインの為、対象がない
       it_behaves_like 'ToLogin', 'devise.failure.unauthenticated', nil
@@ -555,5 +589,6 @@ RSpec.describe 'Users::Registrations', type: :request do
       include_context 'ログイン処理', :destroy_reserved
       it_behaves_like 'ToTop', nil, 'devise.registrations.undo_destroy_reserved'
     end
+=end
   end
 end

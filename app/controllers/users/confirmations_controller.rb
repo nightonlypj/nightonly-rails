@@ -3,6 +3,7 @@
 class Users::ConfirmationsController < Devise::ConfirmationsController
   prepend_before_action :response_not_found_for_api_mode_not_api
 
+=begin
   # GET /users/confirmation/resend メールアドレス確認[メール再送]
   # def new
   #   super
@@ -44,4 +45,5 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
   def invalid_token_message
     t('activerecord.errors.models.user.attributes.confirmation_token.invalid')
   end
+=end
 end
