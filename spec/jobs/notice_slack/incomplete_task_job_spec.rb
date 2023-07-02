@@ -21,21 +21,21 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
 
     let_it_be(:user) { FactoryBot.create(:user) }
     let_it_be(:slack_domain) { FactoryBot.create(:slack_domain) }
-    let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain: slack_domain, user: user) }
+    let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain:, user:) }
 
     let_it_be(:space) { FactoryBot.create(:space, created_user: user) }
-    let_it_be(:tasks) { Task.priorities.keys.map { |priority| FactoryBot.create(:task, space: space, priority: priority, created_user: user) } }
+    let_it_be(:tasks) { Task.priorities.keys.map { |priority| FactoryBot.create(:task, space:, priority:, created_user: user) } }
     let_it_be(:next_task_events) do
       task_cycle = FactoryBot.create(:task_cycle, task: tasks[0])
-      [FactoryBot.create(:task_event, :tommorow_start, task_cycle: task_cycle)]
+      [FactoryBot.create(:task_event, :tommorow_start, task_cycle:)]
     end
     let_it_be(:expired_task_events) do
       task_cycle = FactoryBot.create(:task_cycle, task: tasks[0])
-      [FactoryBot.create(:task_event, :yesterday_end, :waiting_premise, task_cycle: task_cycle)]
+      [FactoryBot.create(:task_event, :yesterday_end, :waiting_premise, task_cycle:)]
     end
     let_it_be(:end_today_task_events) do
       task_cycle = FactoryBot.create(:task_cycle, task: tasks[1])
-      [FactoryBot.create(:task_event, :today_end, :processing, :assigned, task_cycle: task_cycle)]
+      [FactoryBot.create(:task_event, :today_end, :processing, :assigned, task_cycle:)]
     end
     let_it_be(:date_include_task_events) do
       task_cycles = 2.times.map { |index| FactoryBot.create(:task_cycle, task: tasks[index + 2]) }
@@ -133,7 +133,7 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
     shared_examples_for '通知履歴のタスクイベント' do
       context 'ある' do
         let_it_be(:send_history) do
-          FactoryBot.create(:send_history, send_setting: send_setting, target_date: target_date, notice_target: notice_target,
+          FactoryBot.create(:send_history, send_setting:, target_date:, notice_target:,
                                            next_task_event_ids: notice_target == :next ? next_task_events.pluck(:id).join(',') : nil,
                                            expired_task_event_ids: expired_task_events.pluck(:id).join(','),
                                            end_today_task_event_ids: end_today_task_events.pluck(:id).join(','),
@@ -143,7 +143,7 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
         it_behaves_like 'OK', :success
       end
       context 'ない' do
-        let_it_be(:send_history) { FactoryBot.create(:send_history, send_setting: send_setting, target_date: target_date, notice_target: notice_target) }
+        let_it_be(:send_history) { FactoryBot.create(:send_history, send_setting:, target_date:, notice_target:) }
         it_behaves_like 'OK', :success
       end
     end
@@ -159,7 +159,7 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
     end
     shared_examples_for '通知履歴の対象日' do
       let_it_be(:send_setting) do
-        FactoryBot.create(:send_setting, :slack, space: space, slack_domain: slack_domain, slack_mention: slack_mention,
+        FactoryBot.create(:send_setting, :slack, space:, slack_domain:, slack_mention:,
                                                  start_notice_completed: notice_completed, next_notice_completed: notice_completed)
       end
       context '当日' do
@@ -207,8 +207,8 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
           status: 500
         )
       end
-      let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, space: space, slack_domain: slack_domain) }
-      let_it_be(:send_history) { FactoryBot.create(:send_history, send_setting: send_setting) }
+      let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, space:, slack_domain:) }
+      let_it_be(:send_history) { FactoryBot.create(:send_history, send_setting:) }
       it_behaves_like 'OK', :failure
     end
   end

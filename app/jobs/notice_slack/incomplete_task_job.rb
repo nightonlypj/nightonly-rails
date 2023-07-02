@@ -33,7 +33,7 @@ class NoticeSlack::IncompleteTaskJob < ApplicationJob
 
     slack_webhook_url = @send_history.send_setting.slack_webhook_url
     begin
-      notifier = Slack::Notifier.new(slack_webhook_url, username: username, icon_emoji: ':alarm_clock:') # NOTE: icon_urlだと背景が透過にならない為
+      notifier = Slack::Notifier.new(slack_webhook_url, username:, icon_emoji: ':alarm_clock:') # NOTE: icon_urlだと背景が透過にならない為
       notifier.post(send_data)
       @send_history.status = :success
     rescue StandardError => e

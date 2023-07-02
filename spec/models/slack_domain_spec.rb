@@ -5,7 +5,7 @@ RSpec.describe SlackDomain, type: :model do
   # テストパターン
   #   ない, 最大文字数と同じ, 最大文字数より多い, 不正値, 重複
   describe 'validates :name' do
-    let(:model) { FactoryBot.build_stubbed(:slack_domain, name: name) }
+    let(:model) { FactoryBot.build_stubbed(:slack_domain, name:) }
 
     # テストケース
     context 'ない' do
@@ -30,7 +30,7 @@ RSpec.describe SlackDomain, type: :model do
       it_behaves_like 'InValid'
     end
     context '重複' do
-      before { FactoryBot.create(:slack_domain, name: name) }
+      before { FactoryBot.create(:slack_domain, name:) }
       let(:name) { 'a' }
       let(:messages) { { name: [get_locale('activerecord.errors.models.slack_domain.attributes.name.taken')] } }
       it_behaves_like 'InValid'

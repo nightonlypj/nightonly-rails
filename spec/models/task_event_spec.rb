@@ -5,7 +5,7 @@ RSpec.describe TaskEvent, type: :model do
   # テストパターン
   #   ない, 正常値, 重複
   describe 'validates :code' do
-    let(:model) { FactoryBot.build_stubbed(:task_event, code: code) }
+    let(:model) { FactoryBot.build_stubbed(:task_event, code:) }
     let(:valid_code) { Digest::MD5.hexdigest(SecureRandom.uuid) }
 
     # テストケース
@@ -19,7 +19,7 @@ RSpec.describe TaskEvent, type: :model do
       it_behaves_like 'Valid'
     end
     context '重複' do
-      before { FactoryBot.create(:task_event, code: code) }
+      before { FactoryBot.create(:task_event, code:) }
       let(:code) { valid_code }
       let(:messages) { { code: [get_locale('activerecord.errors.models.task_event.attributes.code.taken')] } }
       it_behaves_like 'InValid'
@@ -30,7 +30,7 @@ RSpec.describe TaskEvent, type: :model do
   # テストパターン
   #   ない, 正常値
   describe 'validates :status' do
-    let(:model) { FactoryBot.build_stubbed(:task_event, status: status) }
+    let(:model) { FactoryBot.build_stubbed(:task_event, status:) }
 
     # テストケース
     context 'ない' do
@@ -48,7 +48,7 @@ RSpec.describe TaskEvent, type: :model do
   # テストパターン
   #   ない, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :memo' do
-    let(:model) { FactoryBot.build_stubbed(:task_event, memo: memo) }
+    let(:model) { FactoryBot.build_stubbed(:task_event, memo:) }
 
     # テストケース
     context 'ない' do
@@ -71,7 +71,7 @@ RSpec.describe TaskEvent, type: :model do
   #   開始日: ない, ある
   #   最終終了日: ない, 開始日より前, 開始日の翌月末, 開始日の翌々月初
   describe 'validates :last_ended_date' do
-    let(:model) { FactoryBot.build_stubbed(:task_event, started_date: started_date, last_ended_date: last_ended_date) }
+    let(:model) { FactoryBot.build_stubbed(:task_event, started_date:, last_ended_date:) }
     let(:started_date) { Time.current.to_date }
 
     # テストケース
@@ -135,7 +135,7 @@ RSpec.describe TaskEvent, type: :model do
     # テストケース
     shared_examples_for '[未処理/前提対応待ち/前提確認済み]担当者' do
       context 'いない' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:) }
         it_behaves_like 'OK', { type: :next, notice_target: :start }, ':alarm_clock:'
         it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':red_circle:'
         it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':warning:'
@@ -148,7 +148,7 @@ RSpec.describe TaskEvent, type: :model do
         it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
       end
       context 'いる' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:, assigned_user: user) }
         it_behaves_like 'OK', { type: :next, notice_target: :start }, ':alarm_clock:'
         it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':red_circle:'
         it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':cloud:' # <- warning
@@ -211,11 +211,11 @@ RSpec.describe TaskEvent, type: :model do
     end
     shared_examples_for '[完了/対応不要]担当者' do
       context '担当者がいない' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:) }
         it_behaves_like '[完了/対応不要]担当者がいない/いる'
       end
       context '担当者がいる' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:, assigned_user: user) }
         it_behaves_like '[完了/対応不要]担当者がいない/いる'
       end
     end
@@ -235,44 +235,44 @@ RSpec.describe TaskEvent, type: :model do
     context 'ステータスが処理中' do
       let_it_be(:status) { :processing }
       context '担当者がいない' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:) }
         it_behaves_like '[処理中]担当者がいない/いる'
       end
       context '担当者がいる' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:, assigned_user: user) }
         it_behaves_like '[処理中]担当者がいない/いる'
       end
     end
     context 'ステータスが保留' do
       let_it_be(:status) { :pending }
       context '担当者がいない' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:) }
         it_behaves_like '[保留]担当者がいない/いる'
       end
       context '担当者がいる' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:, assigned_user: user) }
         it_behaves_like '[保留]担当者がいない/いる'
       end
     end
     context 'ステータスが確認待ち' do
       let_it_be(:status) { :waiting_confirm }
       context '担当者がいない' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:) }
         it_behaves_like '[確認待ち]担当者がいない/いる'
       end
       context '担当者がいる' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:, assigned_user: user) }
         it_behaves_like '[確認待ち]担当者がいない/いる'
       end
     end
     context 'ステータスが完了' do
       let_it_be(:status) { :complete }
       context '担当者がいない' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:) }
         it_behaves_like '[完了/対応不要]担当者がいない/いる'
       end
       context '担当者がいる' do
-        let_it_be(:task_event) { FactoryBot.create(:task_event, status: status, assigned_user: user) }
+        let_it_be(:task_event) { FactoryBot.create(:task_event, status:, assigned_user: user) }
         it_behaves_like '[完了/対応不要]担当者がいない/いる'
       end
     end

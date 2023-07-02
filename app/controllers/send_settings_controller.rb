@@ -15,7 +15,7 @@ class SendSettingsController < ApplicationAuthController
   def update
     slack_domain = @slack_name.present? ? SlackDomain.find_or_initialize_by(name: @slack_name) : nil
     if slack_domain.present? && slack_domain.id.present?
-      exist_send_setting = SendSetting.where(send_setting_params.merge(space: @space, slack_domain: slack_domain)).order(updated_at: :desc, id: :desc).first
+      exist_send_setting = SendSetting.where(send_setting_params.merge(space: @space, slack_domain:)).order(updated_at: :desc, id: :desc).first
     else
       exist_send_setting = nil
     end

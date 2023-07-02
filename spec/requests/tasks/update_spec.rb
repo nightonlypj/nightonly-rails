@@ -23,7 +23,7 @@ RSpec.describe 'Tasks', type: :request do
   describe 'POST #update' do
     subject do
       travel_to(current_date) do
-        post update_task_path(space_code: space.code, id: task.id, format: subject_format), params: params, headers: auth_headers.merge(accept_headers)
+        post update_task_path(space_code: space.code, id: task.id, format: subject_format), params:, headers: auth_headers.merge(accept_headers)
       end
     end
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
@@ -42,9 +42,9 @@ RSpec.describe 'Tasks', type: :request do
     shared_context 'valid_condition' do
       let(:params) { { task: valid_attributes } }
       let_it_be(:space) { space_private }
-      before_all { FactoryBot.create(:member, space: space, user: user) if user.present? }
-      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
-      let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task: task, order: 1)] }
+      before_all { FactoryBot.create(:member, space:, user:) if user.present? }
+      let_it_be(:task) { FactoryBot.create(:task, space:, created_user: space.created_user) }
+      let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task:, order: 1)] }
       let(:task_cycle_inactive) { nil }
     end
 
@@ -124,9 +124,9 @@ RSpec.describe 'Tasks', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中][*]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space: space, user: user) }
+      before_all { FactoryBot.create(:member, power, space:, user:) }
       context 'タスクIDが存在する' do
-        let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
+        let_it_be(:task) { FactoryBot.create(:task, space:, created_user: space.created_user) }
         it_behaves_like '[task]パラメータなし', true
         it_behaves_like '[task]有効なパラメータ', true
         it_behaves_like '[task]無効なパラメータ', true
@@ -141,9 +141,9 @@ RSpec.describe 'Tasks', type: :request do
       end
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
-      before_all { FactoryBot.create(:member, power, space: space, user: user) if power.present? }
-      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
-      let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task: task, order: 1)] }
+      before_all { FactoryBot.create(:member, power, space:, user:) if power.present? }
+      let_it_be(:task) { FactoryBot.create(:task, space:, created_user: space.created_user) }
+      let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task:, order: 1)] }
       let(:task_cycle_inactive) { nil }
       let(:params) { { task: valid_attributes } }
       it_behaves_like 'NG(html)'

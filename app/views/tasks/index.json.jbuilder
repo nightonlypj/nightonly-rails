@@ -17,7 +17,7 @@ json.task do
 end
 json.tasks do
   json.array! @tasks do |task|
-    json.partial! 'task', task: task, detail: false
+    json.partial! 'task', task:, detail: false
 
     json.cycles do
       task_cycles = task.task_cycles_active.index_by do |task_cycle|
@@ -25,7 +25,7 @@ json.tasks do
       end.sort # NOTE: DBアクセスせずに、並び順で出力
 
       json.array! task_cycles do |_, task_cycle|
-        json.partial! 'task_cycle', task_cycle: task_cycle
+        json.partial! 'task_cycle', task_cycle:
       end
     end
   end

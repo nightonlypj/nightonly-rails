@@ -10,6 +10,6 @@ end
 
 json.tasks do
   json.array! @tasks.each_value do |task|
-    json.partial! './tasks/task', task: task, detail: false
+    json.partial! './tasks/task', task:, detail: false
   end
 end

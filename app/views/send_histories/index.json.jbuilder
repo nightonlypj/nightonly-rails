@@ -7,6 +7,6 @@ json.send_history do
 end
 json.send_histories do
   json.array! @send_histories do |send_history|
-    json.partial! 'send_history', send_history: send_history, detail: false
+    json.partial! 'send_history', send_history:, detail: false
   end
 end

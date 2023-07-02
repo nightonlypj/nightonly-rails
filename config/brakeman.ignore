@@ -15,7 +15,7 @@
           "type": "controller",
           "class": "InfomationsController",
           "method": "show",
-          "line": 28,
+          "line": 30,
           "file": "app/controllers/infomations_controller.rb",
           "rendered": {
             "name": "infomations/show",
@@ -37,11 +37,34 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "30cc697c694e4d4fa749b5843c57cf7072e59e0ef394fa93bc6ce020a9829ff7",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/task.rb",
+      "line": 27,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "all.where(\"tasks.title #{search_like} ?\", \"%#{word}%\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Task",
+        "method": "search"
+      },
+      "user_input": "search_like",
+      "confidence": "Weak",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "45254d441c9daeb7be4c0398b640e57e175bb1cfea6b4d5b8bcb47450ec46502",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/space.rb",
-      "line": 53,
+      "line": 57,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "all.where(\"name #{search_like} ? OR description #{search_like} ?\", \"%#{word}%\", \"%#{word}%\")",
       "render_path": null,
@@ -72,7 +95,7 @@
           "type": "controller",
           "class": "InfomationsController",
           "method": "show",
-          "line": 28,
+          "line": 30,
           "file": "app/controllers/infomations_controller.rb",
           "rendered": {
             "name": "infomations/show",
@@ -185,6 +208,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-07-02 11:20:17 +0900",
+  "updated": "2023-07-02 12:35:22 +0900",
   "brakeman_version": "6.0.0"
 }

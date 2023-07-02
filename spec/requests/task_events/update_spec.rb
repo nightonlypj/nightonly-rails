@@ -17,7 +17,7 @@ RSpec.describe 'TaskEvents', type: :request do
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #update' do
-    subject { post update_task_event_path(space_code: space.code, code: task_event.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
+    subject { post update_task_event_path(space_code: space.code, code: task_event.code, format: subject_format), params:, headers: auth_headers.merge(accept_headers) }
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
     let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
@@ -28,8 +28,8 @@ RSpec.describe 'TaskEvents', type: :request do
     shared_context 'valid_condition' do
       let(:params) { { task_event: valid_attributes } }
       let_it_be(:space) { space_private }
-      before_all { FactoryBot.create(:member, space: space, user: user) if user.present? }
-      let_it_be(:task_event) { FactoryBot.create(:task_event, space: space) }
+      before_all { FactoryBot.create(:member, space:, user:) if user.present? }
+      let_it_be(:task_event) { FactoryBot.create(:task_event, space:) }
     end
 
     # テスト内容
@@ -76,10 +76,10 @@ RSpec.describe 'TaskEvents', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中][*]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space: space, user: user) }
+      before_all { FactoryBot.create(:member, power, space:, user:) }
       context 'イベントコードが存在する' do
         context 'パラメータなし' do
-          let_it_be(:task_event) { FactoryBot.create(:task_event, space: space) }
+          let_it_be(:task_event) { FactoryBot.create(:task_event, space:) }
           let(:params) { nil }
           it_behaves_like 'NG(html)'
           it_behaves_like 'ToNG(html)', 406
@@ -87,7 +87,7 @@ RSpec.describe 'TaskEvents', type: :request do
           it_behaves_like 'ToNG(json)', 422, { last_ended_date: [get_locale('activerecord.errors.models.task_event.attributes.last_ended_date.blank')] }
         end
         context '有効なパラメータ（通知ステータス変更なし、担当なし→自分）、detailパラメータがない' do # 未処理 -> 処理中
-          let_it_be(:task_event) { FactoryBot.create(:task_event, space: space, status: :untreated, assigned_user: nil) }
+          let_it_be(:task_event) { FactoryBot.create(:task_event, space:, status: :untreated, assigned_user: nil) }
           let(:attributes) { valid_attributes.merge(status: :processing, assign_myself: true) }
           let(:params) { { task_event: attributes } }
           let(:expect_last_completed_at) { { data: nil } }
@@ -99,7 +99,7 @@ RSpec.describe 'TaskEvents', type: :request do
           it_behaves_like 'ToOK(json)'
         end
         context '有効なパラメータ（非通知ステータス変更なし、自分→担当なし）、detailパラメータがtrue' do # 完了 -> 対応不要
-          let_it_be(:task_event) { FactoryBot.create(:task_event, :completed, space: space, assigned_user: user) }
+          let_it_be(:task_event) { FactoryBot.create(:task_event, :completed, space:, assigned_user: user) }
           let(:attributes) { valid_attributes.merge(status: :unnecessary, assign_delete: true) }
           let(:params) { { task_event: attributes, detail: true } }
           let(:expect_last_completed_at) { { data: task_event.last_completed_at } }
@@ -111,7 +111,7 @@ RSpec.describe 'TaskEvents', type: :request do
           it_behaves_like 'ToOK(json)'
         end
         context '有効なパラメータ（通知→非通知ステータス、自分→自分）、detailパラメータがtrue' do # 処理中 -> 完了
-          let_it_be(:task_event) { FactoryBot.create(:task_event, space: space, status: :processing, assigned_user: user) }
+          let_it_be(:task_event) { FactoryBot.create(:task_event, space:, status: :processing, assigned_user: user) }
           let(:attributes) { valid_attributes.merge(status: :complete) }
           let(:params) { { task_event: attributes, detail: true } }
           let(:expect_last_completed_at) { { new: true } }
@@ -123,7 +123,7 @@ RSpec.describe 'TaskEvents', type: :request do
           it_behaves_like 'ToOK(json)'
         end
         context '有効なパラメータ（非通知→通知ステータス、担当なし→担当なし）、detailパラメータがfalse' do # 完了 -> 確認待ち
-          let_it_be(:task_event) { FactoryBot.create(:task_event, :completed, space: space, assigned_user: nil) }
+          let_it_be(:task_event) { FactoryBot.create(:task_event, :completed, space:, assigned_user: nil) }
           let(:attributes) { valid_attributes.merge(status: :waiting_confirm) }
           let(:params) { { task_event: attributes, detail: false } }
           let(:expect_last_completed_at) { { data: nil } }
@@ -135,7 +135,7 @@ RSpec.describe 'TaskEvents', type: :request do
           it_behaves_like 'ToOK(json)'
         end
         context '無効なパラメータ' do
-          let_it_be(:task_event) { FactoryBot.create(:task_event, space: space) }
+          let_it_be(:task_event) { FactoryBot.create(:task_event, space:) }
           let(:params) { { task_event: invalid_attributes } }
           it_behaves_like 'NG(html)'
           it_behaves_like 'ToNG(html)', 406
@@ -153,8 +153,8 @@ RSpec.describe 'TaskEvents', type: :request do
       end
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
-      before_all { FactoryBot.create(:member, power, space: space, user: user) if power.present? }
-      let_it_be(:task_event) { FactoryBot.create(:task_event, space: space) }
+      before_all { FactoryBot.create(:member, power, space:, user:) if power.present? }
+      let_it_be(:task_event) { FactoryBot.create(:task_event, space:) }
       let(:params) { { task_event: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる

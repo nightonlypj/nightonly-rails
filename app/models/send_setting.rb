@@ -3,7 +3,7 @@ class SendSetting < ApplicationRecord
   belongs_to :slack_domain, optional: true
   belongs_to :last_updated_user, class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
 
-  URL_FORMAT = %r{\Ahttps?://[A-Za-z0-9.\-]+/[A-Za-z0-9.\-_/]+\Z}
+  URL_FORMAT = %r{\Ahttps?://[A-Za-z0-9.-]+/[A-Za-z0-9.\-_/]+\Z}
   MENTION_FORMAT = /\A[A-Za-z0-9!^@|]*\Z/
   validates :slack_enabled, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
   validates :slack_webhook_url, presence: true, if: proc { |setting| setting.slack_enabled }

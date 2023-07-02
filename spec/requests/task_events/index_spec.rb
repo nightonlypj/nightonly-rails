@@ -20,7 +20,7 @@ RSpec.describe 'TaskEvents', type: :request do
   describe 'GET #index' do
     subject do
       travel_to(current_date) do
-        get task_events_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers)
+        get task_events_path(space_code: space.code, format: subject_format), params:, headers: auth_headers.merge(accept_headers)
       end
     end
     Settings.task_events_max_month_count = 3 # NOTE: 3ヶ月分で検証
@@ -69,12 +69,12 @@ RSpec.describe 'TaskEvents', type: :request do
     shared_examples_for 'イベント・タスクがある' do
       let_it_be(:tasks) do
         [
-          FactoryBot.create(:task, :skip_validate, :high, space: space, started_date: Date.new(2022, 12, 1), ended_date: Date.new(2023, 1, 31),
-                                                          created_user_id: destroy_user.id, last_updated_user: last_updated_user),
-          FactoryBot.create(:task, :skip_validate, :middle, space: space, started_date: Date.new(2022, 12, 30), ended_date: nil,
-                                                            created_user: created_user, last_updated_user_id: destroy_user.id),
-          FactoryBot.create(:task, :skip_validate, :low, space: space, started_date: Date.new(2023, 1, 4), ended_date: nil,
-                                                         created_user: created_user, last_updated_user: nil)
+          FactoryBot.create(:task, :skip_validate, :high, space:, started_date: Date.new(2022, 12, 1), ended_date: Date.new(2023, 1, 31),
+                                                          created_user_id: destroy_user.id, last_updated_user:),
+          FactoryBot.create(:task, :skip_validate, :middle, space:, started_date: Date.new(2022, 12, 30), ended_date: nil,
+                                                            created_user:, last_updated_user_id: destroy_user.id),
+          FactoryBot.create(:task, :skip_validate, :low, space:, started_date: Date.new(2023, 1, 4), ended_date: nil,
+                                                         created_user:, last_updated_user: nil)
         ]
       end
       let_it_be(:task_cycles) do
@@ -183,7 +183,7 @@ RSpec.describe 'TaskEvents', type: :request do
     end
 
     shared_examples_for '開始日' do
-      let(:params) { { start_date: start_date, end_date: end_date } }
+      let(:params) { { start_date:, end_date: } }
       context 'ない' do
         let(:start_date) { nil }
         let(:end_date)   { valid_params[:end_date] }
@@ -219,7 +219,7 @@ RSpec.describe 'TaskEvents', type: :request do
     end
 
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space: space, user: user) }
+      before_all { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '開始日'
     end
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do

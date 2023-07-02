@@ -20,7 +20,7 @@ RSpec.describe 'Tasks', type: :request do
   describe 'POST #create' do
     subject do
       travel_to(current_date) do
-        post create_task_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers)
+        post create_task_path(space_code: space.code, format: subject_format), params:, headers: auth_headers.merge(accept_headers)
       end
     end
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
@@ -40,7 +40,7 @@ RSpec.describe 'Tasks', type: :request do
     shared_context 'valid_condition' do
       let(:params) { { task: valid_attributes } }
       let_it_be(:space) { space_private }
-      before_all { FactoryBot.create(:member, space: space, user: user) if user.present? }
+      before_all { FactoryBot.create(:member, space:, user:) if user.present? }
     end
 
     # テスト内容
@@ -116,13 +116,13 @@ RSpec.describe 'Tasks', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中][*]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space: space, user: user) }
+      before_all { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '[task]パラメータなし'
       it_behaves_like '[task]有効なパラメータ'
       it_behaves_like '[task]無効なパラメータ'
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
-      before_all { FactoryBot.create(:member, power, space: space, user: user) if power.present? }
+      before_all { FactoryBot.create(:member, power, space:, user:) if power.present? }
       let(:params) { { task: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる

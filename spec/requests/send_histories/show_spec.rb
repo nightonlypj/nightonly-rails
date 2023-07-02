@@ -40,14 +40,14 @@ RSpec.describe 'SendHistory', type: :request do
     shared_examples_for '通知履歴ID' do
       context '存在する（通知対象が開始確認、送信対象がSlack、翌営業日開始/期限切れ/本日期限/期限内の/本日完了したタスクがない）' do
         include_context 'タスクイベント作成', 0, 0, 0, 0, 0
-        let_it_be(:send_history) { FactoryBot.create(:send_history, :start, :slack, send_setting: send_setting, target_count: 0) }
+        let_it_be(:send_history) { FactoryBot.create(:send_history, :start, :slack, send_setting:, target_count: 0) }
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'
       end
       context '存在する（通知対象が開始確認、送信対象メール、翌営業日開始/期限切れ/本日期限/期限内の/本日完了したタスクが2件）' do
         include_context 'タスクイベント作成', 0, 1, 1, 1, 1, true # NOTE: 削除済みを追加
         let_it_be(:send_history) do
-          FactoryBot.create(:send_history, :start, :email, send_setting: send_setting, target_count: 8,
+          FactoryBot.create(:send_history, :start, :email, send_setting:, target_count: 8,
                                                            next_task_event_ids: nil,
                                                            expired_task_event_ids: expired_task_events.pluck(:id).join(','),
                                                            end_today_task_event_ids: end_today_task_events.pluck(:id).join(','),
@@ -59,14 +59,14 @@ RSpec.describe 'SendHistory', type: :request do
       end
       context '存在する（通知対象が翌営業日・終了確認、送信対象がSlack、翌営業日開始/期限切れ/本日期限/期限内の/本日完了したタスクがない）' do
         include_context 'タスクイベント作成', 0, 0, 0, 0, 0
-        let_it_be(:send_history) { FactoryBot.create(:send_history, :next, :slack, send_setting: send_setting, target_count: 0) }
+        let_it_be(:send_history) { FactoryBot.create(:send_history, :next, :slack, send_setting:, target_count: 0) }
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'
       end
       context '存在する（通知対象が翌営業日・終了確認、送信対象がメール、翌営業日開始/期限切れ/本日期限/期限内の/本日完了したタスクが2件）' do
         include_context 'タスクイベント作成', 1, 1, 1, 1, 1, true # NOTE: 削除済みを追加
         let_it_be(:send_history) do
-          FactoryBot.create(:send_history, :next, :email, send_setting: send_setting, target_count: 10,
+          FactoryBot.create(:send_history, :next, :email, send_setting:, target_count: 10,
                                                           next_task_event_ids: next_task_events.pluck(:id).join(','),
                                                           expired_task_event_ids: expired_task_events.pluck(:id).join(','),
                                                           end_today_task_event_ids: end_today_task_events.pluck(:id).join(','),
@@ -84,7 +84,7 @@ RSpec.describe 'SendHistory', type: :request do
     end
 
     shared_examples_for '[APIログイン中/削除予約済み][*]権限がある' do |power|
-      let_it_be(:member) { FactoryBot.create(:member, power, space: space, user: user) }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '通知履歴ID'
     end
     shared_examples_for '[*][公開]権限がない' do
@@ -92,12 +92,12 @@ RSpec.describe 'SendHistory', type: :request do
       it_behaves_like '通知履歴ID'
     end
     shared_examples_for '[未ログイン][非公開]権限がない' do
-      let_it_be(:send_history) { FactoryBot.create(:send_history, send_setting: send_setting, target_count: 0) }
+      let_it_be(:send_history) { FactoryBot.create(:send_history, send_setting:, target_count: 0) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 401
     end
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do
-      let_it_be(:send_history) { FactoryBot.create(:send_history, send_setting: send_setting, target_count: 0) }
+      let_it_be(:send_history) { FactoryBot.create(:send_history, send_setting:, target_count: 0) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 403
     end
@@ -110,28 +110,28 @@ RSpec.describe 'SendHistory', type: :request do
     end
     shared_examples_for '[未ログイン]スペースが公開' do
       let_it_be(:space) { space_public }
-      let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, space: space) }
+      let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, space:) }
       # it_behaves_like '[未ログイン][*]権限がある', :admin # NOTE: 未ログインの為、権限がない
       # it_behaves_like '[未ログイン][*]権限がある', :reader
       it_behaves_like '[*][公開]権限がない'
     end
     shared_examples_for '[APIログイン中/削除予約済み]スペースが公開' do
       let_it_be(:space) { space_public }
-      let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, space: space) }
+      let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, space:) }
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :admin
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :reader
       it_behaves_like '[*][公開]権限がない'
     end
     shared_examples_for '[未ログイン]スペースが非公開' do
       let_it_be(:space) { space_private }
-      let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, space: space) }
+      let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, space:) }
       # it_behaves_like '[未ログイン][*]権限がある', :admin # NOTE: 未ログインの為、権限がない
       # it_behaves_like '[未ログイン][*]権限がある', :reader
       it_behaves_like '[未ログイン][非公開]権限がない'
     end
     shared_examples_for '[APIログイン中/削除予約済み]スペースが非公開' do
       let_it_be(:space) { space_private }
-      let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, space: space) }
+      let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, space:) }
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :admin
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :reader
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がない'

@@ -5,7 +5,7 @@ RSpec.describe Task, type: :model do
   # テストパターン
   #   ない, 正常値
   describe 'validates :priority' do
-    let(:model) { FactoryBot.build_stubbed(:task, priority: priority) }
+    let(:model) { FactoryBot.build_stubbed(:task, priority:) }
 
     # テストケース
     context 'ない' do
@@ -23,7 +23,7 @@ RSpec.describe Task, type: :model do
   # テストパターン
   #   ない, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :title' do
-    let(:model) { FactoryBot.build_stubbed(:task, title: title, summary: nil, premise: nil, process: nil) }
+    let(:model) { FactoryBot.build_stubbed(:task, title:, summary: nil, premise: nil, process: nil) }
 
     # テストケース
     context 'ない' do
@@ -46,7 +46,7 @@ RSpec.describe Task, type: :model do
   # テストパターン
   #   ない, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :summary' do
-    let(:model) { FactoryBot.build_stubbed(:task, summary: summary) }
+    let(:model) { FactoryBot.build_stubbed(:task, summary:) }
 
     # テストケース
     context 'ない' do
@@ -68,7 +68,7 @@ RSpec.describe Task, type: :model do
   # テストパターン
   #   ない, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :premise' do
-    let(:model) { FactoryBot.build_stubbed(:task, premise: premise) }
+    let(:model) { FactoryBot.build_stubbed(:task, premise:) }
 
     # テストケース
     context 'ない' do
@@ -90,7 +90,7 @@ RSpec.describe Task, type: :model do
   # テストパターン
   #   ない, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :process' do
-    let(:model) { FactoryBot.build_stubbed(:task, process: process) }
+    let(:model) { FactoryBot.build_stubbed(:task, process:) }
 
     # テストケース
     context 'ない' do
@@ -117,7 +117,7 @@ RSpec.describe Task, type: :model do
   describe 'validates :started_date' do
     # テストケース
     context '登録' do
-      let(:model) { FactoryBot.build(:task, started_date: started_date, ended_date: nil) }
+      let(:model) { FactoryBot.build(:task, started_date:, ended_date: nil) }
       context 'ない' do
         let(:started_date) { nil }
         let(:messages) { { started_date: [get_locale('activerecord.errors.models.task.attributes.started_date.blank')] } }
@@ -136,12 +136,12 @@ RSpec.describe Task, type: :model do
     context '更新' do
       let(:started_date) { (Time.current - 1.day).to_date }
       context '変更なし' do
-        let(:model) { FactoryBot.create(:task, :skip_validate, started_date: started_date, ended_date: nil) }
+        let(:model) { FactoryBot.create(:task, :skip_validate, started_date:, ended_date: nil) }
         it_behaves_like 'Valid'
       end
       context 'ない' do
         let(:model) do
-          result = FactoryBot.create(:task, :skip_validate, started_date: started_date, ended_date: nil)
+          result = FactoryBot.create(:task, :skip_validate, started_date:, ended_date: nil)
           result.started_date = nil
 
           result
@@ -151,7 +151,7 @@ RSpec.describe Task, type: :model do
       end
       context '過去日' do
         let(:model) do
-          result = FactoryBot.create(:task, :skip_validate, started_date: started_date, ended_date: nil)
+          result = FactoryBot.create(:task, :skip_validate, started_date:, ended_date: nil)
           result.started_date = (Time.current - 2.days).to_date
 
           result
@@ -161,7 +161,7 @@ RSpec.describe Task, type: :model do
       end
       context '現在日' do
         let(:model) do
-          result = FactoryBot.create(:task, :skip_validate, started_date: started_date, ended_date: nil)
+          result = FactoryBot.create(:task, :skip_validate, started_date:, ended_date: nil)
           result.started_date = Time.current.to_date
 
           result
@@ -175,7 +175,7 @@ RSpec.describe Task, type: :model do
   # テストパターン
   #   ない, 開始日より前, 開始日と同じ, 開始日より後
   describe 'validates :ended_date' do
-    let(:model) { FactoryBot.build_stubbed(:task, started_date: started_date, ended_date: ended_date) }
+    let(:model) { FactoryBot.build_stubbed(:task, started_date:, ended_date:) }
     let(:started_date) { Time.current.to_date }
 
     # テストケース

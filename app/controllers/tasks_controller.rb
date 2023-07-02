@@ -55,7 +55,7 @@ class TasksController < ApplicationAuthController
     notice = t("notice.task.#{key}", count: @ids.count.to_s(:delimited), destroy_count: @destroy_count.to_s(:delimited))
 
     @tasks.destroy_all
-    render locals: { notice: notice }
+    render locals: { notice: }
   end
 
   private
@@ -189,18 +189,18 @@ class TasksController < ApplicationAuthController
     when :weekly
       keys = []
       (1..12).each do |month|
-        keys += TaskCycle.weeks.keys.map { |week| { month: month, week: week, wday: task_cycle.wday } }
+        keys += TaskCycle.weeks.keys.map { |week| { month:, week:, wday: task_cycle.wday } }
       end
       [:wday, keys]
     when :monthly, :yearly
       months = task_cycle.cycle.to_sym == :yearly ? [task_cycle.month] : [*1..12]
       case task_cycle.target.to_sym
       when :day
-        [:day, months.map { |month| { month: month, day: task_cycle.day } }]
+        [:day, months.map { |month| { month:, day: task_cycle.day } }]
       when :business_day
-        [:business_day, months.map { |month| { month: month, business_day: task_cycle.business_day } }]
+        [:business_day, months.map { |month| { month:, business_day: task_cycle.business_day } }]
       when :week
-        [:wday, months.map { |month| { month: month, week: task_cycle.week, wday: task_cycle.wday } }]
+        [:wday, months.map { |month| { month:, week: task_cycle.week, wday: task_cycle.wday } }]
       else
         # :nocov:
         raise "task_cycle.target not found.(#{task_cycle.target})[id: #{task_cycle.id}]"
@@ -221,7 +221,7 @@ class TasksController < ApplicationAuthController
     @months.each do |month|
       valid = month.length == 6
       valid = false if valid && get_date(month).blank?
-      @task.errors.add(:months, t('errors.messages.task.months.invalid', month: month)) unless valid
+      @task.errors.add(:months, t('errors.messages.task.months.invalid', month:)) unless valid
     end
     return if @task.errors.any?
 

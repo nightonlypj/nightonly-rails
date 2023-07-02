@@ -4,15 +4,15 @@ shared_context 'タスク一覧作成' do |high_count, middle_count, low_count, 
     created_user = FactoryBot.create(:user)
     last_updated_user = FactoryBot.create(:user)
     destroy_user = FactoryBot.build_stubbed(:user)
-    FactoryBot.create(:task, space: other_space, created_user: created_user) # NOTE: 対象外
+    FactoryBot.create(:task, space: other_space, created_user:) # NOTE: 対象外
 
-    FactoryBot.create_list(:task, high_count, :high, space: space, created_user_id: destroy_user.id,
-                                                     last_updated_user: last_updated_user, created_at: now - 4.days, updated_at: now - 5.days) +
-      FactoryBot.create_list(:task, middle_count, :middle, space: space, created_user: created_user,
+    FactoryBot.create_list(:task, high_count, :high, space:, created_user_id: destroy_user.id,
+                                                     last_updated_user:, created_at: now - 4.days, updated_at: now - 5.days) +
+      FactoryBot.create_list(:task, middle_count, :middle, space:, created_user:,
                                                            last_updated_user_id: destroy_user.id, created_at: now - 3.days, updated_at: now - 2.days) +
-      FactoryBot.create_list(:task, low_count, :low, space: space, created_user: created_user,
+      FactoryBot.create_list(:task, low_count, :low, space:, created_user:,
                                                      last_updated_user: nil, created_at: now - 1.day, updated_at: now - 1.day) +
-      FactoryBot.create_list(:task, none_count, :none, space: space, created_user: created_user,
+      FactoryBot.create_list(:task, none_count, :none, space:, created_user:,
                                                        last_updated_user: nil, created_at: now, updated_at: now)
   end
 
@@ -89,7 +89,7 @@ shared_context '[task]作成・更新条件' do
 end
 
 shared_examples_for '[task]パラメータなし' do |update|
-  let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task: task, order: 1)] if update }
+  let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task:, order: 1)] if update }
   let(:task_cycle_inactive) { nil }
   let(:params) { nil }
   it_behaves_like 'NG(html)'
@@ -175,7 +175,7 @@ shared_examples_for '[task]有効なパラメータ' do |update|
       next unless update
 
       # NOTE: 2つ目が存在する + 1つ目はdelete -> 変更なし
-      [FactoryBot.create(:task_cycle, :weekly, task: task, wday: :tue, handling_holiday: :after, period: 2, order: 1)]
+      [FactoryBot.create(:task_cycle, :weekly, task:, wday: :tue, handling_holiday: :after, period: 2, order: 1)]
     end
     let(:expect_task_cycles_active) do
       [
@@ -253,7 +253,7 @@ shared_examples_for '[task]有効なパラメータ' do |update|
       next unless update
 
       # NOTE: 1つ目が存在する -> 2・3つ目を追加
-      [FactoryBot.create(:task_cycle, :monthly, :day, task: task, day: 1, handling_holiday: :before, period: 1, order: 1)]
+      [FactoryBot.create(:task_cycle, :monthly, :day, task:, day: 1, handling_holiday: :before, period: 1, order: 1)]
     end
     let(:expect_task_cycles_active) do
       [
@@ -347,15 +347,15 @@ shared_examples_for '[task]有効なパラメータ' do |update|
       next unless update
 
       # NOTE: 3つ目が削除済みで存在する -> 復帰
-      FactoryBot.create(:task_cycle, :yearly, :week, task: task, month: 3, week: :third, wday: :wed, handling_holiday: :after, period: 3, order: 1, deleted_at: Time.current)
+      FactoryBot.create(:task_cycle, :yearly, :week, task:, month: 3, week: :third, wday: :wed, handling_holiday: :after, period: 3, order: 1, deleted_at: Time.current)
     end
-    let_it_be(:except_task_cycle_inactive) { FactoryBot.create(:task_cycle, :weekly, task: task, order: 2) if update }
+    let_it_be(:except_task_cycle_inactive) { FactoryBot.create(:task_cycle, :weekly, task:, order: 2) if update }
     let_it_be(:task_cycles) do # 元の値
       next unless update
 
       [
         # NOTE: 2つ目が存在する + 3つ目が削除済みで存在する -> 1つ目を追加
-        FactoryBot.create(:task_cycle, :yearly, :business_day, task: task, month: 2, business_day: 2, period: 2, order: 1),
+        FactoryBot.create(:task_cycle, :yearly, :business_day, task:, month: 2, business_day: 2, period: 2, order: 1),
         except_task_cycle_inactive # NOTE: 存在しない -> 削除
       ]
     end
@@ -406,7 +406,7 @@ shared_examples_for '[task]有効なパラメータ' do |update|
 end
 
 shared_examples_for '[task]無効なパラメータ' do |update|
-  let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task: task, order: 1)] if update }
+  let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task:, order: 1)] if update }
   let(:task_cycle_inactive) { nil }
   context '無効なパラメータ（タスクが不正値）' do
     let(:params) { { task: invalid_task_attributes.merge(cycles: [valid_cycle_attributes]) } }
@@ -465,7 +465,7 @@ shared_examples_for '[task]無効なパラメータ' do |update|
   end
   context '無効なパラメータ（周期が最大数より多い）' do
     let(:cycles) { (Settings.task_cycles_max_count + 1).times.map { |index| FactoryBot.attributes_for(:task_cycle, :monthly, :day, day: index + 1) } }
-    let(:params) { { task: valid_task_attributes.merge(cycles: cycles) } }
+    let(:params) { { task: valid_task_attributes.merge(cycles:) } }
     it_behaves_like 'NG(html)'
     it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
     it_behaves_like 'NG(json)'

@@ -17,7 +17,7 @@ RSpec.describe 'SlackUser', type: :request do
     let_it_be(:spaces) { FactoryBot.create_list(:space, 3) }
     let_it_be(:slack_domains) { FactoryBot.create_list(:slack_domain, 3) }
     let_it_be(:other_user) { FactoryBot.create(:user) }
-    before_all { spaces.each { |space| FactoryBot.create(:member, space: space, user: other_user) } }
+    before_all { spaces.each { |space| FactoryBot.create(:member, space:, user: other_user) } }
 
     # テスト内容
     shared_examples_for 'ToOK(json/json)' do
@@ -42,7 +42,7 @@ RSpec.describe 'SlackUser', type: :request do
         it_behaves_like 'ToOK(json)'
       end
       context '参加スペースがある' do
-        before_all { spaces.each { |space| FactoryBot.create(:member, space: space, user: user) } }
+        before_all { spaces.each { |space| FactoryBot.create(:member, space:, user:) } }
         context '通知設定が1件もない' do
           let(:except_memberids) { {} }
           it_behaves_like 'ToNG(html)', 406
@@ -69,8 +69,8 @@ RSpec.describe 'SlackUser', type: :request do
             ]
           end
           let_it_be(:except_memberids) do
-            slack_user1 = FactoryBot.create(:slack_user, slack_domain: send_settings[1].slack_domain, user: user)
-            FactoryBot.create(:slack_user, slack_domain: send_settings[2].slack_domain, user: user, memberid: '')
+            slack_user1 = FactoryBot.create(:slack_user, slack_domain: send_settings[1].slack_domain, user:)
+            FactoryBot.create(:slack_user, slack_domain: send_settings[2].slack_domain, user:, memberid: '')
             {
               slack_domains[0].name => nil,
               slack_domains[1].name => slack_user1.memberid,

@@ -93,7 +93,7 @@ class TaskEventsController < ApplicationAuthController
       end
     end
 
-    render './failure', locals: { errors: errors, alert: t('errors.messages.default') }, status: :unprocessable_entity if errors.present?
+    render './failure', locals: { errors:, alert: t('errors.messages.default') }, status: :unprocessable_entity if errors.present?
   end
 
   def validate_date(value)

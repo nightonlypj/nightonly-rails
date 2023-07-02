@@ -18,9 +18,9 @@ class SlackUsersController < ApplicationAuthController
     @memberids.each do |name, memberid|
       slack_user = slack_users[name]
       if slack_user.blank?
-        insert_datas.push(slack_domain_id: slack_domains[name].id, user_id: current_user.id, memberid: memberid, created_at: now, updated_at: now)
+        insert_datas.push(slack_domain_id: slack_domains[name].id, user_id: current_user.id, memberid:, created_at: now, updated_at: now)
       elsif memberid != slack_user.memberid
-        update_datas.push(slack_user.attributes.merge(memberid: memberid, updated_at: now))
+        update_datas.push(slack_user.attributes.merge(memberid:, updated_at: now))
       end
     end
     SlackUser.insert_all!(insert_datas) if insert_datas.present?
@@ -68,7 +68,7 @@ class SlackUsersController < ApplicationAuthController
       end
     end
 
-    render './failure', locals: { errors: errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if errors.present?
+    render './failure', locals: { errors:, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if errors.present?
   end
 
   def current_members

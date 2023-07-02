@@ -18,19 +18,19 @@ RSpec.describe NoticeMailer, type: :mailer do
   describe '#incomplete_task' do
     let(:mail) do
       NoticeMailer.with(
-        target_date: target_date,
-        send_history: send_history,
-        next_task_events: next_task_events,
-        expired_task_events: expired_task_events,
-        end_today_task_events: end_today_task_events,
-        date_include_task_events: date_include_task_events,
-        completed_task_events: completed_task_events,
-        force_raise: force_raise
+        target_date:,
+        send_history:,
+        next_task_events:,
+        expired_task_events:,
+        end_today_task_events:,
+        date_include_task_events:,
+        completed_task_events:,
+        force_raise:
       ).incomplete_task
     end
     let(:mail_subject) { 'mailer.notice.incomplete_task.subject' }
     let_it_be(:space) { FactoryBot.create(:space) }
-    let_it_be(:send_setting) { FactoryBot.create(:send_setting, :email, space: space) }
+    let_it_be(:send_setting) { FactoryBot.create(:send_setting, :email, space:) }
     let(:current_send_history) { SendHistory.find(send_history.id) }
 
     # テスト内容
@@ -126,7 +126,7 @@ RSpec.describe NoticeMailer, type: :mailer do
     end
 
     context '通知対象が開始確認' do
-      let(:send_history) { FactoryBot.build(:send_history, :start, :email, send_setting: send_setting, target_count: 0) }
+      let(:send_history) { FactoryBot.build(:send_history, :start, :email, send_setting:, target_count: 0) }
       let(:next_task_events)         { [] }
       let(:expired_task_events)      { [] }
       let(:end_today_task_events)    { [] }
@@ -136,13 +136,13 @@ RSpec.describe NoticeMailer, type: :mailer do
       it_behaves_like 'target_date'
     end
     context '通知対象が翌営業日・終了確認' do
-      let(:send_history) { FactoryBot.build(:send_history, :next, :email, send_setting: send_setting, target_count: 10) }
+      let(:send_history) { FactoryBot.build(:send_history, :next, :email, send_setting:, target_count: 10) }
       include_context 'タスクイベント作成', 2, 2, 2, 2, 2
       let(:force_raise) { nil }
       it_behaves_like 'target_date'
     end
     context '例外' do
-      let(:send_history) { FactoryBot.build(:send_history, :email, send_setting: send_setting, target_count: 0) }
+      let(:send_history) { FactoryBot.build(:send_history, :email, send_setting:, target_count: 0) }
       let(:next_task_events)         { [] }
       let(:expired_task_events)      { [] }
       let(:end_today_task_events)    { [] }

@@ -80,12 +80,12 @@ namespace :task_event do
 
   # タスクイベント作成
   def create_task_events(dry_run, space, target_date, next_start_date, start_date, end_date)
-    task_cycles = TaskCycle.active.where(space: space).by_month(cycle_months(start_date, end_date) + [nil])
+    task_cycles = TaskCycle.active.where(space:).by_month(cycle_months(start_date, end_date) + [nil])
                            .eager_load(:task).by_task_period(target_date, end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
     @logger.info("task_cycles.count: #{task_cycles.count}")
     return 0 if task_cycles.count == 0
 
-    @task_events = TaskEvent.where(space: space, started_date: start_date..)
+    @task_events = TaskEvent.where(space:, started_date: start_date..)
                             .eager_load(task_cycle: :task).merge(Task.order(:priority)).order(:id)
     set_exist_task_events
     @logger.debug("@exist_task_events: #{@exist_task_events}")
@@ -141,12 +141,12 @@ namespace :task_event do
     return 0 unless enable_send_target.values.any?
 
     # REVIEW: dry_runでは今回作成分が対象にならない
-    @processing_task_events = TaskEvent.where(space: space).where.not(status: TaskEvent::NOT_NOTICE_STATUS)
+    @processing_task_events = TaskEvent.where(space:).where.not(status: TaskEvent::NOT_NOTICE_STATUS)
                                        .eager_load(task_cycle: :task).order(:status).merge(Task.order(:priority)).order(:id)
     set_task_event_datas(notice_target, target_date)
 
     if send_setting["#{notice_target}_notice_completed"]
-      @completed_task_events = TaskEvent.where(space: space, status: TaskEvent::NOT_NOTICE_STATUS,
+      @completed_task_events = TaskEvent.where(space:, status: TaskEvent::NOT_NOTICE_STATUS,
                                                last_completed_at: complete_start_date.beginning_of_day..target_date.end_of_day)
                                         .eager_load(task_cycle: :task).order(:last_completed_at)
     else
@@ -158,7 +158,7 @@ namespace :task_event do
     SendHistory.send_targets.each_key do |send_target|
       next unless enable_send_target[send_target]
 
-      send_history = SendHistory.new(history_params.merge(send_target: send_target, started_at: Time.current))
+      send_history = SendHistory.new(history_params.merge(send_target:, started_at: Time.current))
       if !send_setting["#{notice_target}_notice_required"] && @processing_task_events.count == 0 && @completed_task_events.count == 0
         send_history.status = :skip
         send_history.completed_at = Time.current
@@ -176,8 +176,8 @@ namespace :task_event do
       when :email
         # NOTE: send_history.save!はNoticeMailerで実施
         NoticeMailer.with(
-          target_date: target_date,
-          send_history: send_history,
+          target_date:,
+          send_history:,
           next_task_events: @next_task_events.values,
           expired_task_events: @expired_task_events.values,
           end_today_task_events: @end_today_task_events.values,
@@ -198,7 +198,7 @@ namespace :task_event do
   # 送信対象毎の通知有無 # NOTE: 最終ステータスが失敗の場合は再通知
   def get_enable_send_target(space, target_date, notice_target, send_setting)
     last_statuss = {}
-    send_histories = SendHistory.where(space: space, target_date: target_date, notice_target: notice_target).order(id: :desc)
+    send_histories = SendHistory.where(space:, target_date:, notice_target:).order(id: :desc)
     send_histories.each do |send_history|
       last_statuss[send_history.send_target] = send_history.status unless last_statuss.key?(send_history.send_target)
       break if SendHistory.send_targets.keys - last_statuss.keys == []
@@ -237,10 +237,10 @@ namespace :task_event do
 
   def send_history_params(space, send_setting, notice_target, target_date)
     {
-      space: space,
-      send_setting: send_setting,
-      target_date: target_date,
-      notice_target: notice_target,
+      space:,
+      send_setting:,
+      target_date:,
+      notice_target:,
       target_count: @processing_task_events.count + @completed_task_events.count,
       next_task_event_ids: @next_task_events.present? ? @next_task_events.keys.join(',') : nil,
       expired_task_event_ids: @expired_task_events.present? ? @expired_task_events.keys.join(',') : nil,

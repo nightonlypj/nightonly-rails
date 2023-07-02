@@ -6,14 +6,14 @@ RSpec.describe SendHistoriesController, type: :routing do
 
     it 'routes to #index' do
       expect(get: '/send_histories').not_to be_routable
-      expect(get: "/send_histories/#{space_code}").to route_to('send_histories#index', space_code: space_code)
-      expect(get: "/send_histories/#{space_code}.json").to route_to('send_histories#index', space_code: space_code, format: 'json')
+      expect(get: "/send_histories/#{space_code}").to route_to('send_histories#index', space_code:)
+      expect(get: "/send_histories/#{space_code}.json").to route_to('send_histories#index', space_code:, format: 'json')
     end
 
     it 'routes to #show' do
       # expect(get: '/send_histories/1').not_to be_routable # NOTE: send_histories#index
-      expect(get: "/send_histories/#{space_code}/detail/1").to route_to('send_histories#show', space_code: space_code, id: '1')
-      expect(get: "/send_histories/#{space_code}/detail/1.json").to route_to('send_histories#show', space_code: space_code, id: '1', format: 'json')
+      expect(get: "/send_histories/#{space_code}/detail/1").to route_to('send_histories#show', space_code:, id: '1')
+      expect(get: "/send_histories/#{space_code}/detail/1.json").to route_to('send_histories#show', space_code:, id: '1', format: 'json')
     end
 
     it 'routes to #new' do

@@ -56,24 +56,24 @@ RSpec.describe 'SendSetting', type: :request do
       end
       context 'ある（1件）、Slack/メール通知しない、最終更新者がいない）' do
         let(:slack_user) { nil }
-        let_it_be(:send_setting) { FactoryBot.create(:send_setting, space: space, last_updated_user: nil) }
+        let_it_be(:send_setting) { FactoryBot.create(:send_setting, space:, last_updated_user: nil) }
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'
       end
       context 'ある（2件（変更あり）、Slack/メール通知する、最終更新者がいる）' do
-        before_all { FactoryBot.create(:send_setting, space: space) }
-        let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain: slack_domain, user: user) if user.present? }
+        before_all { FactoryBot.create(:send_setting, space:) }
+        let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain:, user:) if user.present? }
         let_it_be(:send_setting) do
-          FactoryBot.create(:send_setting, :changed, :slack, :email, space: space, slack_domain: slack_domain, last_updated_user: last_updated_user)
+          FactoryBot.create(:send_setting, :changed, :slack, :email, space:, slack_domain:, last_updated_user:)
         end
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)'
       end
       context 'ある（2件（変更あり）、Slack/メール通知しない（通知先設定あり）、最終更新者がアカウント削除済み）' do
-        before_all { FactoryBot.create(:send_setting, space: space) }
-        let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain: slack_domain, user: user) if user.present? }
+        before_all { FactoryBot.create(:send_setting, space:) }
+        let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain:, user:) if user.present? }
         let_it_be(:send_setting) do
-          FactoryBot.create(:send_setting, :changed, :slack, :email, space: space, slack_domain: slack_domain, last_updated_user: last_updated_user,
+          FactoryBot.create(:send_setting, :changed, :slack, :email, space:, slack_domain:, last_updated_user:,
                                                                      slack_enabled: false, email_enabled: false)
         end
         it_behaves_like 'ToNG(html)', 406
@@ -82,7 +82,7 @@ RSpec.describe 'SendSetting', type: :request do
     end
 
     shared_examples_for '[APIログイン中/削除予約済み][*]権限がある' do |power|
-      let_it_be(:member) { FactoryBot.create(:member, power, space: space, user: user) }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '通知設定'
     end
     shared_examples_for '[*][公開]権限がない' do

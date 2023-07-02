@@ -8,7 +8,7 @@ module TaskCyclesConcern
   end
 
   def set_exist_task_events
-    @exist_task_events = @task_events.map { |task_event| [{ task_id: task_event.task_cycle.task_id, ended_date: task_event.ended_date }, true] }.to_h
+    @exist_task_events = @task_events.to_h { |task_event| [{ task_id: task_event.task_cycle.task_id, ended_date: task_event.ended_date }, true] }
   end
 
   def cycle_months(start_date, end_date)

@@ -35,18 +35,18 @@ RSpec.describe 'Tasks', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中/削除予約済み][*][ある]タスクIDが存在する' do
-      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
-      let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, :weekly, task: task, order: 1)] }
+      let_it_be(:task) { FactoryBot.create(:task, space:, created_user: space.created_user) }
+      let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, :weekly, task:, order: 1)] }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToOK(json)'
     end
     shared_examples_for '[*][公開][ない]タスクIDが存在する' do
-      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
+      let_it_be(:task) { FactoryBot.create(:task, space:, created_user: space.created_user) }
       let_it_be(:task_cycles) do
-        task_cycle = FactoryBot.create(:task_cycle, :yearly, :week, task: task, order: 3)
+        task_cycle = FactoryBot.create(:task_cycle, :yearly, :week, task:, order: 3)
         [
-          FactoryBot.create(:task_cycle, :monthly, :day, task: task, order: 1),
-          FactoryBot.create(:task_cycle, :yearly, :business_day, task: task, order: 2),
+          FactoryBot.create(:task_cycle, :monthly, :day, task:, order: 1),
+          FactoryBot.create(:task_cycle, :yearly, :business_day, task:, order: 2),
           task_cycle # NOTE: 並び順のテストの為、先にcreateする
         ]
       end
@@ -60,7 +60,7 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     shared_examples_for '[APIログイン中/削除予約済み][*]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space: space, user: user) }
+      before_all { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '[APIログイン中/削除予約済み][*][ある]タスクIDが存在する'
       it_behaves_like '[*][*][*]タスクIDが存在しない'
     end
@@ -69,12 +69,12 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like '[*][*][*]タスクIDが存在しない'
     end
     shared_examples_for '[未ログイン][非公開]権限がない' do
-      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
+      let_it_be(:task) { FactoryBot.create(:task, space:, created_user: space.created_user) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 401
     end
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do
-      let_it_be(:task) { FactoryBot.create(:task, space: space, created_user: space.created_user) }
+      let_it_be(:task) { FactoryBot.create(:task, space:, created_user: space.created_user) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 403
     end

@@ -5,7 +5,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :slack_enabled' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled: slack_enabled) }
+    let(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled:) }
 
     # テストケース
     context 'ない' do
@@ -32,7 +32,7 @@ RSpec.describe SendSetting, type: :model do
   #   Webhook URL: ない, 最大文字数と同じ, 最大文字数より多い, 不正値
   #   通知: する, しない
   describe 'validates :slack_webhook_url' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled: slack_enabled, slack_webhook_url: slack_webhook_url) }
+    let(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled:, slack_webhook_url:) }
     let(:url) { Faker::Internet.url(scheme: 'https') }
     let(:url_maximum) { url + ('a' * (Settings.slack_webhook_url_maximum - url.length)) }
 
@@ -76,7 +76,7 @@ RSpec.describe SendSetting, type: :model do
   #   メンション: ない, 最大文字数と同じ, 最大文字数より多い, 不正値
   #   通知: する, しない
   describe 'validates :slack_mention' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled: slack_enabled, slack_mention: slack_mention) }
+    let(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled:, slack_mention:) }
     let(:mention) { '!here' }
     let(:mention_maximum) { mention + ('a' * (Settings.slack_mention_maximum - mention.length)) }
 
@@ -118,7 +118,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :email_enabled' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, :email, email_enabled: email_enabled) }
+    let(:model) { FactoryBot.build_stubbed(:send_setting, :email, email_enabled:) }
 
     # テストケース
     context 'ない' do
@@ -145,7 +145,7 @@ RSpec.describe SendSetting, type: :model do
   #   アドレス: ない, 正常, 不正値
   #   通知: する, しない
   describe 'validates :email_address' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, :email, email_enabled: email_enabled, email_address: email_address) }
+    let(:model) { FactoryBot.build_stubbed(:send_setting, :email, email_enabled:, email_address:) }
 
     # テストケース
     shared_examples_for '[InValid]通知' do
@@ -183,7 +183,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, -1, 0, 22, 23, 文字
   describe 'validates :start_notice_start_hour' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_start_hour: start_notice_start_hour, next_notice_start_hour: 23) }
+    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_start_hour:, next_notice_start_hour: 23) }
 
     # テストケース
     context 'ない' do
@@ -219,7 +219,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :start_notice_completed' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_completed: start_notice_completed) }
+    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_completed:) }
 
     # テストケース
     context 'ない' do
@@ -245,7 +245,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :start_notice_required' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_required: start_notice_required) }
+    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_required:) }
 
     # テストケース
     context 'ない' do
@@ -274,7 +274,7 @@ RSpec.describe SendSetting, type: :model do
   #   (開始確認)開始時間が10
   #     10, 11
   describe 'validates :next_notice_start_hour' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_start_hour: start_notice_start_hour, next_notice_start_hour: next_notice_start_hour) }
+    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_start_hour:, next_notice_start_hour:) }
 
     # テストケース
     context '(開始確認)開始時間が0' do
@@ -326,7 +326,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :next_notice_completed' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, next_notice_completed: next_notice_completed) }
+    let(:model) { FactoryBot.build_stubbed(:send_setting, next_notice_completed:) }
 
     # テストケース
     context 'ない' do
@@ -352,7 +352,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :next_notice_required' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, next_notice_required: next_notice_required) }
+    let(:model) { FactoryBot.build_stubbed(:send_setting, next_notice_required:) }
 
     # テストケース
     context 'ない' do

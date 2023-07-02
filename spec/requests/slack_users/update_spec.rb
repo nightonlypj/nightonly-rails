@@ -15,7 +15,7 @@ RSpec.describe 'SlackUser', type: :request do
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #update' do
-    subject { post update_slack_user_path(format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
+    subject { post update_slack_user_path(format: subject_format), params:, headers: auth_headers.merge(accept_headers) }
     let_it_be(:spaces) { FactoryBot.create_list(:space, 3) }
     let_it_be(:slack_domains) { FactoryBot.create_list(:slack_domain, 3) }
     let_it_be(:send_settings) do
@@ -26,7 +26,7 @@ RSpec.describe 'SlackUser', type: :request do
     end
     let_it_be(:other_send_setting) { FactoryBot.create(:send_setting, :slack, slack_domain: slack_domains[2]) }
     let_it_be(:valid_memberid) { Faker::Number.hexadecimal(digits: Settings.slack_user_memberid_minimum).upcase }
-    let(:current_slack_users) { SlackUser.where(user: user).eager_load(:slack_domain).order(:id) }
+    let(:current_slack_users) { SlackUser.where(user:).eager_load(:slack_domain).order(:id) }
 
     # テスト内容
     shared_examples_for 'OK' do
@@ -83,7 +83,7 @@ RSpec.describe 'SlackUser', type: :request do
         }
       end
       context do
-        before_all { spaces.each { |space| FactoryBot.create(:member, space: space, user: user) } }
+        before_all { spaces.each { |space| FactoryBot.create(:member, space:, user:) } }
         context '有効なパラメータ（SlackメンバーIDがない、Slackメンバーに存在しない、1件）' do # 未設定時のお知らせ表示を消すのに利用
           let(:slack_user) { nil }
           let(:params) { { slack_users: [{ name: slack_domains[0].name, memberid: nil }] } }
@@ -97,7 +97,7 @@ RSpec.describe 'SlackUser', type: :request do
         context '有効なパラメータ（SlackメンバーIDが最小文字数と同じ、Slackメンバーに存在する、1件）' do
           let_it_be(:before_memberid) { 'A' * Settings.slack_user_memberid_minimum }
           let_it_be(:after_memberid)  { 'B' * Settings.slack_user_memberid_minimum }
-          let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain: slack_domains[0], user: user, memberid: before_memberid) }
+          let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain: slack_domains[0], user:, memberid: before_memberid) }
           let(:params) { { slack_users: [{ name: slack_domains[0].name, memberid: after_memberid }] } }
           let(:expect_slack_users) { { slack_domains[0].name => after_memberid } }
           let(:except_memberids) { expect_slack_users.merge(slack_domains[1].name => nil) }
@@ -108,7 +108,7 @@ RSpec.describe 'SlackUser', type: :request do
         end
         context '有効なパラメータ（SlackメンバーIDがない/最大文字数と同じ、Slackメンバーに存在する/しない、2件）' do
           let_it_be(:after_memberid) { 'B' * Settings.slack_user_memberid_maximum }
-          let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain: slack_domains[0], user: user, memberid: valid_memberid) }
+          let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain: slack_domains[0], user:, memberid: valid_memberid) }
           let(:params) do
             {
               slack_users: [
@@ -196,7 +196,7 @@ RSpec.describe 'SlackUser', type: :request do
     end
     context 'APIログイン中（削除予約済み）' do
       include_context 'APIログイン処理', :destroy_reserved
-      before_all { spaces.each { |space| FactoryBot.create(:member, space: space, user: user) } }
+      before_all { spaces.each { |space| FactoryBot.create(:member, space:, user:) } }
       let(:slack_user) { nil }
       let(:params) { { slack_users: [{ name: slack_domains[0].name, memberid: valid_memberid }] } }
       it_behaves_like 'NG(html)'

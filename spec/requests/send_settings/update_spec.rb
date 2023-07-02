@@ -19,7 +19,7 @@ RSpec.describe 'SendSetting', type: :request do
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #update' do
-    subject { post update_send_setting_path(space_code: space.code, format: subject_format), params: params, headers: auth_headers.merge(accept_headers) }
+    subject { post update_send_setting_path(space_code: space.code, format: subject_format), params:, headers: auth_headers.merge(accept_headers) }
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
     let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
@@ -50,9 +50,9 @@ RSpec.describe 'SendSetting', type: :request do
       }
     end
     let(:current_send_setting) do
-      SendSetting.active.where(space: space).eager_load(:slack_domain, :last_updated_user).order(updated_at: :desc, id: :desc).first
+      SendSetting.active.where(space:).eager_load(:slack_domain, :last_updated_user).order(updated_at: :desc, id: :desc).first
     end
-    let(:current_send_settings_inactive) { SendSetting.inactive.where(space: space) }
+    let(:current_send_settings_inactive) { SendSetting.inactive.where(space:) }
 
     shared_context 'valid_condition' do
       let(:attributes) { valid_attributes }
@@ -61,7 +61,7 @@ RSpec.describe 'SendSetting', type: :request do
       let(:send_setting) { nil }
       let(:send_setting_inactive) { nil }
       let_it_be(:space) { space_private }
-      let_it_be(:member) { FactoryBot.create(:member, space: space, user: user) if user.present? }
+      let_it_be(:member) { FactoryBot.create(:member, space:, user:) if user.present? }
     end
 
     # テスト内容
@@ -130,7 +130,7 @@ RSpec.describe 'SendSetting', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中][*]権限がある' do |power|
-      let_it_be(:member) { FactoryBot.create(:member, power, space: space, user: user) }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       context 'パラメータなし' do
         let(:params) { nil }
         let(:send_setting) { nil }
@@ -167,7 +167,7 @@ RSpec.describe 'SendSetting', type: :request do
         let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes }
         let(:slack_name) { valid_slack_name }
-        let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, :before_updated, space: space) }
+        let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, :before_updated, space:) }
         let(:send_setting_inactive) { nil }
         let(:except_send_setting_inactive) { send_setting }
         let(:slack_user) { nil }
@@ -183,7 +183,7 @@ RSpec.describe 'SendSetting', type: :request do
         let_it_be(:slack_name) { valid_slack_name }
         let_it_be(:send_setting) do
           slack_domain = FactoryBot.create(:slack_domain, name: slack_name)
-          FactoryBot.create(:send_setting, :before_updated, **valid_attributes, space: space, slack_domain: slack_domain)
+          FactoryBot.create(:send_setting, :before_updated, **valid_attributes, space:, slack_domain:)
         end
         let(:send_setting_inactive) { nil }
         let(:except_send_setting_inactive) { nil }
@@ -198,13 +198,13 @@ RSpec.describe 'SendSetting', type: :request do
         let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes }
         let_it_be(:slack_name) { valid_slack_name }
-        let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, :before_updated, space: space) }
+        let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, :before_updated, space:) }
         let_it_be(:slack_domain) { FactoryBot.create(:slack_domain, name: slack_name) }
         let_it_be(:send_setting_inactive) do
-          FactoryBot.create(:send_setting, :deleted, :before_updated, **valid_attributes, space: space, slack_domain: slack_domain)
+          FactoryBot.create(:send_setting, :deleted, :before_updated, **valid_attributes, space:, slack_domain:)
         end
         let(:except_send_setting_inactive) { send_setting }
-        let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain: slack_domain, user: user) }
+        let_it_be(:slack_user) { FactoryBot.create(:slack_user, slack_domain:, user:) }
         let(:update_nil) { {} }
         it_behaves_like 'NG(html)'
         it_behaves_like 'ToNG(html)', 406
@@ -297,7 +297,7 @@ RSpec.describe 'SendSetting', type: :request do
       end
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
-      let_it_be(:member) { FactoryBot.create(:member, power, space: space, user: user) if power.present? }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) if power.present? }
       let(:attributes) { valid_attributes }
       let(:slack_name) { valid_slack_name }
       let(:params) { { send_setting: params_attributes } }

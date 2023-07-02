@@ -89,7 +89,7 @@ RSpec.describe 'SendHistory', type: :request do
     end
 
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
-      let_it_be(:member) { FactoryBot.create(:member, power, space: space, user: user) }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '通知履歴'
     end
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do

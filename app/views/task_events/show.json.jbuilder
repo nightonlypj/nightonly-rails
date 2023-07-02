@@ -6,7 +6,7 @@ json.task do
 
   json.cycles do
     json.array! @task.task_cycles_active do |task_cycle|
-      json.partial! './tasks/task_cycle', task_cycle: task_cycle
+      json.partial! './tasks/task_cycle', task_cycle:
     end
   end
 end

@@ -10,8 +10,8 @@ RSpec.describe SendSettingsController, type: :routing do
 
     it 'routes to #show' do
       expect(get: '/send_settings/1').not_to be_routable
-      expect(get: "/send_settings/#{space_code}/detail").to route_to('send_settings#show', space_code: space_code)
-      expect(get: "/send_settings/#{space_code}/detail.json").to route_to('send_settings#show', space_code: space_code, format: 'json')
+      expect(get: "/send_settings/#{space_code}/detail").to route_to('send_settings#show', space_code:)
+      expect(get: "/send_settings/#{space_code}/detail.json").to route_to('send_settings#show', space_code:, format: 'json')
     end
 
     it 'routes to #new' do
@@ -29,8 +29,8 @@ RSpec.describe SendSettingsController, type: :routing do
     it 'routes to #update' do
       expect(put: '/send_settings/1').not_to be_routable
       expect(patch: '/send_settings/1').not_to be_routable
-      expect(post: "/send_settings/#{space_code}/update").to route_to('send_settings#update', space_code: space_code)
-      expect(post: "/send_settings/#{space_code}/update.json").to route_to('send_settings#update', space_code: space_code, format: 'json')
+      expect(post: "/send_settings/#{space_code}/update").to route_to('send_settings#update', space_code:)
+      expect(post: "/send_settings/#{space_code}/update.json").to route_to('send_settings#update', space_code:, format: 'json')
     end
 
     it 'routes to #destroy' do

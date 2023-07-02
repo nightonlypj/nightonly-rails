@@ -4,7 +4,7 @@ module TasksConcern
   private
 
   def set_task(id = params[:id])
-    @task = Task.where(space: @space, id: id).eager_load(:task_cycles_active, :created_user, :last_updated_user)
+    @task = Task.where(space: @space, id:).eager_load(:task_cycles_active, :created_user, :last_updated_user)
                 .merge(TaskCycle.order(:order, :updated_at, :id)).first
     response_not_found if @task.blank?
   end
