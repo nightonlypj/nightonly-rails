@@ -40,9 +40,9 @@ class Task < ApplicationRecord
     return if before && active && after
 
     task = none
-    task = task.or(where(started_date: (Time.current.to_date + 1.day)..)) if before
-    task = task.or(where('started_date <= ? AND (ended_date IS NULL OR ended_date >= ?)', Time.current.to_date, Time.current.to_date)) if active
-    task = task.or(where(ended_date: ..(Time.current.to_date - 1.day))) if after
+    task = task.or(where(started_date: (Time.zone.today + 1.day)..)) if before
+    task = task.or(where('started_date <= ? AND (ended_date IS NULL OR ended_date >= ?)', Time.zone.today, Time.zone.today)) if active
+    task = task.or(where(ended_date: ..(Time.zone.today - 1.day))) if after
 
     task
   }
@@ -65,7 +65,7 @@ class Task < ApplicationRecord
   def validate_started_date
     return if started_date.blank? || (id.present? && !started_date_changed?)
 
-    errors.add(:started_date, :before) if started_date < Time.current.to_date
+    errors.add(:started_date, :before) if started_date < Time.zone.today
   end
 
   def validate_ended_date

@@ -4,7 +4,7 @@ FactoryBot.define do
     send_target   { :slack }
     # status        { :waiting }
     started_at    { Time.current }
-    target_date   { Time.current.to_date }
+    target_date   { Time.zone.today }
     target_count  { 0 }
 
     # :nocov:

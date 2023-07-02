@@ -14,7 +14,7 @@ class NoticeSlack::IncompleteTaskJob < ApplicationJob
     @default_mention = " <#{html_escape(@send_history.send_setting.slack_mention)}>" if @send_history.send_setting.slack_mention.present?
     set_assigned_slack_users(@send_history)
 
-    add_target_date = @send_history.target_date == Time.current.to_date ? nil : "(#{I18n.l(@send_history.target_date)})"
+    add_target_date = @send_history.target_date == Time.zone.today ? nil : "(#{I18n.l(@send_history.target_date)})"
     message = I18n.t('notifier.task_event.message', name: "<#{@space_url}|#{html_escape(@send_history.space.name)}>")
     notice_completed = @send_history.send_setting["#{@send_history.notice_target}_notice_completed"]
     username = "#{I18n.t('app_name')}#{I18n.t('sub_title_short')}#{Settings.env_name}"

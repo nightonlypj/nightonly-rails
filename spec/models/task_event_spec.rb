@@ -72,7 +72,7 @@ RSpec.describe TaskEvent, type: :model do
   #   最終終了日: ない, 開始日より前, 開始日の翌月末, 開始日の翌々月初
   describe 'validates :last_ended_date' do
     let(:model) { FactoryBot.build_stubbed(:task_event, started_date:, last_ended_date:) }
-    let(:started_date) { Time.current.to_date }
+    let(:started_date) { Time.zone.today }
 
     # テストケース
     context 'ない' do

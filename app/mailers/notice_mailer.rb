@@ -1,7 +1,7 @@
 class NoticeMailer < ApplicationMailer
   # 未完了タスクのお知らせ（メール）
   def incomplete_task
-    @target_date = params[:target_date] == Time.current.to_date ? nil : params[:target_date]
+    @target_date = params[:target_date] == Time.zone.today ? nil : params[:target_date]
     @send_history = params[:send_history]
     @next_task_events = params[:next_task_events]
     @expired_task_events = params[:expired_task_events]

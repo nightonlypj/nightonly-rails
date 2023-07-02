@@ -21,7 +21,7 @@ RSpec.describe 'TaskEvents', type: :request do
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
     let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
-    let(:valid_attributes) { { last_ended_date: Time.current.to_date, status: :untreated, memo: nil } }
+    let(:valid_attributes) { { last_ended_date: Time.zone.today, status: :untreated, memo: nil } }
     let(:invalid_attributes) { valid_attributes.merge(status: nil) }
     let(:current_task_event) { TaskEvent.find(task_event.id) }
 

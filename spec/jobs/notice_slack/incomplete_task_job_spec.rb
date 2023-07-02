@@ -163,12 +163,12 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
                                                  start_notice_completed: notice_completed, next_notice_completed: notice_completed)
       end
       context '当日' do
-        let_it_be(:target_date) { Time.current.to_date }
+        let_it_be(:target_date) { Time.zone.today }
         let(:add_target_date) { nil }
         it_behaves_like '通知履歴の通知対象'
       end
       context '前日' do
-        let_it_be(:target_date) { Time.current.to_date - 1.day }
+        let_it_be(:target_date) { Time.zone.today - 1.day }
         let(:add_target_date) { "(#{I18n.l(target_date)})" }
         it_behaves_like '通知履歴の通知対象'
       end

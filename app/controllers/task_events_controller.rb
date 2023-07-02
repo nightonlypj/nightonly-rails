@@ -24,7 +24,7 @@ class TaskEventsController < ApplicationAuthController
       @tasks[task_cycle.task_id] = task_cycle.task if @tasks[task_cycle.task_id].blank?
     end
 
-    next_start_date = [@start_date, Time.current.to_date].max
+    next_start_date = [@start_date, Time.zone.today].max
     return if next_start_date > @end_date
 
     set_exist_task_events

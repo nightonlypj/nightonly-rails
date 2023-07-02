@@ -5,8 +5,8 @@ FactoryBot.define do
     summary          { "#{title}の概要" }
     premise          { "#{title}の前提" }
     process          { "#{title}の手順" }
-    started_date     { Time.current.to_date }
-    ended_date       { (Time.current + 1.year).to_date }
+    started_date     { Time.zone.today }
+    ended_date       { started_date + 1.year }
     association :space
     association :created_user, factory: :user
 
@@ -26,17 +26,17 @@ FactoryBot.define do
 
     # 開始前
     trait :before do
-      started_date { Time.current.to_date + 1.day }
+      started_date { Time.zone.today + 1.day }
       ended_date   { started_date }
     end
     # 期間内
     trait :active do
-      # started_date { Time.current.to_date }
+      # started_date { Time.zone.today }
       ended_date   { started_date }
     end
     # 終了後
     trait :after do
-      started_date { Time.current.to_date - 1.day }
+      started_date { Time.zone.today - 1.day }
       ended_date   { started_date }
       to_create { |instance| instance.save(validate: false) }
     end

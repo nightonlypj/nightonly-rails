@@ -2,7 +2,7 @@ namespace :task_event do
   namespace :create_send_notice do
     desc '期間内のタスクイベント作成＋通知（作成・通知は開始時間以降）'
     task(:now, [:dry_run] => :environment) do |_, args|
-      Rake::Task['task_event:create_send_notice'].invoke(Time.current.to_date, args.dry_run, 'true')
+      Rake::Task['task_event:create_send_notice'].invoke(Time.zone.today, args.dry_run, 'true')
     end
   end
 
@@ -18,7 +18,7 @@ namespace :task_event do
     rescue StandardError => e
       raise "日付の形式が不正です。(#{e.message})"
     end
-    raise '翌日以降の日付は指定できません。' if target_date >= Time.current.to_date + 1.day
+    raise '翌日以降の日付は指定できません。' if target_date >= Time.zone.today + 1.day
 
     args.with_defaults(dry_run: 'true', send_notice: 'false')
     dry_run = (args.dry_run != 'false')

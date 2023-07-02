@@ -124,17 +124,17 @@ RSpec.describe Task, type: :model do
         it_behaves_like 'InValid'
       end
       context '現在日' do
-        let(:started_date) { Time.current.to_date }
+        let(:started_date) { Time.zone.today }
         it_behaves_like 'Valid'
       end
       context '過去日' do
-        let(:started_date) { (Time.current - 1.day).to_date }
+        let(:started_date) { Time.zone.today - 1.day }
         let(:messages) { { started_date: [get_locale('activerecord.errors.models.task.attributes.started_date.before')] } }
         it_behaves_like 'InValid'
       end
     end
     context '更新' do
-      let(:started_date) { (Time.current - 1.day).to_date }
+      let(:started_date) { Time.zone.today - 1.day }
       context '変更なし' do
         let(:model) { FactoryBot.create(:task, :skip_validate, started_date:, ended_date: nil) }
         it_behaves_like 'Valid'
@@ -152,7 +152,7 @@ RSpec.describe Task, type: :model do
       context '過去日' do
         let(:model) do
           result = FactoryBot.create(:task, :skip_validate, started_date:, ended_date: nil)
-          result.started_date = (Time.current - 2.days).to_date
+          result.started_date = Time.zone.today - 2.days
 
           result
         end
@@ -162,7 +162,7 @@ RSpec.describe Task, type: :model do
       context '現在日' do
         let(:model) do
           result = FactoryBot.create(:task, :skip_validate, started_date:, ended_date: nil)
-          result.started_date = Time.current.to_date
+          result.started_date = Time.zone.today
 
           result
         end
@@ -176,7 +176,7 @@ RSpec.describe Task, type: :model do
   #   ない, 開始日より前, 開始日と同じ, 開始日より後
   describe 'validates :ended_date' do
     let(:model) { FactoryBot.build_stubbed(:task, started_date:, ended_date:) }
-    let(:started_date) { Time.current.to_date }
+    let(:started_date) { Time.zone.today }
 
     # テストケース
     context 'ない' do

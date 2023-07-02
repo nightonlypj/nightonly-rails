@@ -8,7 +8,7 @@ class NoticeMailerPreview < ActionMailer::Preview
     assigned_user = FactoryBot.build_stubbed(:user)
 
     NoticeMailer.with(
-      target_date: (Time.current - (params[:target_date].present? ? params[:target_date].to_i : rand(2)).days).to_date,
+      target_date: Time.zone.today - (params[:target_date].present? ? params[:target_date].to_i : rand(2)).days,
       send_history:,
       next_task_events: next_task_events(notice_target, space),
       expired_task_events: expired_task_events(space, assigned_user),
