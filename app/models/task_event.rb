@@ -3,7 +3,8 @@ class TaskEvent < ApplicationRecord
 
   belongs_to :space
   belongs_to :task_cycle
-  belongs_to :assigned_user, class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
+  belongs_to :init_assigned_user, class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
+  belongs_to :assigned_user, class_name: 'User', optional: true
   belongs_to :last_updated_user, class_name: 'User', optional: true
 
   validates :code, presence: true

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_06_11_212805) do
+ActiveRecord::Schema.define(version: 2023_07_03_233422) do
 
   create_table "admin_users", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "管理者", force: :cascade do |t|
     t.string "name", null: false, comment: "氏名"
@@ -254,6 +254,17 @@ ActiveRecord::Schema.define(version: 2023_06_11_212805) do
     t.index ["process_priority", "id"], name: "index_spaces5"
   end
 
+  create_table "task_assignes", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "タスク担当者", force: :cascade do |t|
+    t.bigint "space_id", null: false, comment: "スペースID"
+    t.bigint "task_id", null: false, comment: "タスクID"
+    t.text "user_ids", comment: "ユーザーIDs"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["space_id", "task_id"], name: "index_task_assignes1", unique: true
+    t.index ["space_id"], name: "index_task_assignes_on_space_id"
+    t.index ["task_id"], name: "index_task_assignes_on_task_id"
+  end
+
   create_table "task_cycles", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "タスク周期", force: :cascade do |t|
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "task_id", null: false, comment: "タスクID"
@@ -293,8 +304,10 @@ ActiveRecord::Schema.define(version: 2023_06_11_212805) do
     t.datetime "updated_at", precision: 6, null: false
     t.date "last_ended_date", null: false, comment: "最終終了日"
     t.datetime "last_completed_at", comment: "最終完了日時"
+    t.bigint "init_assigned_user_id", comment: "初期担当者ID"
     t.index ["assigned_user_id"], name: "index_task_events_on_assigned_user_id"
     t.index ["code"], name: "index_task_events1", unique: true
+    t.index ["init_assigned_user_id"], name: "index_task_events_on_init_assigned_user_id"
     t.index ["last_updated_user_id"], name: "index_task_events_on_last_updated_user_id"
     t.index ["space_id", "started_date", "id"], name: "index_task_events3"
     t.index ["space_id", "status", "id"], name: "index_task_events4"
@@ -391,6 +404,8 @@ ActiveRecord::Schema.define(version: 2023_06_11_212805) do
   add_foreign_key "send_settings", "spaces"
   add_foreign_key "slack_users", "slack_domains"
   add_foreign_key "slack_users", "users"
+  add_foreign_key "task_assignes", "spaces"
+  add_foreign_key "task_assignes", "tasks"
   add_foreign_key "task_cycles", "spaces"
   add_foreign_key "task_cycles", "tasks"
   add_foreign_key "task_events", "spaces"

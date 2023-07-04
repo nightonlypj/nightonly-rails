@@ -110,3 +110,12 @@
     bulk_update: true
   env:
     development: true
+- file: 'seed/task_assignes_development.yml'
+  model: 'TaskAssigne'
+  insert: true
+  update: true
+  option:
+    bulk_insert: true
+    bulk_update: true
+  env:
+    development: true

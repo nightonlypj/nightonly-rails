@@ -5,6 +5,7 @@ class Task < ApplicationRecord
   has_many :task_cycles, dependent: :destroy
   has_many :task_cycles_active, -> { where(deleted_at: nil) }, class_name: 'TaskCycle'
   has_many :task_cycles_inactive, -> { where.not(deleted_at: nil) }, class_name: 'TaskCycle'
+  has_one :task_assigne, dependent: :destroy
 
   validates :priority, presence: true
   validates :title, presence: true

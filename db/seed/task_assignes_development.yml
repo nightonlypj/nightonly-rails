@@ -1,0 +1,33 @@
+# NOTE: id = task_id
+- id: 11
+  space_id: 1
+  task_id: 11
+  user_ids: '1' # 管理者
+- id: 12
+  space_id: 1
+  task_id: 12
+  user_ids: '3' # 投稿者
+- id: 13
+  space_id: 1
+  task_id: 13
+  user_ids: '13' # 閲覧者 <- 対象外
+- id: 14
+  space_id: 1
+  task_id: 14
+  user_ids: '72' # 未参加 <- 対象外
+- id: 15
+  space_id: 1
+  task_id: 15
+  user_ids: '79' # 削除予約済み <- 対象外
+- id: 16
+  space_id: 1
+  task_id: 16
+  user_ids: '80' # 削除対象 <- 対象外
+- id: 17
+  space_id: 1
+  task_id: 17
+  user_ids: '80,79,72,13,3,1' # 上記全て
+- id: 18
+  space_id: 1
+  task_id: 18
+  user_ids: null # なし
