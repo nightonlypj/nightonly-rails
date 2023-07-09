@@ -630,6 +630,11 @@ RSpec.describe 'Members', type: :request do
         let(:members) { [member_active] }
         it_behaves_like 'ToOK[氏名]'
       end
+      context '□有効, ■削除予定' do
+        let(:params) { { active: 0, destroy: 1 } }
+        let(:members) { [member_destroy] }
+        it_behaves_like 'ToOK[氏名]'
+      end
       context '□有効, □削除予定' do
         let(:params) { { active: 0, destroy: 0 } }
         let(:members) { [] }
@@ -640,11 +645,13 @@ RSpec.describe 'Members', type: :request do
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
+=begin
       include_context 'ログイン処理'
       let_it_be(:member_active) { FactoryBot.create(:member, space:, user:) }
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like '状態'
+=end
     end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'

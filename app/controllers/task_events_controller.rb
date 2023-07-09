@@ -51,15 +51,6 @@ class TaskEventsController < ApplicationAuthController
     after_not_notice_status = TaskEvent::NOT_NOTICE_STATUS.include?(@task_event.status.to_sym)
     @task_event.last_completed_at = Time.current if !before_not_notice_status && after_not_notice_status
     @task_event.last_completed_at = nil if before_not_notice_status && !after_not_notice_status
-
-    if @task_event.assign_myself
-      @task_event.assigned_user = current_user
-      @task_event.assigned_at = Time.current
-    end
-    if @task_event.assign_delete
-      @task_event.assigned_user = nil
-      @task_event.assigned_at = nil
-    end
     @task_event.save!
 
     render locals: { notice: t('notice.task_event.update') }
@@ -111,10 +102,47 @@ class TaskEventsController < ApplicationAuthController
 
   def validate_params_update
     @task_event.assign_attributes(task_event_params.merge(last_updated_user: current_user))
+    @task_event.valid?
+
+    validate_assigned_user(params[:task_event][:assigned_user])
     @detail = params[:detail].to_s == 'true'
-    return if @task_event.valid?
+    return unless @task_event.errors.any?
 
     render './failure', locals: { errors: @task_event.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
+  end
+
+  def validate_assigned_user(params_assigned_user)
+    code = params_assigned_user.present? ? params_assigned_user[:code] : nil
+    if code.blank?
+      @task_event.assigned_user = nil
+      @task_event.assigned_at = nil
+      return
+    end
+
+    user = User.find_by(code:)
+    if user.blank?
+      @task_event.errors.add(:assigned_user, :notfound)
+      return
+    end
+    if user.destroy_reserved?
+      @task_event.errors.add(:assigned_user, :destroy_reserved)
+      return
+    end
+
+    member = Member.find_by(space: @space, user:)
+    if member.blank?
+      @task_event.errors.add(:assigned_user, :member_notfound)
+      return
+    end
+    if member.power_reader?
+      @task_event.errors.add(:assigned_user, :member_power_reader)
+      return
+    end
+
+    return if @task_event.assigned_user == user
+
+    @task_event.assigned_user = user
+    @task_event.assigned_at = Time.current
   end
 
   # Only allow a list of trusted parameters through.
@@ -122,6 +150,6 @@ class TaskEventsController < ApplicationAuthController
     params[:task_event] = TaskEvent.new.attributes if params[:task_event].blank? # NOTE: 変更なしで成功する為
     params[:task_event][:status] = nil if TaskEvent.statuses[params[:task_event][:status]].blank? # NOTE: ArgumentError対策
 
-    params.require(:task_event).permit(:last_ended_date, :status, :assign_myself, :assign_delete, :memo)
+    params.require(:task_event).permit(:last_ended_date, :status, :memo)
   end
 end

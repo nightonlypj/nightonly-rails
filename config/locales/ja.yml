@@ -356,6 +356,11 @@ ja:
               taken: '処理に失敗しました。しばらく時間をあけてから、やり直してください。'
             status:
               blank: '選択してください。'
+            assigned_user:
+              notfound: 'ユーザーが見つかりません。'
+              destroy_reserved: 'アカウント削除予定の為、設定できません。'
+              member_notfound: 'メンバーが見つかりません。'
+              member_power_reader: '閲覧者は設定できません。'
             memo:
               too_long: '%{count}文字以下で入力してください。'
             last_ended_date:

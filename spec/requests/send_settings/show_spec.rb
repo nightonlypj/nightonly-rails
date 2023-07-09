@@ -22,7 +22,6 @@ RSpec.describe 'SendSetting', type: :request do
     let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
     let_it_be(:slack_domain)  { FactoryBot.create(:slack_domain) }
     let_it_be(:last_updated_user) { FactoryBot.create(:user) }
-    let_it_be(:destroy_user)      { FactoryBot.build_stubbed(:user) }
 
     # テスト内容
     shared_examples_for 'ToOK(json/json)' do

@@ -12,7 +12,8 @@ RSpec.describe 'TaskEvents', type: :request do
   #   権限: ある（管理者, 投稿者）, ない（閲覧者, なし）
   #   イベントコード: 存在する, 存在しない
   #   パラメータなし, 有効なパラメータ, 無効なパラメータ
-  #     通知/非通知ステータス変更なし, 通知→非通知/非通知→通知ステータス, 担当なし/自分→担当なし/自分
+  #     通知/非通知ステータス変更なし, 通知→非通知/非通知→通知ステータス, 担当なし/あり→管理者/投稿者/変更なし/なし
+  #     ステータス: ない, 担当: 存在しない, 削除予約済み, 未参加, 閲覧者
   #     detailパラメータ: ない, true, false
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
@@ -21,8 +22,10 @@ RSpec.describe 'TaskEvents', type: :request do
     let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
     let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
     let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
-    let(:valid_attributes) { { last_ended_date: Time.zone.today, status: :untreated, memo: nil } }
-    let(:invalid_attributes) { valid_attributes.merge(status: nil) }
+    let_it_be(:not_exist_user) { FactoryBot.build_stubbed(:user) }
+    let_it_be(:exist_user)     { FactoryBot.create(:user) }
+    let_it_be(:user_destroy_reserved) { FactoryBot.create(:user, :destroy_reserved) }
+    let(:valid_attributes) { { last_ended_date: Time.zone.today, status: :untreated, assigned_user: { code: nil }, memo: nil } }
     let(:current_task_event) { TaskEvent.find(task_event.id) }
 
     shared_context 'valid_condition' do
@@ -86,21 +89,36 @@ RSpec.describe 'TaskEvents', type: :request do
           it_behaves_like 'NG(json)'
           it_behaves_like 'ToNG(json)', 422, { last_ended_date: [get_locale('activerecord.errors.models.task_event.attributes.last_ended_date.blank')] }
         end
-        context '有効なパラメータ（通知ステータス変更なし、担当なし→自分）、detailパラメータがない' do # 未処理 -> 処理中
+        context '有効なパラメータ（通知ステータス変更なし、担当なし→管理者）、detailパラメータがない' do # 未処理 -> 処理中
           let_it_be(:task_event) { FactoryBot.create(:task_event, space:, status: :untreated, assigned_user: nil) }
-          let(:attributes) { valid_attributes.merge(status: :processing, assign_myself: true) }
+          before_all { FactoryBot.create(:member, :admin, space:, user: exist_user) }
+          let(:attributes) { valid_attributes.merge(status: :processing, assigned_user: { code: exist_user.code }) }
           let(:params) { { task_event: attributes } }
           let(:expect_last_completed_at) { { data: nil } }
-          let(:expect_assigned_user_id) { user.id }
+          let(:expect_assigned_user_id) { exist_user.id }
           let(:expect_assigned_at) { { new: true } }
           it_behaves_like 'NG(html)'
           it_behaves_like 'ToNG(html)', 406
           it_behaves_like 'OK(json)'
           it_behaves_like 'ToOK(json)'
         end
-        context '有効なパラメータ（非通知ステータス変更なし、自分→担当なし）、detailパラメータがtrue' do # 完了 -> 対応不要
-          let_it_be(:task_event) { FactoryBot.create(:task_event, :completed, space:, assigned_user: user) }
-          let(:attributes) { valid_attributes.merge(status: :unnecessary, assign_delete: true) }
+        context '有効なパラメータ（通知ステータス変更なし、担当あり→投稿者）、detailパラメータがない' do # 処理中 -> 処理中
+          let_it_be(:task_event) { FactoryBot.create(:task_event, :assigned, space:, status: :processing, assigned_user: user) }
+          before_all { FactoryBot.create(:member, :writer, space:, user: exist_user) }
+          let(:attributes) { valid_attributes.merge(status: :processing, assigned_user: { code: exist_user.code }) }
+          let(:params) { { task_event: attributes } }
+          let(:expect_last_completed_at) { { data: nil } }
+          let(:expect_assigned_user_id) { exist_user.id }
+          let(:expect_assigned_at) { { new: true } }
+          it_behaves_like 'NG(html)'
+          it_behaves_like 'ToNG(html)', 406
+          it_behaves_like 'OK(json)'
+          it_behaves_like 'ToOK(json)'
+        end
+        context '有効なパラメータ（非通知ステータス変更なし、担当あり→なし）、detailパラメータがtrue' do # 完了 -> 対応不要
+          before_all { FactoryBot.create(:member, :admin, space:, user: exist_user) }
+          let_it_be(:task_event) { FactoryBot.create(:task_event, :assigned, :completed, space:, assigned_user: exist_user) }
+          let(:attributes) { valid_attributes.merge(status: :unnecessary, assigned_user: { code: nil }) }
           let(:params) { { task_event: attributes, detail: true } }
           let(:expect_last_completed_at) { { data: task_event.last_completed_at } }
           let(:expect_assigned_user_id) { nil }
@@ -110,21 +128,22 @@ RSpec.describe 'TaskEvents', type: :request do
           it_behaves_like 'OK(json)'
           it_behaves_like 'ToOK(json)'
         end
-        context '有効なパラメータ（通知→非通知ステータス、自分→自分）、detailパラメータがtrue' do # 処理中 -> 完了
-          let_it_be(:task_event) { FactoryBot.create(:task_event, space:, status: :processing, assigned_user: user) }
-          let(:attributes) { valid_attributes.merge(status: :complete) }
+        context '有効なパラメータ（通知→非通知ステータス、担当あり→変更なし）、detailパラメータがtrue' do # 処理中 -> 完了
+          before_all { FactoryBot.create(:member, :admin, space:, user: exist_user) }
+          let_it_be(:task_event) { FactoryBot.create(:task_event, :assigned, space:, status: :processing, assigned_user: exist_user) }
+          let(:attributes) { valid_attributes.merge(status: :complete, assigned_user: { code: exist_user.code }) }
           let(:params) { { task_event: attributes, detail: true } }
           let(:expect_last_completed_at) { { new: true } }
-          let(:expect_assigned_user_id) { user.id }
+          let(:expect_assigned_user_id) { exist_user.id }
           let(:expect_assigned_at) { { data: task_event.assigned_at } }
           it_behaves_like 'NG(html)'
           it_behaves_like 'ToNG(html)', 406
           it_behaves_like 'OK(json)'
           it_behaves_like 'ToOK(json)'
         end
-        context '有効なパラメータ（非通知→通知ステータス、担当なし→担当なし）、detailパラメータがfalse' do # 完了 -> 確認待ち
+        context '有効なパラメータ（非通知→通知ステータス、担当なし→なし）、detailパラメータがfalse' do # 完了 -> 確認待ち
           let_it_be(:task_event) { FactoryBot.create(:task_event, :completed, space:, assigned_user: nil) }
-          let(:attributes) { valid_attributes.merge(status: :waiting_confirm) }
+          let(:attributes) { valid_attributes.merge(status: :waiting_confirm, assigned_user: { code: nil }) }
           let(:params) { { task_event: attributes, detail: false } }
           let(:expect_last_completed_at) { { data: nil } }
           let(:expect_assigned_user_id) { nil }
@@ -136,11 +155,43 @@ RSpec.describe 'TaskEvents', type: :request do
         end
         context '無効なパラメータ' do
           let_it_be(:task_event) { FactoryBot.create(:task_event, space:) }
-          let(:params) { { task_event: invalid_attributes } }
-          it_behaves_like 'NG(html)'
-          it_behaves_like 'ToNG(html)', 406
-          it_behaves_like 'NG(json)'
-          it_behaves_like 'ToNG(json)', 422, { status: [get_locale('activerecord.errors.models.task_event.attributes.status.blank')] }
+          context 'ステータスがない' do
+            let(:params) { { task_event: valid_attributes.merge(status: nil) } }
+            it_behaves_like 'NG(html)'
+            it_behaves_like 'ToNG(html)', 406
+            it_behaves_like 'NG(json)'
+            it_behaves_like 'ToNG(json)', 422, { status: [get_locale('activerecord.errors.models.task_event.attributes.status.blank')] }
+          end
+          context '担当が存在しない' do
+            let(:params) { { task_event: valid_attributes.merge(assigned_user: { code: not_exist_user[:code] }) } }
+            it_behaves_like 'NG(html)'
+            it_behaves_like 'ToNG(html)', 406
+            it_behaves_like 'NG(json)'
+            it_behaves_like 'ToNG(json)', 422, { assigned_user: [get_locale('activerecord.errors.models.task_event.attributes.assigned_user.notfound')] }
+          end
+          context '担当が削除予約済み' do
+            before_all { FactoryBot.create(:member, :admin, space:, user: user_destroy_reserved) }
+            let(:params) { { task_event: valid_attributes.merge(assigned_user: { code: user_destroy_reserved.code }) } }
+            it_behaves_like 'NG(html)'
+            it_behaves_like 'ToNG(html)', 406
+            it_behaves_like 'NG(json)'
+            it_behaves_like 'ToNG(json)', 422, { assigned_user: [get_locale('activerecord.errors.models.task_event.attributes.assigned_user.destroy_reserved')] }
+          end
+          context '担当が未参加' do
+            let(:params) { { task_event: valid_attributes.merge(assigned_user: { code: exist_user.code }) } }
+            it_behaves_like 'NG(html)'
+            it_behaves_like 'ToNG(html)', 406
+            it_behaves_like 'NG(json)'
+            it_behaves_like 'ToNG(json)', 422, { assigned_user: [get_locale('activerecord.errors.models.task_event.attributes.assigned_user.member_notfound')] }
+          end
+          context '担当が閲覧者' do
+            before_all { FactoryBot.create(:member, :reader, space:, user: exist_user) }
+            let(:params) { { task_event: valid_attributes.merge(assigned_user: { code: exist_user.code }) } }
+            it_behaves_like 'NG(html)'
+            it_behaves_like 'ToNG(html)', 406
+            it_behaves_like 'NG(json)'
+            it_behaves_like 'ToNG(json)', 422, { assigned_user: [get_locale('activerecord.errors.models.task_event.attributes.assigned_user.member_power_reader')] }
+          end
         end
       end
       context 'イベントコードが存在しない' do

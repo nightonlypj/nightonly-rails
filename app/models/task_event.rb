@@ -1,6 +1,4 @@
 class TaskEvent < ApplicationRecord
-  attr_accessor :assign_myself, :assign_delete
-
   belongs_to :space
   belongs_to :task_cycle
   belongs_to :init_assigned_user, class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
