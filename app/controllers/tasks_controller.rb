@@ -8,6 +8,7 @@ class TasksController < ApplicationAuthController
   before_action :check_power_admin, only: :destroy
   before_action :check_power_writer, only: %i[create update]
   before_action :set_task, only: %i[show update]
+  before_action :set_task_assigne_users, only: :show
   before_action :set_params_index, only: :index
   before_action :validate_params_create, only: :create
   before_action :validate_params_update, only: :update
@@ -29,6 +30,10 @@ class TasksController < ApplicationAuthController
         insert_task_cycles = @insert_task_cycles.map { |insert_task_cycle| insert_task_cycle.merge(task_id: @task.id) }
         TaskCycle.insert_all!(insert_task_cycles)
       end
+      if @task_assigne.user_ids.present?
+        @task_assigne.task = @task
+        @task_assigne.save!
+      end
     end
 
     render_success(:create)
@@ -36,12 +41,13 @@ class TasksController < ApplicationAuthController
 
   # POST /tasks/:space_code/update/:id(.json) タスク設定変更API(処理)
   def update
-    if @task.changed? || @insert_task_cycles.present? || @upsert_task_cycles.present? || @delete_task_cycle_ids.present?
+    if @task.changed? || @insert_task_cycles.present? || @upsert_task_cycles.present? || @delete_task_cycle_ids.present? || @task_assigne.user_ids_changed?
       ActiveRecord::Base.transaction do
         @task.update!(last_updated_user: current_user, updated_at: @now)
         TaskCycle.insert_all!(@insert_task_cycles) if @insert_task_cycles.present?
         TaskCycle.upsert_all(@upsert_task_cycles) if @upsert_task_cycles.present?
         TaskCycle.where(id: @delete_task_cycle_ids).update_all(deleted_at: @now, updated_at: @now) if @delete_task_cycle_ids.present?
+        @task_assigne.save! if @task_assigne.user_ids_changed?
       end
     end
 
@@ -100,6 +106,7 @@ class TasksController < ApplicationAuthController
 
     @now = Time.current
     check_validation_cycles(params[:task][:cycles], target)
+    check_validation_assigned_users(params[:task][:assigned_users], target)
     check_validation_months(params[:months])
 
     render './failure', locals: { errors: @task.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if @task.errors.any?
@@ -157,7 +164,11 @@ class TasksController < ApplicationAuthController
     logger.debug("@upsert_task_cycles: #{@upsert_task_cycles}")
     logger.debug("@delete_task_cycle_ids: #{@delete_task_cycle_ids}")
 
-    @task.errors.add(:cycles, t('errors.messages.task_cycles.max_count', count: Settings.task_cycles_max_count)) if count > Settings.task_cycles_max_count
+    if count == 0
+      @task.errors.add(:cycles, t('errors.messages.task_cycles.active_notfound'))
+    elsif count > Settings.task_cycles_max_count
+      @task.errors.add(:cycles, t('errors.messages.task_cycles.active_max_count', count: Settings.task_cycles_max_count))
+    end
   end
 
   def task_cycle_key(task_cycle)
@@ -211,6 +222,37 @@ class TasksController < ApplicationAuthController
       raise "task_cycle.cycle not found.(#{task_cycle.cycle})[id: #{task_cycle.id}]"
       # :nocov:
     end
+  end
+
+  def check_validation_assigned_users(assigned_users, target)
+    if target == :create || @task.task_assigne.blank?
+      @task_assigne = TaskAssigne.new(space: @space, task: @task)
+    else
+      @task_assigne = @task.task_assigne
+      @task_assigne.user_ids = nil if assigned_users.blank?
+    end
+    return if assigned_users.blank?
+    return @task.errors.add(:assigned_users, t('errors.messages.assigned_users.invalid')) unless assigned_users.instance_of?(Array)
+
+    user_ids = []
+    codes = assigned_users.map { |user| user[:code] }
+    users = User.where(code: codes).eager_load(:members).where(members: { space: [@space, nil] }).index_by(&:code)
+    codes.each.with_index(1) do |code, index|
+      key = check_assigned_user(users[code])
+      if key.present?
+        @task.errors.add("assigned_user#{index}".to_sym, t("errors.messages.assigned_users.code.#{key}"))
+        next
+      end
+
+      user_ids.push(users[code].id)
+    end
+
+    if user_ids.count > Settings.task_assigned_users_max_count
+      @task.errors.add(:assigned_users, t('errors.messages.assigned_users.max_count', count: Settings.task_assigned_users_max_count))
+      return
+    end
+
+    @task_assigne.user_ids = user_ids.join(',')
   end
 
   def check_validation_months(months)

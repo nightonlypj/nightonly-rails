@@ -43,6 +43,7 @@ class TaskEventsController < ApplicationAuthController
   # GET /task_events/:space_code/detail/:code(.json) タスクイベント詳細API
   def show
     set_task(@task_event.task_cycle.task_id)
+    set_task_assigne_users if @task.present?
   end
 
   # POST /task_events/:space_code/update/:code(.json) タスクイベント変更API(処理)
@@ -119,30 +120,17 @@ class TaskEventsController < ApplicationAuthController
       return
     end
 
-    user = User.find_by(code:)
-    if user.blank?
-      @task_event.errors.add(:assigned_user, :notfound)
-      return
-    end
-    if user.destroy_reserved?
-      @task_event.errors.add(:assigned_user, :destroy_reserved)
+    user = User.eager_load(:members).where(members: { space: [@space, nil] }).find_by(code:)
+    key = check_assigned_user(user)
+    if key.present?
+      @task_event.errors.add(:assigned_user, key)
       return
     end
 
-    member = Member.find_by(space: @space, user:)
-    if member.blank?
-      @task_event.errors.add(:assigned_user, :member_notfound)
-      return
+    if @task_event.assigned_user != user
+      @task_event.assigned_user = user
+      @task_event.assigned_at = Time.current
     end
-    if member.power_reader?
-      @task_event.errors.add(:assigned_user, :member_power_reader)
-      return
-    end
-
-    return if @task_event.assigned_user == user
-
-    @task_event.assigned_user = user
-    @task_event.assigned_at = Time.current
   end
 
   # Only allow a list of trusted parameters through.

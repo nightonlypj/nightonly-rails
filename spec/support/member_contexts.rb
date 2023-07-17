@@ -15,6 +15,20 @@ shared_context 'メンバー一覧作成' do |admin_count, reader_count|
   end
 end
 
+shared_context 'メンバーパターン作成' do
+  let_it_be(:user_admin)            { FactoryBot.create(:user) }
+  let_it_be(:user_writer)           { FactoryBot.create(:user) }
+  let_it_be(:user_reader)           { FactoryBot.create(:user) }
+  let_it_be(:user_destroy_reserved) { FactoryBot.create(:user, :destroy_reserved) }
+  let_it_be(:user_not)              { FactoryBot.build_stubbed(:user) }
+  before_all do
+    FactoryBot.create(:member, :admin, space:, user: user_admin)
+    FactoryBot.create(:member, :writer, space:, user: user_writer)
+    FactoryBot.create(:member, :reader, space:, user: user_reader)
+    FactoryBot.create(:member, :admin, space:, user: user_destroy_reserved)
+  end
+end
+
 # テスト内容（共通）
 def expect_member_json(response_json_member, member, user_power)
   result = 4

@@ -45,6 +45,7 @@ class Member < ApplicationRecord
   }
 
   # 権限
+  POWER_WRITER_UP = %i[admin writer].freeze
   enum power: {
     admin: 1,  # 管理者
     writer: 2, # 投稿者

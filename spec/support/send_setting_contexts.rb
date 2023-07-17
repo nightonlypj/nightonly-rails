@@ -36,7 +36,7 @@ def expect_send_setting_json(response_json_send_setting, send_setting, member)
 
   data = response_json_send_setting['last_updated_user']
   if send_setting&.last_updated_user_id.present?
-    count = expect_user_json(data, send_setting.last_updated_user, { email: true })
+    count = expect_user_json(data, send_setting.last_updated_user, { email: member&.power_admin? })
     expect(data['deleted']).to eq(send_setting.last_updated_user.blank?)
     expect(data.count).to eq(count + 1)
     result += 1

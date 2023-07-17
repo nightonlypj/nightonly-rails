@@ -14,7 +14,7 @@ RSpec.describe 'Tasks', type: :request do
   #   タスクID: 存在する, 存在しない
   #   パラメータなし, 有効なパラメータ, 無効なパラメータ
   #     タスク: 正常値, 不正値
-  #     周期: 毎週 × 削除なし/あり, 毎月/毎年 × 日/営業日/週, ない, 不正値, 文字, 曜日/日/営業日が重複, 最大数より多い
+  #     周期: 毎週 × 削除なし/あり, 毎月/毎年 × 日/営業日/週, ない, 不正値, 文字, 曜日/日/営業日が重複, 削除のみ, 最大数より多い
   #     変更なし, 追加あり, 削除・復帰・並び順変更あり
   #     monthsパラメータ: ない, ある, 空, 不正値
   #     detailパラメータ: ない, true, false
@@ -107,7 +107,8 @@ RSpec.describe 'Tasks', type: :request do
           expect(response_json_events.count).to eq(expect_events.count)
           response_json_events.each_with_index do |response_json_event, index|
             current_task_cycle = current_task_cycles_active[expect_events[index][:index]]
-            count = expect_task_event_json(response_json_event, current_task, current_task_cycle, nil, expect_events[index], { detail: false })
+            use = { detail: false, email: member&.power_admin? }
+            count = expect_task_event_json(response_json_event, current_task, current_task_cycle, nil, expect_events[index], use)
             expect(response_json_event.count).to eq(count)
           end
           result += 1
@@ -115,7 +116,8 @@ RSpec.describe 'Tasks', type: :request do
           expect(response_json_events).to be_nil
         end
 
-        count = expect_task_json(response_json_task, current_task, current_task_cycles_active, { detail: params[:detail], cycles: !use_events })
+        use = { detail: params[:detail], cycles: !use_events, email: member&.power_admin? }
+        count = expect_task_json(response_json_task, current_task, current_task_cycles_active, use)
         expect(response_json_task.count).to eq(count)
 
         expect(response_json.count).to eq(result)
@@ -124,7 +126,7 @@ RSpec.describe 'Tasks', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中][*]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space:, user:) }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       context 'タスクIDが存在する' do
         let_it_be(:task) { FactoryBot.create(:task, space:, created_user: space.created_user) }
         it_behaves_like '[task]パラメータなし', true

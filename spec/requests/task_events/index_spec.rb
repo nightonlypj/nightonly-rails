@@ -51,13 +51,14 @@ RSpec.describe 'TaskEvents', type: :request do
         response_json_events.each_with_index do |response_json_event, index|
           task_cycle = task_cycles[expect_events[index][:index]]
           task_event = expect_events[index][:task_event]
-          count = expect_task_event_json(response_json_event, task_cycle.task, task_cycle, task_event, expect_events[index], { detail: false })
+          use = { detail: false, email: member&.power_admin? }
+          count = expect_task_event_json(response_json_event, task_cycle.task, task_cycle, task_event, expect_events[index], use)
           expect(response_json_event.count).to eq(count)
         end
 
         expect(response_json_tasks.count).to eq(expect_tasks.count)
         response_json_tasks.each_with_index do |response_json_task, index|
-          count = expect_task_json(response_json_task, expect_tasks[index], nil, { detail: false, cycles: false })
+          count = expect_task_json(response_json_task, expect_tasks[index], nil, { detail: false, cycles: false, email: member&.power_admin? })
           expect(response_json_task.count).to eq(count)
         end
 
@@ -219,7 +220,7 @@ RSpec.describe 'TaskEvents', type: :request do
     end
 
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space:, user:) }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '開始日'
     end
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do
@@ -236,6 +237,7 @@ RSpec.describe 'TaskEvents', type: :request do
     end
     shared_examples_for '[*]スペースが公開' do
       let_it_be(:space) { space_public }
+      let(:member) { nil }
       it_behaves_like '開始日'
     end
     shared_examples_for '[未ログイン]スペースが非公開' do

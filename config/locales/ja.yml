@@ -546,7 +546,16 @@ ja:
       task_cycles:
         blank: '値がありません。'
         invalid: '形式が正しくありません。'
-        max_count: '有効な周期が最大件数(%{count}件)を超えています。'
+        active_notfound: '有効な周期が存在しません。'
+        active_max_count: '有効な周期が最大件数(%{count}件)を超えています。'
+      assigned_users:
+        invalid: '形式が正しくありません。'
+        code:
+          notfound: 'ユーザーが見つかりません。'
+          destroy_reserved: 'アカウント削除予定の為、設定できません。'
+          member_notfound: 'メンバーが見つかりません。'
+          member_power_reader: '閲覧者は設定できません。'
+        max_count: '最大件数(%{count}件)を超えています。'
   alert:
     page:
       notfound: 'ページが見つかりません。'

@@ -11,7 +11,7 @@ set :robots_txt, 'robots.txt,disallow' # NOTE: APIドメインの為
 # server "example.com", user: "deploy", roles: %w{app web}, other_property: :other_value
 # server "db.example.com", user: "deploy", roles: %w{db}
 # server 'prod-nop.nightonly.com', user: 'nopapp', port: 993, roles: %w[app], keys: %w[~/.ssh/prod-nop_nopapp/id_rsa]
-server 'prod-nop_nopapp', roles: %w[app db web]
+server 'prod-nop_nopapp', roles: %w[app db web job]
 # server 'prod-nop.nightonly.com', user: 'nopapp', port: 993, roles: %w[app db web], keys: %w[~/.ssh/prod-nop_nopapp/id_rsa]
 
 # role-based syntax

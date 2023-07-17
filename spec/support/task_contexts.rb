@@ -37,7 +37,7 @@ shared_context 'タスク一覧作成' do |high_count, middle_count, low_count, 
 end
 
 # テスト内容（共通）
-def expect_task_json(response_json_task, task, task_cycles, use = { detail: false, cycles: false })
+def expect_task_json(response_json_task, task, task_cycles, use = { detail: false, cycles: false, email: false })
   result = 9
   expect(response_json_task['id']).to eq(task.id)
   expect(response_json_task['priority']).to eq(task.priority)
@@ -53,7 +53,7 @@ def expect_task_json(response_json_task, task, task_cycles, use = { detail: fals
   expect(response_json_task['ended_date']).to eq(I18n.l(task.ended_date, format: :json, default: nil))
 
   data = response_json_task['created_user']
-  count = expect_user_json(data, task.created_user, { email: true })
+  count = expect_user_json(data, task.created_user, { email: use[:email] })
   expect(data['deleted']).to eq(task.created_user.blank?)
   expect(data.count).to eq(count + 1)
 
@@ -61,7 +61,7 @@ def expect_task_json(response_json_task, task, task_cycles, use = { detail: fals
 
   data = response_json_task['last_updated_user']
   if task.last_updated_user_id.present?
-    count = expect_user_json(data, task.last_updated_user, { email: true })
+    count = expect_user_json(data, task.last_updated_user, { email: use[:email] })
     expect(data['deleted']).to eq(task.last_updated_user.blank?)
     expect(data.count).to eq(count + 1)
     result += 1
@@ -463,12 +463,19 @@ shared_examples_for '[task]無効なパラメータ' do |update|
     it_behaves_like 'NG(json)'
     it_behaves_like 'ToNG(json)', 422, { cycle2_business_day: [get_locale('activerecord.errors.models.task_cycle.attributes.business_day.taken')] }
   end
+  context '無効なパラメータ（周期が削除のみ）' do
+    let(:params) { { task: valid_task_attributes.merge(cycles: [{ delete: true }]) } }
+    it_behaves_like 'NG(html)'
+    it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
+    it_behaves_like 'NG(json)'
+    it_behaves_like 'ToNG(json)', 422, { cycles: [get_locale('errors.messages.task_cycles.active_notfound')] }
+  end
   context '無効なパラメータ（周期が最大数より多い）' do
     let(:cycles) { (Settings.task_cycles_max_count + 1).times.map { |index| FactoryBot.attributes_for(:task_cycle, :monthly, :day, day: index + 1) } }
     let(:params) { { task: valid_task_attributes.merge(cycles:) } }
     it_behaves_like 'NG(html)'
     it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
     it_behaves_like 'NG(json)'
-    it_behaves_like 'ToNG(json)', 422, { cycles: [get_locale('errors.messages.task_cycles.max_count', count: Settings.task_cycles_max_count)] }
+    it_behaves_like 'ToNG(json)', 422, { cycles: [get_locale('errors.messages.task_cycles.active_max_count', count: Settings.task_cycles_max_count)] }
   end
 end

@@ -14,7 +14,7 @@
 - id: 14
   space_id: 1
   task_id: 14
-  user_ids: '72' # 未参加 <- 対象外
+  user_ids: '17' # 未参加 <- 対象外
 - id: 15
   space_id: 1
   task_id: 15
@@ -26,8 +26,8 @@
 - id: 17
   space_id: 1
   task_id: 17
-  user_ids: '80,79,72,13,3,1' # 上記全て
+  user_ids: '99999' # 削除済み <- 対象外
 - id: 18
   space_id: 1
   task_id: 18
-  user_ids: null # なし
+  user_ids: '99999,80,79,17,13,3,1' # 上記全て

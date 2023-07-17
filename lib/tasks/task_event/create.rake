@@ -8,6 +8,7 @@ namespace :task_event do
 
   desc '期間内のタスクイベント作成＋通知（当日に実行できなかった場合に手動実行）'
   task(:create_send_notice, %i[target_date dry_run send_notice] => :environment) do |task, args|
+    include TasksConcern
     include TaskCyclesConcern
     @months = nil
 
@@ -81,7 +82,7 @@ namespace :task_event do
   # タスクイベント作成
   def create_task_events(dry_run, space, target_date, next_start_date, start_date, end_date)
     task_cycles = TaskCycle.active.where(space:).by_month(cycle_months(start_date, end_date) + [nil])
-                           .eager_load(:task).by_task_period(target_date, end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
+                           .eager_load(task: :task_assigne).by_task_period(target_date, end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
     @logger.info("task_cycles.count: #{task_cycles.count}")
     return 0 if task_cycles.count == 0
 
@@ -98,17 +99,31 @@ namespace :task_event do
     @logger.info("insert: #{insert_events.count}")
     return 0 if insert_events.count == 0
 
-    index = -1
     codes = create_unique_codes(insert_events.count)
     now = Time.current
     insert_params = { space_id: space.id, created_at: now, updated_at: now }
-    insert_datas = insert_events.map do |task_cycle, event_start_date, event_end_date|
-      index += 1
-      insert_params.merge(code: codes[index], task_cycle_id: task_cycle.id,
-                          started_date: event_start_date, ended_date: event_end_date, last_ended_date: event_end_date)
+    ActiveRecord::Base.transaction do
+      insert_datas = insert_events.map.with_index do |(task_cycle, event_start_date, event_end_date), insert_index|
+        user_id = nil
+        user_ids = task_cycle.task.task_assigne&.user_ids&.split(',')
+        if user_ids.present?
+          users = task_assigne_users(user_ids, space)
+          index = user_ids.index { |id| users[id.to_i].present? }
+          if index.present?
+            user_id = user_ids[index]
+
+            task_cycle.task.task_assigne.user_ids = (user_ids[index + 1..] + user_ids[0..index]).join(',')
+            task_cycle.task.task_assigne.save!
+          end
+        end
+
+        insert_params.merge(code: codes[insert_index], task_cycle_id: task_cycle.id,
+                            started_date: event_start_date, ended_date: event_end_date, last_ended_date: event_end_date,
+                            init_assigned_user_id: user_id, assigned_user_id: user_id, assigned_at: user_id.present? ? now : nil)
+      end
+      @logger.debug("insert_datas: #{insert_datas}")
+      TaskEvent.insert_all!(insert_datas) if !dry_run && insert_datas.present?
     end
-    @logger.debug("insert_datas: #{insert_datas}")
-    TaskEvent.insert_all!(insert_datas) if !dry_run && insert_datas.present?
 
     insert_events.count
   end

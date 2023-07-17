@@ -98,6 +98,8 @@ task_premise_maximum: 17 # NOTE: (6+8?+3)以上 = "#{title}の前提"
 task_process_maximum: 17 # NOTE: (6+8?+3)以上 = "#{title}の手順"
 # 周期の最大件数
 task_cycles_max_count: 3 # NOTE: 日/営業日/週
+# 担当割当の最大件数
+task_assigned_users_max_count: 2
 # イベントの最大月数
 # task_events_max_month_count: 4
 

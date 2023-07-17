@@ -34,10 +34,10 @@ RSpec.describe 'TaskEvents', type: :request do
         is_expected.to eq(200)
         expect(response_json['success']).to eq(true)
 
-        count = expect_task_json(response_json_task, task, task_cycles, { detail: true, cycles: true })
+        count = expect_task_json(response_json_task, task, task_cycles, { detail: true, cycles: true, email: member&.power_admin? })
         expect(response_json_task.count).to eq(count)
 
-        count = expect_task_event_json(response_json_event, task, task_event.task_cycle, task_event, nil, { detail: true })
+        count = expect_task_event_json(response_json_event, task, task_event.task_cycle, task_event, nil, { detail: true, email: member&.power_admin? })
         expect(response_json_event.count).to eq(count)
 
         result = 3
@@ -55,7 +55,7 @@ RSpec.describe 'TaskEvents', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中/削除予約済み][*]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space:, user:) }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       let_it_be(:task) { FactoryBot.create(:task, space:, created_user: space.created_user) }
       let_it_be(:task_cycle_deleted) { nil }
       let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, :weekly, task:, order: 1)] }
@@ -71,6 +71,7 @@ RSpec.describe 'TaskEvents', type: :request do
       end
     end
     shared_examples_for '[*][公開]権限がない' do
+      let(:member) { nil }
       let_it_be(:task) { FactoryBot.create(:task, :active, space:, created_user: space.created_user) }
       let_it_be(:task_cycle_deleted) { FactoryBot.create(:task_cycle, :yearly, :week, :deleted, task:, order: nil) }
       let_it_be(:task_cycles) do

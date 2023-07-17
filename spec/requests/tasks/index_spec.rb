@@ -83,7 +83,7 @@ RSpec.describe 'Tasks', type: :request do
         (start_no..end_no).each do |no|
           data = response_json_tasks[no - start_no]
           task = tasks[tasks.count - no]
-          count = expect_task_json(data, task, task_cycles[task.id], { detail: false, cycles: true })
+          count = expect_task_json(data, task, task_cycles[task.id], { detail: false, cycles: true, email: member&.power_admin? })
           expect(data.count).to eq(count)
         end
       end
@@ -116,7 +116,7 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space:, user:) }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like 'タスク'
     end
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do
@@ -131,6 +131,7 @@ RSpec.describe 'Tasks', type: :request do
     end
     shared_examples_for '[*]スペースが公開' do
       let_it_be(:space) { space_public }
+      let(:member) { nil }
       it_behaves_like 'タスク'
     end
     shared_examples_for '[未ログイン]スペースが非公開' do

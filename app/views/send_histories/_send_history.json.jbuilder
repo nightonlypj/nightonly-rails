@@ -9,7 +9,7 @@ json.notice_required send_history.send_setting["#{send_history.notice_target}_no
 
 json.send_target send_history.send_target
 json.send_target_i18n send_history.send_target_i18n
-if detail && @current_member.present?
+if detail && current_member.present?
   if send_history.send_target_slack?
     json.slack do
       json.name send_history.send_setting.slack_domain&.name
@@ -32,22 +32,22 @@ json.completed_at l(send_history.completed_at, format: :json, default: nil)
 json.target_count send_history.target_count
 return unless detail
 
-json.error_message send_history.error_message if @current_member.present?
+json.error_message send_history.error_message if current_member.present?
 
 if send_history.notice_target_next?
   json.next_task_events do
-    json.partial! './send_histories/task_events', task_event_ids: @next_task_event_ids, task_events: @task_events
+    json.partial! './send_histories/task_events', task_event_ids: @next_task_event_ids, task_events:, current_member:
   end
 end
 json.expired_task_events do
-  json.partial! './send_histories/task_events', task_event_ids: @expired_task_event_ids, task_events: @task_events
+  json.partial! './send_histories/task_events', task_event_ids: @expired_task_event_ids, task_events:, current_member:
 end
 json.end_today_task_events do
-  json.partial! './send_histories/task_events', task_event_ids: @end_today_task_event_ids, task_events: @task_events
+  json.partial! './send_histories/task_events', task_event_ids: @end_today_task_event_ids, task_events:, current_member:
 end
 json.date_include_task_events do
-  json.partial! './send_histories/task_events', task_event_ids: @date_include_task_event_ids, task_events: @task_events
+  json.partial! './send_histories/task_events', task_event_ids: @date_include_task_event_ids, task_events:, current_member:
 end
 json.completed_task_events do
-  json.partial! './send_histories/task_events', task_event_ids: @completed_task_event_ids, task_events: @task_events
+  json.partial! './send_histories/task_events', task_event_ids: @completed_task_event_ids, task_events:, current_member:
 end

@@ -26,7 +26,7 @@ RSpec.describe 'Tasks', type: :request do
         is_expected.to eq(200)
         expect(response_json['success']).to eq(true)
 
-        count = expect_task_json(response_json_task, task, task_cycles, { detail: true, cycles: true })
+        count = expect_task_json(response_json_task, task, task_cycles, { detail: true, cycles: true, email: member&.power_admin? })
         expect(response_json_task.count).to eq(count)
 
         expect(response_json.count).to eq(2)
@@ -60,11 +60,12 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     shared_examples_for '[APIログイン中/削除予約済み][*]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space:, user:) }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '[APIログイン中/削除予約済み][*][ある]タスクIDが存在する'
       it_behaves_like '[*][*][*]タスクIDが存在しない'
     end
     shared_examples_for '[*][公開]権限がない' do
+      let(:member) { nil }
       it_behaves_like '[*][公開][ない]タスクIDが存在する'
       it_behaves_like '[*][*][*]タスクIDが存在しない'
     end

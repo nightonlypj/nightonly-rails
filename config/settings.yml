@@ -92,6 +92,8 @@ task_premise_maximum: 10240
 task_process_maximum: 10240
 # 周期の最大件数
 task_cycles_max_count: 5
+# 担当割当の最大件数
+task_assigned_users_max_count: 10
 # イベントの最大月数
 task_events_max_month_count: 4
 

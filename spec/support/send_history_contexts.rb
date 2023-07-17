@@ -127,24 +127,25 @@ def expect_send_history_json(response_json_send_history, send_history, member, u
       result += 1
     end
 
+    use_email = { email: member&.power_admin? }
     data = response_json_send_history['next_task_events']
     if send_history.notice_target_next?
-      expect_task_events_json(data, next_task_events)
+      expect_task_events_json(data, next_task_events, use_email)
       result += 1
     else
       expect(data).to be_nil
     end
-    expect_task_events_json(response_json_send_history['expired_task_events'], expired_task_events)
-    expect_task_events_json(response_json_send_history['end_today_task_events'], end_today_task_events)
-    expect_task_events_json(response_json_send_history['date_include_task_events'], date_include_task_events)
-    expect_task_events_json(response_json_send_history['completed_task_events'], completed_task_events)
+    expect_task_events_json(response_json_send_history['expired_task_events'], expired_task_events, use_email)
+    expect_task_events_json(response_json_send_history['end_today_task_events'], end_today_task_events, use_email)
+    expect_task_events_json(response_json_send_history['date_include_task_events'], date_include_task_events, use_email)
+    expect_task_events_json(response_json_send_history['completed_task_events'], completed_task_events, use_email)
     result += 4
   end
 
   result
 end
 
-def expect_task_events_json(response_json_task_events, task_events)
+def expect_task_events_json(response_json_task_events, task_events, use = { email: false })
   expect(response_json_task_events.count).to eq(task_events.count)
   response_json_task_events.each_with_index do |response_json_task_event, index|
     task_event = task_events[index]
@@ -163,7 +164,7 @@ def expect_task_events_json(response_json_task_events, task_events)
 
     data = response_json_task_event['assigned_user']
     if task_event.assigned_user_id.present?
-      count = expect_user_json(data, task_event.assigned_user, { email: true })
+      count = expect_user_json(data, task_event.assigned_user, use)
       expect(data['deleted']).to eq(task_event.assigned_user.blank?)
       expect(data.count).to eq(count + 1)
       result += 1
