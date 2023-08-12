@@ -1,7 +1,7 @@
 # nightonlyアプリケーション（Rails/API）
 
 fork: https://dev.azure.com/nightonly/_git/rails-app-origin, space_develop
-(Ruby 3.1.4, Rails 6.1.4.1)
+(Ruby 3.1.4, Rails 6.1)
 
 ## コマンドメモ
 
