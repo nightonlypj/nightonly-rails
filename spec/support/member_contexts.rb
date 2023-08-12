@@ -15,12 +15,14 @@ shared_context 'メンバー一覧作成' do |admin_count, reader_count|
   end
 end
 
-shared_context 'メンバーパターン作成' do
+shared_context 'メンバーパターン作成(user)' do
   let_it_be(:user_admin)            { FactoryBot.create(:user) }
   let_it_be(:user_writer)           { FactoryBot.create(:user) }
   let_it_be(:user_reader)           { FactoryBot.create(:user) }
   let_it_be(:user_destroy_reserved) { FactoryBot.create(:user, :destroy_reserved) }
-  let_it_be(:user_not)              { FactoryBot.build_stubbed(:user) }
+  let_it_be(:user_destroy)          { FactoryBot.build_stubbed(:user) }
+end
+shared_context 'メンバーパターン作成(member)' do
   before_all do
     FactoryBot.create(:member, :admin, space:, user: user_admin)
     FactoryBot.create(:member, :writer, space:, user: user_writer)

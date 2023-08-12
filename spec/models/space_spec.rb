@@ -113,12 +113,12 @@ RSpec.describe Space, type: :model do
     subject { Space.create_send_notice_target }
 
     before_all do
-      space = FactoryBot.create(:space, :destroy_reserved, created_user: user)
+      FactoryBot.create(:space, :destroy_reserved, created_user:)
       spaces = [
-        FactoryBot.create(:space, name: '最後', process_priority: 9, created_user: space.created_user),
-        FactoryBot.create(:space, name: '標準1', process_priority: 3, created_user: space.created_user),
-        FactoryBot.create(:space, name: '標準2', process_priority: 3, created_user: space.created_user),
-        FactoryBot.create(:space, name: '最初', process_priority: 0, created_user: space.created_user)
+        FactoryBot.create(:space, name: '最後', process_priority: 9, created_user:),
+        FactoryBot.create(:space, name: '標準1', process_priority: 3, created_user:),
+        FactoryBot.create(:space, name: '標準2', process_priority: 3, created_user:),
+        FactoryBot.create(:space, name: '最初', process_priority: 0, created_user:)
       ]
       FactoryBot.create(:send_setting, :slack, space: spaces[1])
       FactoryBot.create(:send_setting, :deleted, :email, space: spaces[2])
@@ -312,7 +312,7 @@ RSpec.describe Space, type: :model do
   describe '#url' do
     subject { space.url }
 
-    let(:space) { FactoryBot.create(:space, created_user: user) }
+    let(:space) { FactoryBot.create(:space, created_user:) }
     it 'URLが返却される' do
       is_expected.to eq("#{Settings.front_url}/-/#{space.code}")
     end

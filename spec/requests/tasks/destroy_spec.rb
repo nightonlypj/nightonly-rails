@@ -6,8 +6,7 @@ RSpec.describe 'Tasks', type: :request do
   # POST /tasks/:space_code/delete(.json) タスク削除API(処理)
   # テストパターン
   #   未ログイン, APIログイン中, APIログイン中（削除予約済み）
-  #   スペース: 存在しない, 公開, 非公開
-  #   TODO: 削除予約: ある, ない
+  #   スペース: 存在しない, 公開, 非公開, 非公開（削除予約済み）
   #   権限: ある（管理者）, ない（投稿者, 閲覧者, なし）
   #   パラメータなし, 有効なパラメータ, 無効なパラメータ
   #     IDなし, 存在するIDのみ, 存在しないIDのみ, 存在しないIDも含む
@@ -15,15 +14,13 @@ RSpec.describe 'Tasks', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #destroy' do
     subject { post destroy_task_path(space_code: space.code, format: subject_format), params:, headers: auth_headers.merge(accept_headers) }
-    let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
-    let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
-    let_it_be(:task_nojoin)   { FactoryBot.create(:task) }
+    let_it_be(:created_user) { FactoryBot.create(:user) }
+    let_it_be(:task_nojoin) { FactoryBot.create(:task) }
     before_all { FactoryBot.create(:task_cycle, task: task_nojoin, order: 1) }
 
     shared_context 'valid_condition' do
-      let_it_be(:space) { space_public }
-      let_it_be(:task_destroy) { FactoryBot.create(:task, space:, created_user: space.created_user) }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
+      let_it_be(:task_destroy) { FactoryBot.create(:task, space:, created_user:) }
       let_it_be(:task_cycles)  { [FactoryBot.create(:task_cycle, task: task_destroy, order: 1)] }
       before_all { FactoryBot.create(:member, space:, user:) if user.present? }
       let(:params) { { ids: [task_destroy.id] } }
@@ -108,8 +105,17 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like 'ToNG(json)', 403
     end
 
+    shared_examples_for '[APIログイン中][*]' do
+      let_it_be(:task_destroy) { FactoryBot.create(:task, space:, created_user:) }
+      let_it_be(:task_cycles)  { [FactoryBot.create(:task_cycle, task: task_destroy, order: 1)] }
+      it_behaves_like '[APIログイン中][*]権限がある', :admin
+      it_behaves_like '[APIログイン中][*]権限がない', :writer
+      it_behaves_like '[APIログイン中][*]権限がない', :reader
+      it_behaves_like '[APIログイン中][*]権限がない', nil
+    end
+
     shared_examples_for '[APIログイン中]スペースが存在しない' do
-      let_it_be(:space) { space_not }
+      let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       let(:params) { { ids: [] } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 404 # NOTE: HTMLもログイン状態になる
@@ -117,22 +123,23 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like 'ToNG(json)', 404
     end
     shared_examples_for '[APIログイン中]スペースが公開' do
-      let_it_be(:space) { space_public }
-      let_it_be(:task_destroy) { FactoryBot.create(:task, space:, created_user: space.created_user) }
-      let_it_be(:task_cycles)  { [FactoryBot.create(:task_cycle, task: task_destroy, order: 1)] }
-      it_behaves_like '[APIログイン中][*]権限がある', :admin
-      it_behaves_like '[APIログイン中][*]権限がない', :writer
-      it_behaves_like '[APIログイン中][*]権限がない', :reader
-      it_behaves_like '[APIログイン中][*]権限がない', nil
+      let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
+      it_behaves_like '[APIログイン中][*]'
     end
     shared_examples_for '[APIログイン中]スペースが非公開' do
-      let_it_be(:space) { space_private }
-      let_it_be(:task_destroy) { FactoryBot.create(:task, space:, created_user: space.created_user) }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
+      it_behaves_like '[APIログイン中][*]'
+    end
+    shared_examples_for '[APIログイン中]スペースが非公開（削除予約済み）' do
+      let_it_be(:space) { FactoryBot.create(:space, :private, :destroy_reserved, created_user:) }
+      let_it_be(:task_destroy) { FactoryBot.create(:task, space:, created_user:) }
       let_it_be(:task_cycles)  { [FactoryBot.create(:task_cycle, task: task_destroy, order: 1)] }
-      it_behaves_like '[APIログイン中][*]権限がある', :admin
-      it_behaves_like '[APIログイン中][*]権限がない', :writer
-      it_behaves_like '[APIログイン中][*]権限がない', :reader
-      it_behaves_like '[APIログイン中][*]権限がない', nil
+      before_all { FactoryBot.create(:member, space:, user:) }
+      let(:params) { { ids: [task_destroy.id] } }
+      it_behaves_like 'NG(html)'
+      it_behaves_like 'ToNG(html)', 406
+      it_behaves_like 'NG(json)'
+      it_behaves_like 'ToNG(json)', 422, nil, 'alert.space.destroy_reserved'
     end
 
     context '未ログイン' do
@@ -148,6 +155,7 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like '[APIログイン中]スペースが存在しない'
       it_behaves_like '[APIログイン中]スペースが公開'
       it_behaves_like '[APIログイン中]スペースが非公開'
+      it_behaves_like '[APIログイン中]スペースが非公開（削除予約済み）'
     end
     context 'APIログイン中（削除予約済み）' do
       include_context 'APIログイン処理', :destroy_reserved

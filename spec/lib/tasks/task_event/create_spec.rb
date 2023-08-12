@@ -31,8 +31,8 @@ RSpec.describe :task_event, type: :task do
   # テストパターン
   #   対象日: ない, 不正値, 前日（営業日, 休日）, 当日（営業日, 休日）, 翌日
   #   実行時間: (開始確認)開始時間より前, (開始確認)開始時間より後, (翌営業日・終了確認)開始時間より後
-  #   タスク担当者: ない, ある
-  #     ユーザーIDs: ない, 閲覧者, [投稿者], 閲覧者+[管理者], [投稿者]+存在しない, [投稿者]+[管理者], 削除予定+[管理者]+[投稿者]+未参加
+  #   タスク担当者: いない, いる
+  #     ユーザーIDs: ない, 閲覧者, [投稿者], 閲覧者+[管理者], [投稿者]+削除済み, [投稿者]+[管理者], 削除予定+[管理者]+[投稿者]+未参加
   #   タスク周期: ある, ない
   #   通知設定: ない, ある
   #     (開始確認/翌営業日・終了確認)必ず通知: する, しない
@@ -87,7 +87,7 @@ RSpec.describe :task_event, type: :task do
     shared_context 'タスク担当者作成2' do
       before_all do
         FactoryBot.create(:task_assigne, task: tasks[0], user_ids: "#{user_reader.id},#{user_admin.id}") # ユーザーIDs: 閲覧者+[管理者]
-        FactoryBot.create(:task_assigne, task: tasks[1], user_ids: "#{user_writer.id},#{user_not.id}") # ユーザーIDs: [投稿者]+存在しない
+        FactoryBot.create(:task_assigne, task: tasks[1], user_ids: "#{user_writer.id},#{user_destroy.id}") # ユーザーIDs: [投稿者]+削除済み
         FactoryBot.create(:task_assigne, task: tasks[2], user_ids: "#{user_writer.id},#{user_admin.id}") # ユーザーIDs: [投稿者]+[管理者]
         user_ids = "#{user_destroy_reserved.id},#{user_admin.id},#{user_writer.id},#{user.id}" # ユーザーIDs: 削除予定+[管理者]+[投稿者]+未参加
         FactoryBot.create(:task_assigne, task: tasks[3], user_ids:)
@@ -95,7 +95,7 @@ RSpec.describe :task_event, type: :task do
       let(:except_task_assigne) do
         {
           tasks[0].id => { user_id: user_admin.id, user_ids: "#{user_reader.id},#{user_admin.id}" },
-          tasks[1].id => { user_id: user_writer.id, user_ids: "#{user_not.id},#{user_writer.id}" },
+          tasks[1].id => { user_id: user_writer.id, user_ids: "#{user_destroy.id},#{user_writer.id}" },
           tasks[2].id => { user_id: user_writer.id, user_ids: "#{user_admin.id},#{user_writer.id}" },
           tasks[3].id => { user_id: user_admin.id, user_ids: "#{user_writer.id},#{user.id},#{user_destroy_reserved.id},#{user_admin.id}" }
         }
@@ -186,11 +186,12 @@ RSpec.describe :task_event, type: :task do
       let_it_be(:task_events) { end_today_task_events + date_include_task_events + completed_task_events }
     end
 
-    include_context 'メンバーパターン作成'
-    let(:current_task_events) { TaskEvent.where(space:).eager_load(task_cycle: { task: :task_assigne }).order(:id) }
-    let(:current_send_histories) { SendHistory.where(space:).order(:id) }
+    include_context 'メンバーパターン作成(user)'
+    include_context 'メンバーパターン作成(member)'
 
     # テスト内容
+    let(:current_task_events) { TaskEvent.where(space:).eager_load(task_cycle: { task: :task_assigne }).order(:id) }
+    let(:current_send_histories) { SendHistory.where(space:).order(:id) }
     shared_examples_for 'OK' do |notice_target, create = { history: true, send: true }, params = { dry_run: false, send_notice: true }|
       let(:dry_run) { params[:dry_run].to_s }
       let(:send_notice) { params[:send_notice].to_s }

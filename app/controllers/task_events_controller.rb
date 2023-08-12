@@ -3,8 +3,9 @@ class TaskEventsController < ApplicationAuthController
   include TaskCyclesConcern
   before_action :response_not_acceptable_for_not_api
   before_action :authenticate_user!, only: :update
-  before_action :set_space_current_member_auth_private
   before_action :response_api_for_user_destroy_reserved, only: :update
+  before_action :set_space_current_member_auth_private
+  before_action :response_api_for_space_destroy_reserved, only: :update
   before_action :check_power_writer, only: :update
   before_action :set_task_event, only: %i[show update]
   before_action :set_params_index, only: :index
@@ -48,6 +49,14 @@ class TaskEventsController < ApplicationAuthController
 
   # POST /task_events/:space_code/update/:code(.json) タスクイベント変更API(処理)
   def update
+    if @task_event.new_assigned_user.blank?
+      @task_event.assigned_user = nil
+      @task_event.assigned_at = nil
+    elsif @task_event.assigned_user != @task_event.new_assigned_user
+      @task_event.assigned_user = @task_event.new_assigned_user
+      @task_event.assigned_at = Time.current
+    end
+
     before_not_notice_status = TaskEvent::NOT_NOTICE_STATUS.include?(@task_event.status_was&.to_sym)
     after_not_notice_status = TaskEvent::NOT_NOTICE_STATUS.include?(@task_event.status.to_sym)
     @task_event.last_completed_at = Time.current if !before_not_notice_status && after_not_notice_status
@@ -102,42 +111,19 @@ class TaskEventsController < ApplicationAuthController
   end
 
   def validate_params_update
-    @task_event.assign_attributes(task_event_params.merge(last_updated_user: current_user))
-    @task_event.valid?
-
-    validate_assigned_user(params[:task_event][:assigned_user])
     @detail = params[:detail].to_s == 'true'
-    return unless @task_event.errors.any?
+    @task_event.assign_attributes(task_event_params.merge(last_updated_user: current_user))
+    return if @task_event.valid?
 
     render './failure', locals: { errors: @task_event.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
-  end
-
-  def validate_assigned_user(params_assigned_user)
-    code = params_assigned_user.present? ? params_assigned_user[:code] : nil
-    if code.blank?
-      @task_event.assigned_user = nil
-      @task_event.assigned_at = nil
-      return
-    end
-
-    user = User.eager_load(:members).where(members: { space: [@space, nil] }).find_by(code:)
-    key = check_assigned_user(user)
-    if key.present?
-      @task_event.errors.add(:assigned_user, key)
-      return
-    end
-
-    if @task_event.assigned_user != user
-      @task_event.assigned_user = user
-      @task_event.assigned_at = Time.current
-    end
   end
 
   # Only allow a list of trusted parameters through.
   def task_event_params
     params[:task_event] = TaskEvent.new.attributes if params[:task_event].blank? # NOTE: 変更なしで成功する為
     params[:task_event][:status] = nil if TaskEvent.statuses[params[:task_event][:status]].blank? # NOTE: ArgumentError対策
+    assigned_user_code = params[:task_event][:assigned_user].present? ? params[:task_event][:assigned_user][:code] : nil
 
-    params.require(:task_event).permit(:last_ended_date, :status, :memo)
+    params.require(:task_event).permit(:last_ended_date, :status, :memo).merge(assigned_user_code:)
   end
 end

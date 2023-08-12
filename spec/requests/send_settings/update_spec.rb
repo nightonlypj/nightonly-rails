@@ -8,21 +8,16 @@ RSpec.describe 'SendSetting', type: :request do
   # POST /send_settings/:space_code/update(.json) 通知設定変更API(処理)
   # テストパターン
   #   未ログイン, APIログイン中, APIログイン中（削除予約済み）
-  #   スペース: 存在しない, 公開, 非公開
-  #   TODO: 削除予約: ある, ない
+  #   スペース: 存在しない, 公開, 非公開, 非公開（削除予約済み）
   #   権限: ある（管理者）, ない（投稿者, 閲覧者, なし）
   #   パラメータなし, 有効なパラメータ, 無効なパラメータ
-  #     Slackドメイン名: ない, 最大文字数と同じ, 最大文字数より多い, 不正値
   #     通知設定: ない, ある（変更あり/なし, 論理削除と一致）
   #     Slackドメイン: ない, ある（Slackユーザー: ない, ある）
-  #     通知するがfalseで、Slackドメイン名/Webhook URL/メンション/アドレスが正常値/不正値, Slackドメイン名が最大文字数より多い
+  #     通知するがfalseで、Slackドメイン名/Webhook URL/メンション/アドレスが正常値/不正値
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #update' do
     subject { post update_send_setting_path(space_code: space.code, format: subject_format), params:, headers: auth_headers.merge(accept_headers) }
-    let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
-    let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
     let_it_be(:valid_attributes) { FactoryBot.attributes_for(:send_setting, :changed, :slack, :email) }
     let_it_be(:valid_slack_name) { 'example' }
     let(:params_attributes) do
@@ -49,22 +44,23 @@ RSpec.describe 'SendSetting', type: :request do
         }
       }
     end
+    let_it_be(:created_user) { FactoryBot.create(:user) }
+
+    shared_context 'valid_condition' do
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
+      let_it_be(:member) { FactoryBot.create(:member, space:, user:) if user.present? }
+      let(:attributes) { valid_attributes }
+      let(:params) { { send_setting: params_attributes } }
+      let(:slack_name) { valid_slack_name }
+      let(:send_setting) { nil }
+      let(:send_setting_inactive) { nil }
+    end
+
+    # テスト内容
     let(:current_send_setting) do
       SendSetting.active.where(space:).eager_load(:slack_domain, :last_updated_user).order(updated_at: :desc, id: :desc).first
     end
     let(:current_send_settings_inactive) { SendSetting.inactive.where(space:) }
-
-    shared_context 'valid_condition' do
-      let(:attributes) { valid_attributes }
-      let(:slack_name) { valid_slack_name }
-      let(:params) { { send_setting: params_attributes } }
-      let(:send_setting) { nil }
-      let(:send_setting_inactive) { nil }
-      let_it_be(:space) { space_private }
-      let_it_be(:member) { FactoryBot.create(:member, space:, user:) if user.present? }
-    end
-
-    # テスト内容
     shared_examples_for 'OK' do
       let!(:start_time) { Time.current.floor }
       it '対象項目が変更される' do
@@ -150,8 +146,8 @@ RSpec.describe 'SendSetting', type: :request do
         }
       end
       context '有効なパラメータ（Slackドメイン名が最大文字数と同じ、通知設定がない、Slackドメインがない）' do
-        let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes }
+        let(:params) { { send_setting: params_attributes } }
         let(:slack_name) { 'a' * Settings.slack_domain_name_maximum }
         let(:send_setting) { nil }
         let(:send_setting_inactive) { nil }
@@ -164,8 +160,8 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'ToOK(json)'
       end
       context '有効なパラメータ（通知設定がある（変更あり）、Slackドメインがない）' do
-        let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes }
+        let(:params) { { send_setting: params_attributes } }
         let(:slack_name) { valid_slack_name }
         let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, :before_updated, space:) }
         let(:send_setting_inactive) { nil }
@@ -178,8 +174,8 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'ToOK(json)'
       end
       context '有効なパラメータ（通知設定がある（変更なし）、Slackドメインがある（Slackユーザーがない））' do
-        let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes }
+        let(:params) { { send_setting: params_attributes } }
         let_it_be(:slack_name) { valid_slack_name }
         let_it_be(:send_setting) do
           slack_domain = FactoryBot.create(:slack_domain, name: slack_name)
@@ -195,8 +191,8 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'ToOK(json)'
       end
       context '有効なパラメータ（通知設定がある（論理削除と一致）、Slackドメインがある（Slackユーザーがある））' do
-        let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes }
+        let(:params) { { send_setting: params_attributes } }
         let_it_be(:slack_name) { valid_slack_name }
         let_it_be(:send_setting) { FactoryBot.create(:send_setting, :slack, :email, :before_updated, space:) }
         let_it_be(:slack_domain) { FactoryBot.create(:slack_domain, name: slack_name) }
@@ -212,8 +208,8 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'ToOK(json)'
       end
       context '有効なパラメータ（通知するがfalseで、Slackドメイン名/Webhook URL/メンション/アドレスが正常値）' do
-        let(:params) { { send_setting: params_attributes } }
         let(:attributes) { valid_attributes.merge(slack_enabled: false, email_enabled: false) }
+        let(:params) { { send_setting: params_attributes } }
         let(:slack_name) { valid_slack_name }
         let(:send_setting) { nil }
         let(:send_setting_inactive) { nil }
@@ -226,7 +222,6 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'ToOK(json)'
       end
       context '有効なパラメータ（通知するがfalseで、Slackドメイン名/Webhook URL/メンション/アドレスが不正値）' do
-        let(:params) { { send_setting: params_attributes } }
         let(:attributes) do
           valid_attributes.merge(
             slack_enabled: false,
@@ -236,6 +231,7 @@ RSpec.describe 'SendSetting', type: :request do
             email_address: 'a'
           )
         end
+        let(:params) { { send_setting: params_attributes } }
         let(:slack_name) { '_' }
         let(:send_setting) { nil }
         let(:send_setting_inactive) { nil }
@@ -247,23 +243,9 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'OK(json)'
         it_behaves_like 'ToOK(json)'
       end
-      context '有効なパラメータ（通知するがfalseで、Slackドメイン名が最大文字数より多い）' do
-        let(:params) { { send_setting: params_attributes } }
-        let(:attributes) { valid_attributes.merge(slack_enabled: false, email_enabled: false) }
-        let(:slack_name) { 'a' * (Settings.slack_domain_name_maximum + 1) }
-        let(:send_setting) { nil }
-        let(:send_setting_inactive) { nil }
-        let(:except_send_setting_inactive) { nil }
-        let(:slack_user) { nil }
-        let(:update_nil) { { slack_name: true, slack_webhook_url: false, slack_mention: false, email_address: false } }
-        it_behaves_like 'NG(html)'
-        it_behaves_like 'ToNG(html)', 406
-        it_behaves_like 'OK(json)'
-        it_behaves_like 'ToOK(json)'
-      end
-      context '無効なパラメータ（Slackドメイン名がない）' do
-        let(:params) { { send_setting: params_attributes } }
+      context '無効なパラメータ' do
         let(:attributes) { valid_attributes }
+        let(:params) { { send_setting: params_attributes } }
         let(:slack_name) { nil }
         let(:send_setting) { nil }
         let(:send_setting_inactive) { nil }
@@ -272,35 +254,12 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'NG(json)'
         it_behaves_like 'ToNG(json)', 422, { slack_name: [get_locale('activerecord.errors.models.slack_domain.attributes.name.blank')] }
       end
-      context '無効なパラメータ（Slackドメイン名が最大文字数より多い）' do
-        let(:params) { { send_setting: params_attributes } }
-        let(:attributes) { valid_attributes }
-        let(:slack_name) { 'a' * (Settings.slack_domain_name_maximum + 1) }
-        let(:send_setting) { nil }
-        let(:send_setting_inactive) { nil }
-        message = get_locale('activerecord.errors.models.slack_domain.attributes.name.too_long', count: Settings.slack_domain_name_maximum)
-        it_behaves_like 'NG(html)'
-        it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
-        it_behaves_like 'NG(json)'
-        it_behaves_like 'ToNG(json)', 422, { slack_name: [message] }
-      end
-      context '無効なパラメータ（Slackドメイン名が不正値）' do
-        let(:params) { { send_setting: params_attributes } }
-        let(:attributes) { valid_attributes }
-        let(:slack_name) { '_' }
-        let(:send_setting) { nil }
-        let(:send_setting_inactive) { nil }
-        it_behaves_like 'NG(html)'
-        it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
-        it_behaves_like 'NG(json)'
-        it_behaves_like 'ToNG(json)', 422, { slack_name: [get_locale('activerecord.errors.models.slack_domain.attributes.name.invalid')] }
-      end
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
       let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) if power.present? }
       let(:attributes) { valid_attributes }
-      let(:slack_name) { valid_slack_name }
       let(:params) { { send_setting: params_attributes } }
+      let(:slack_name) { valid_slack_name }
       let(:send_setting) { nil }
       let(:send_setting_inactive) { nil }
       it_behaves_like 'NG(html)'
@@ -317,22 +276,35 @@ RSpec.describe 'SendSetting', type: :request do
     end
 
     shared_examples_for '[APIログイン中]スペースが存在しない' do
-      let_it_be(:space) { space_not }
+      let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       let(:attributes) { valid_attributes }
-      let(:slack_name) { valid_slack_name }
       let(:params) { { send_setting: params_attributes } }
+      let(:slack_name) { valid_slack_name }
       # it_behaves_like 'NG(html)' # NOTE: 存在しない為
       it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
       # it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 404
     end
     shared_examples_for '[APIログイン中]スペースが公開' do
-      let_it_be(:space) { space_public }
+      let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       it_behaves_like '[APIログイン中][*]'
     end
     shared_examples_for '[APIログイン中]スペースが非公開' do
-      let_it_be(:space) { space_private }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like '[APIログイン中][*]'
+    end
+    shared_examples_for '[APIログイン中]スペースが非公開（削除予約済み）' do
+      let_it_be(:space) { FactoryBot.create(:space, :private, :destroy_reserved, created_user:) }
+      let(:attributes) { valid_attributes }
+      let(:params) { { send_setting: params_attributes } }
+      let(:slack_name) { valid_slack_name }
+      let(:send_setting) { nil }
+      let(:send_setting_inactive) { nil }
+      let_it_be(:member) { FactoryBot.create(:member, space:, user:) }
+      it_behaves_like 'NG(html)'
+      it_behaves_like 'ToNG(html)', 406
+      it_behaves_like 'NG(json)'
+      it_behaves_like 'ToNG(json)', 422, nil, 'alert.space.destroy_reserved'
     end
 
     context '未ログイン' do
@@ -348,6 +320,7 @@ RSpec.describe 'SendSetting', type: :request do
       it_behaves_like '[APIログイン中]スペースが存在しない'
       it_behaves_like '[APIログイン中]スペースが公開'
       it_behaves_like '[APIログイン中]スペースが非公開'
+      it_behaves_like '[APIログイン中]スペースが非公開（削除予約済み）'
     end
     context 'APIログイン中（削除予約済み）' do
       include_context 'APIログイン処理', :destroy_reserved

@@ -31,7 +31,7 @@ shared_context 'タスクイベント作成' do |next_count, expired_count, end_
   let_it_be(:next_task_events) do
     next [] if next_count == 0
 
-    task = FactoryBot.create(:task, :high, space:, created_user: space.created_user)
+    task = FactoryBot.create(:task, :high, space:, created_user:)
     task_cycles = FactoryBot.create_list(:task_cycle, next_count, task:)
     result = task_cycles.map { |task_cycle| FactoryBot.create(:task_event, :tommorow_start, task_cycle:) }
     result.push(id: task_event_not.id, deleted: true) if add_deleted
@@ -41,7 +41,7 @@ shared_context 'タスクイベント作成' do |next_count, expired_count, end_
   let_it_be(:expired_task_events) do
     next [] if expired_count == 0
 
-    task = FactoryBot.create(:task, :middle, space:, created_user: space.created_user)
+    task = FactoryBot.create(:task, :middle, space:, created_user:)
     task_cycles = FactoryBot.create_list(:task_cycle, expired_count, task:)
     result = task_cycles.map { |task_cycle| FactoryBot.create(:task_event, :yesterday_end, :waiting_premise, :assigned, task_cycle:) }
     result.push(id: task_event_not.id, deleted: true) if add_deleted
@@ -51,7 +51,7 @@ shared_context 'タスクイベント作成' do |next_count, expired_count, end_
   let_it_be(:end_today_task_events) do
     next [] if end_today_count == 0
 
-    task = FactoryBot.create(:task, :low, space:, created_user: space.created_user)
+    task = FactoryBot.create(:task, :low, space:, created_user:)
     task_cycles = FactoryBot.create_list(:task_cycle, end_today_count, task:)
     result = task_cycles.map { |task_cycle| FactoryBot.create(:task_event, :today_end, :processing, :assigned, task_cycle:) }
     result.push(id: task_event_not.id, deleted: true) if add_deleted
@@ -61,7 +61,7 @@ shared_context 'タスクイベント作成' do |next_count, expired_count, end_
   let_it_be(:date_include_task_events) do
     next [] if date_include_count == 0
 
-    task = FactoryBot.create(:task, :none, space:, created_user: space.created_user)
+    task = FactoryBot.create(:task, :none, space:, created_user:)
     task_cycles = FactoryBot.create_list(:task_cycle, date_include_count, task:)
     result = task_cycles.map { |task_cycle| FactoryBot.create(:task_event, :update_end, task_cycle:) }
     result.push(id: task_event_not.id, deleted: true) if add_deleted

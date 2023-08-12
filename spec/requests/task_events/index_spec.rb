@@ -28,15 +28,12 @@ RSpec.describe 'TaskEvents', type: :request do
     let_it_be(:current_date) { Date.new(2022, 12, 30) }
     include_context '祝日設定(2022/11-2023/01)'
 
-    let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
-    let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
-    let_it_be(:created_user)      { FactoryBot.create(:user) }
-    let_it_be(:last_updated_user) { FactoryBot.create(:user) }
-    let_it_be(:destroy_user)      { FactoryBot.build_stubbed(:user) }
     let(:valid_start_date) { current_date.beginning_of_month }
     let(:valid_end_date)   { (valid_start_date + (Settings.task_events_max_month_count - 1).months).end_of_month } # NOTE: 最大月数
     let(:valid_params) { { start_date: valid_start_date.strftime('%Y-%m-%d'), end_date: valid_end_date.strftime('%Y-%m-%d') } }
+    let_it_be(:created_user)      { FactoryBot.create(:user) }
+    let_it_be(:last_updated_user) { FactoryBot.create(:user) }
+    let_it_be(:user_destroy)      { FactoryBot.build_stubbed(:user) }
 
     # テスト内容
     shared_examples_for 'ToOK(json/json)' do
@@ -58,7 +55,7 @@ RSpec.describe 'TaskEvents', type: :request do
 
         expect(response_json_tasks.count).to eq(expect_tasks.count)
         response_json_tasks.each_with_index do |response_json_task, index|
-          count = expect_task_json(response_json_task, expect_tasks[index], nil, { detail: false, cycles: false, email: member&.power_admin? })
+          count = expect_task_json(response_json_task, expect_tasks[index], nil, nil, { detail: false, email: member&.power_admin? })
           expect(response_json_task.count).to eq(count)
         end
 
@@ -71,9 +68,9 @@ RSpec.describe 'TaskEvents', type: :request do
       let_it_be(:tasks) do
         [
           FactoryBot.create(:task, :skip_validate, :high, space:, started_date: Date.new(2022, 12, 1), ended_date: Date.new(2023, 1, 31),
-                                                          created_user_id: destroy_user.id, last_updated_user:),
+                                                          created_user_id: user_destroy.id, last_updated_user:),
           FactoryBot.create(:task, :skip_validate, :middle, space:, started_date: Date.new(2022, 12, 30), ended_date: nil,
-                                                            created_user:, last_updated_user_id: destroy_user.id),
+                                                            created_user:, last_updated_user_id: user_destroy.id),
           FactoryBot.create(:task, :skip_validate, :low, space:, started_date: Date.new(2023, 1, 4), ended_date: nil,
                                                          created_user:, last_updated_user: nil)
         ]
@@ -230,24 +227,24 @@ RSpec.describe 'TaskEvents', type: :request do
     end
 
     shared_examples_for '[*]スペースが存在しない' do
-      let_it_be(:space) { space_not }
+      let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       let(:params) { valid_params }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 404
     end
     shared_examples_for '[*]スペースが公開' do
-      let_it_be(:space) { space_public }
+      let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       let(:member) { nil }
       it_behaves_like '開始日'
     end
     shared_examples_for '[未ログイン]スペースが非公開' do
-      let_it_be(:space) { space_private }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       let(:params) { valid_params }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 401
     end
     shared_examples_for '[APIログイン中/削除予約済み]スペースが非公開' do
-      let_it_be(:space) { space_private }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :admin
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :reader
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がない'

@@ -3,8 +3,9 @@ class TasksController < ApplicationAuthController
   include TaskCyclesConcern
   before_action :response_not_acceptable_for_not_api
   before_action :authenticate_user!, only: %i[create update destroy]
-  before_action :set_space_current_member_auth_private
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy]
+  before_action :set_space_current_member_auth_private
+  before_action :response_api_for_space_destroy_reserved, only: %i[create update destroy]
   before_action :check_power_admin, only: :destroy
   before_action :check_power_writer, only: %i[create update]
   before_action :set_task, only: %i[show update]
@@ -92,27 +93,35 @@ class TasksController < ApplicationAuthController
   # Use callbacks to share common setup or constraints between actions.
   def validate_params_create
     @task = Task.new(task_params.merge(space: @space, created_user: current_user))
-    check_validation(:create)
+    validate_params(:create)
   end
 
   def validate_params_update
     @task.assign_attributes(task_params)
-    check_validation(:update)
+    validate_params(:update)
   end
 
-  def check_validation(target)
+  def validate_params(target)
     @detail = params[:detail].to_s == 'true'
     @task.valid?
 
     @now = Time.current
-    check_validation_cycles(params[:task][:cycles], target)
-    check_validation_assigned_users(params[:task][:assigned_users], target)
-    check_validation_months(params[:months])
+    validate_cycles(params[:task][:cycles], target)
+
+    if target == :create || @task.task_assigne.blank?
+      @task_assigne = TaskAssigne.new(space: @space, task: @task)
+    else
+      @task_assigne = @task.task_assigne
+    end
+    errors = @task_assigne.set_user_ids(params[:task][:assigned_users])
+    errors.each { |key, value| @task.errors.add(key, value) }
+
+    validate_months(params[:months])
 
     render './failure', locals: { errors: @task.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if @task.errors.any?
   end
 
-  def check_validation_cycles(cycles, target)
+  def validate_cycles(cycles, target)
     return @task.errors.add(:cycles, t('errors.messages.task_cycles.blank')) if cycles.blank?
     return @task.errors.add(:cycles, t('errors.messages.task_cycles.invalid')) unless cycles.instance_of?(Array)
 
@@ -224,38 +233,7 @@ class TasksController < ApplicationAuthController
     end
   end
 
-  def check_validation_assigned_users(assigned_users, target)
-    if target == :create || @task.task_assigne.blank?
-      @task_assigne = TaskAssigne.new(space: @space, task: @task)
-    else
-      @task_assigne = @task.task_assigne
-      @task_assigne.user_ids = nil if assigned_users.blank?
-    end
-    return if assigned_users.blank?
-    return @task.errors.add(:assigned_users, t('errors.messages.assigned_users.invalid')) unless assigned_users.instance_of?(Array)
-
-    user_ids = []
-    codes = assigned_users.map { |user| user[:code] }
-    users = User.where(code: codes).eager_load(:members).where(members: { space: [@space, nil] }).index_by(&:code)
-    codes.each.with_index(1) do |code, index|
-      key = check_assigned_user(users[code])
-      if key.present?
-        @task.errors.add("assigned_user#{index}".to_sym, t("errors.messages.assigned_users.code.#{key}"))
-        next
-      end
-
-      user_ids.push(users[code].id)
-    end
-
-    if user_ids.count > Settings.task_assigned_users_max_count
-      @task.errors.add(:assigned_users, t('errors.messages.assigned_users.max_count', count: Settings.task_assigned_users_max_count))
-      return
-    end
-
-    @task_assigne.user_ids = user_ids.join(',')
-  end
-
-  def check_validation_months(months)
+  def validate_months(months)
     @months = months
     return if @months.blank?
 

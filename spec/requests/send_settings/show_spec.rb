@@ -17,11 +17,9 @@ RSpec.describe 'SendSetting', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #show' do
     subject { get send_setting_path(space_code: space.code, format: subject_format), headers: auth_headers.merge(accept_headers) }
-    let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
-    let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
-    let_it_be(:slack_domain)  { FactoryBot.create(:slack_domain) }
+    let_it_be(:created_user)      { FactoryBot.create(:user) }
     let_it_be(:last_updated_user) { FactoryBot.create(:user) }
+    let_it_be(:slack_domain) { FactoryBot.create(:slack_domain) }
 
     # テスト内容
     shared_examples_for 'ToOK(json/json)' do
@@ -100,30 +98,30 @@ RSpec.describe 'SendSetting', type: :request do
     end
 
     shared_examples_for '[*]スペースが存在しない' do
-      let_it_be(:space) { space_not }
+      let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 404
     end
     shared_examples_for '[未ログイン]スペースが公開' do
-      let_it_be(:space) { space_public }
+      let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       # it_behaves_like '[未ログイン][*]権限がある', :admin # NOTE: 未ログインの為、権限がない
       # it_behaves_like '[未ログイン][*]権限がある', :reader
       it_behaves_like '[*][公開]権限がない'
     end
     shared_examples_for '[APIログイン中/削除予約済み]スペースが公開' do
-      let_it_be(:space) { space_public }
+      let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :admin
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :reader
       it_behaves_like '[*][公開]権限がない'
     end
     shared_examples_for '[未ログイン]スペースが非公開' do
-      let_it_be(:space) { space_private }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       # it_behaves_like '[未ログイン][*]権限がある', :admin # NOTE: 未ログインの為、権限がない
       # it_behaves_like '[未ログイン][*]権限がある', :reader
       it_behaves_like '[未ログイン][非公開]権限がない'
     end
     shared_examples_for '[APIログイン中/削除予約済み]スペースが非公開' do
-      let_it_be(:space) { space_private }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :admin
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :reader
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がない'

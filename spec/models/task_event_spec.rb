@@ -96,6 +96,31 @@ RSpec.describe TaskEvent, type: :model do
     end
   end
 
+  # 担当者コード
+  # テストパターン
+  #   ない, 存在しない, 管理者
+  describe 'validates :assigned_user_code' do
+    let_it_be(:space) { FactoryBot.create(:space) }
+    let(:model) { FactoryBot.build_stubbed(:task_event, space:, assigned_user_code:) }
+
+    # テストケース
+    context 'ない' do
+      let(:assigned_user_code) { nil }
+      it_behaves_like 'Valid'
+    end
+    context '存在しない' do
+      let(:assigned_user_code) { FactoryBot.build_stubbed(:user).code }
+      let(:messages) { { assigned_user: [get_locale('activerecord.errors.models.task_event.attributes.assigned_user.notfound')] } }
+      it_behaves_like 'InValid'
+    end
+    context '管理者' do
+      let_it_be(:user) { FactoryBot.create(:user) }
+      let_it_be(:member) { FactoryBot.create(:member, :admin, space:, user:) }
+      let(:assigned_user_code) { user.code }
+      it_behaves_like 'Valid'
+    end
+  end
+
   # 最終更新日時
   # テストパターン
   #   更新日時: 作成日時と同じ, 作成日時以降

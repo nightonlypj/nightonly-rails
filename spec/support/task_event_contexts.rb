@@ -24,6 +24,16 @@ def expect_task_event_json(response_json_event, task, task_cycle, task_event, ex
     result += 4
     expect(response_json_event['last_completed_at']).to eq(I18n.l(task_event.last_completed_at, format: :json, default: nil))
 
+    data = response_json_event['init_assigned_user']
+    if task_event.init_assigned_user_id.present?
+      count = expect_user_json(data, task_event.init_assigned_user, { email: use[:email] })
+      expect(data['deleted']).to eq(task_event.init_assigned_user.blank?)
+      expect(data.count).to eq(count + 1)
+      result += 1
+    else
+      expect(data).to be_nil
+    end
+
     data = response_json_event['assigned_user']
     if task_event.assigned_user_id.present?
       count = expect_user_json(data, task_event.assigned_user, { email: use[:email] })

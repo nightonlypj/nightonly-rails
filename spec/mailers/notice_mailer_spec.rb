@@ -29,11 +29,12 @@ RSpec.describe NoticeMailer, type: :mailer do
       ).incomplete_task
     end
     let(:mail_subject) { 'mailer.notice.incomplete_task.subject' }
-    let_it_be(:space) { FactoryBot.create(:space) }
+    let_it_be(:created_user) { FactoryBot.create(:user) }
+    let_it_be(:space) { FactoryBot.create(:space, created_user:) }
     let_it_be(:send_setting) { FactoryBot.create(:send_setting, :email, space:) }
-    let(:current_send_history) { SendHistory.find(send_history.id) }
 
     # テスト内容
+    let(:current_send_history) { SendHistory.find(send_history.id) }
     shared_examples_for 'OK' do
       let!(:start_time) { Time.current.floor }
       it_behaves_like 'Header'

@@ -20,15 +20,6 @@ module TasksConcern
     User.active.where(id: user_ids).joins(:members).where(members: { space:, power: Member::POWER_WRITER_UP }).index_by(&:id)
   end
 
-  def check_assigned_user(user)
-    return :notfound if user.blank?
-    return :destroy_reserved if user.destroy_reserved?
-    return :member_notfound if user.members.first.blank?
-    return :member_power_reader if user.members.first.power_reader?
-
-    nil
-  end
-
   SORT_COLUMN = {
     'priority' => 'tasks.priority',
     'title' => 'tasks.title',
