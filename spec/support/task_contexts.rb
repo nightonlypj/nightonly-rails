@@ -409,7 +409,7 @@ shared_examples_for '有効なパラメータ（タスク担当者）' do |updat
   let(:expect_events) { [] }
   let(:attributes) { params[:task] }
   context '→正常値' do
-    let(:params) { { task: valid_attributes.deep_merge(assigned_users: valid_assigned_users_attributes) } }
+    let(:params) { { task: valid_attributes.deep_merge(assigned_users: valid_assigned_users_attributes), detail: true } }
     let(:task_assigne_users) { valid_task_assigne_users }
     context 'なし→' do
       it_behaves_like 'NG(html)'
@@ -437,7 +437,7 @@ shared_examples_for '有効なパラメータ（タスク担当者）' do |updat
   next unless update
 
   context '→いない' do
-    let(:params) { { task: valid_attributes } }
+    let(:params) { { task: valid_attributes, detail: true } }
     let(:task_assigne_users) { nil }
     context 'いる→' do
       before_all { FactoryBot.create(:task_assigne, task:, user_ids: valid_task_assigne_users.pluck(:id).join(',')) }

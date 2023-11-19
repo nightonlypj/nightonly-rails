@@ -21,7 +21,9 @@ class TasksController < ApplicationAuthController
   end
 
   # GET /tasks/:space_code/detail/:id(.json) タスク詳細API
-  def show; end
+  def show
+    @detail = true
+  end
 
   # POST /tasks/:space_code/create(.json) タスク追加API(処理)
   def create
@@ -69,7 +71,10 @@ class TasksController < ApplicationAuthController
 
   def render_success(target)
     set_task(@task.id)
-    return render :show_index, locals: { notice: t("notice.task.#{target}") }, status: target == :create ? :created : nil if @months.blank?
+    if @months.blank?
+      set_task_assigne_users if @detail
+      return render :show, locals: { notice: t("notice.task.#{target}") }, status: target == :create ? :created : nil
+    end
 
     if target == :create
       @task_events = []

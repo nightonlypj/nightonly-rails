@@ -114,7 +114,7 @@ RSpec.describe 'Tasks', type: :request do
         end
 
         use = { detail: params[:detail], email: member&.power_admin? }
-        count = expect_task_json(response_json_task, current_task, expect_events.present? ? nil : current_task_cycles_active, nil, use)
+        count = expect_task_json(response_json_task, current_task, expect_events.present? ? nil : current_task_cycles_active, task_assigne_users, use)
         expect(response_json_task.count).to eq(count)
 
         expect(response_json.count).to eq(result)
