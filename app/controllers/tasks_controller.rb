@@ -61,7 +61,7 @@ class TasksController < ApplicationAuthController
   def destroy
     key = @ids.count == @tasks.count ? 'destroy' : 'destroy_include_notfound'
     @destroy_count = @tasks.count
-    notice = t("notice.task.#{key}", count: @ids.count.to_s(:delimited), destroy_count: @destroy_count.to_s(:delimited))
+    notice = t("notice.task.#{key}", count: @ids.count.to_formatted_s(:delimited), destroy_count: @destroy_count.to_formatted_s(:delimited))
 
     @tasks.destroy_all
     render locals: { notice: }
@@ -123,7 +123,7 @@ class TasksController < ApplicationAuthController
 
     validate_months(params[:months])
 
-    render './failure', locals: { errors: @task.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if @task.errors.any?
+    render '/failure', locals: { errors: @task.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if @task.errors.any?
   end
 
   def validate_cycles(cycles, target)
@@ -274,7 +274,7 @@ class TasksController < ApplicationAuthController
       alert = 'alert.task.destroy.ids.notfound' if @tasks.empty?
     end
 
-    render './failure', locals: { alert: t(alert) }, status: :unprocessable_entity if alert.present?
+    render '/failure', locals: { alert: t(alert) }, status: :unprocessable_entity if alert.present?
   end
 
   # Only allow a list of trusted parameters through.

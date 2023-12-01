@@ -13,7 +13,7 @@ json.array! task_event_ids do |id|
 
   if task_event.assigned_user_id.present?
     json.assigned_user do
-      json.partial! './users/auth/user', user: task_event.assigned_user, use_email: current_member&.power_admin? if task_event.assigned_user.present?
+      json.partial! '/users/auth/user', user: task_event.assigned_user, use_email: current_member&.power_admin? if task_event.assigned_user.present?
       json.deleted task_event.assigned_user.blank?
     end
   end

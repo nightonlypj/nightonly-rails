@@ -105,7 +105,8 @@ class TaskEvent < ApplicationRecord
     return if started_date.blank? || last_ended_date.blank?
 
     return errors.add(:last_ended_date, :after) if last_ended_date < started_date
-    return errors.add(:last_ended_date, :before) if last_ended_date > (started_date + 1.month).end_of_month
+
+    errors.add(:last_ended_date, :before) if last_ended_date > (started_date + 1.month).end_of_month
   end
 
   def validate_assigned_user_code

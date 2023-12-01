@@ -73,7 +73,7 @@ class SendSettingsController < ApplicationAuthController
     end
     return unless @new_send_setting.errors.any?
 
-    render './failure', locals: { errors: @new_send_setting.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
+    render '/failure', locals: { errors: @new_send_setting.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
   end
 
   def delete_invalid_value(enabled_key, targey_key)

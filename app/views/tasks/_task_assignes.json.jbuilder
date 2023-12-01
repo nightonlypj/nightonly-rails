@@ -5,6 +5,6 @@ json.assigne_users do
     user_id = task_assigne_user_id.to_i
     next if task_assigne_users[user_id].blank?
 
-    json.partial! './users/auth/user', user: task_assigne_users[user_id], use_email: @current_member&.power_admin?
+    json.partial! '/users/auth/user', user: task_assigne_users[user_id], use_email: @current_member&.power_admin?
   end
 end

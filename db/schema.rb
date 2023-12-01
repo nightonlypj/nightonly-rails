@@ -168,8 +168,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_19_025521) do
     t.integer "notice_target", null: false, comment: "通知対象"
     t.integer "send_target", null: false, comment: "送信対象"
     t.integer "status", default: 0, null: false, comment: "ステータス"
-    t.datetime "started_at", null: false, comment: "開始日時"
-    t.datetime "completed_at", comment: "完了日時"
+    t.datetime "started_at", precision: nil, null: false, comment: "開始日時"
+    t.datetime "completed_at", precision: nil, comment: "完了日時"
     t.integer "target_count", null: false, comment: "対象件数"
     t.text "next_task_event_ids", comment: "翌営業日開始のタスクイベントIDs"
     t.text "expired_task_event_ids", comment: "期限切れのタスクイベントIDs"
@@ -177,8 +177,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_19_025521) do
     t.text "date_include_task_event_ids", comment: "期間内のタスクイベントIDs"
     t.text "error_message", comment: "エラーメッセージ"
     t.text "send_data", comment: "送信データ"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.text "completed_task_event_ids", comment: "完了したタスクイベントIDs"
     t.index ["send_setting_id"], name: "index_send_histories_on_send_setting_id"
     t.index ["space_id", "target_date", "notice_target"], name: "send_histories1"
@@ -199,9 +199,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_19_025521) do
     t.integer "next_notice_start_hour", comment: "(翌営業日・終了確認)開始時間"
     t.boolean "next_notice_required", default: false, null: false, comment: "(翌営業日・終了確認)必ず通知"
     t.bigint "last_updated_user_id", comment: "最終更新者ID"
-    t.datetime "deleted_at", comment: "削除日時"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "deleted_at", precision: nil, comment: "削除日時"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.boolean "start_notice_completed", default: true, null: false, comment: "(開始確認)完了通知"
     t.boolean "next_notice_completed", default: true, null: false, comment: "(翌営業日・終了確認)完了通知"
     t.index ["deleted_at", "id"], name: "send_settings3"
@@ -214,8 +214,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_19_025521) do
 
   create_table "slack_domains", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "Slackドメイン", force: :cascade do |t|
     t.string "name", null: false, comment: "ドメイン名"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["name"], name: "index_slack_domains1", unique: true
   end
 
@@ -223,8 +223,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_19_025521) do
     t.bigint "slack_domain_id", null: false, comment: "SlackドメインID"
     t.bigint "user_id", null: false, comment: "ユーザーID"
     t.string "memberid", comment: "SlackメンバーID"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["slack_domain_id", "user_id"], name: "index_slack_users1", unique: true
     t.index ["slack_domain_id"], name: "index_slack_users_on_slack_domain_id"
     t.index ["user_id", "id"], name: "index_slack_users2"
@@ -257,8 +257,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_19_025521) do
     t.bigint "space_id", null: false, comment: "スペースID"
     t.bigint "task_id", null: false, comment: "タスクID"
     t.text "user_ids", comment: "ユーザーIDs"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["space_id", "task_id"], name: "index_task_assignes1", unique: true
     t.index ["space_id"], name: "index_task_assignes_on_space_id"
     t.index ["task_id"], name: "index_task_assignes_on_task_id"
@@ -276,9 +276,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_19_025521) do
     t.integer "wday", comment: "曜日"
     t.integer "handling_holiday", comment: "休日の扱い"
     t.integer "period", default: 1, null: false, comment: "期間（日）"
-    t.datetime "deleted_at", comment: "削除日時"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "deleted_at", precision: nil, comment: "削除日時"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.integer "order", comment: "並び順"
     t.index ["deleted_at", "id"], name: "index_task_cycles3"
     t.index ["deleted_at", "space_id", "cycle", "month"], name: "index_task_cycles1"
@@ -296,13 +296,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_19_025521) do
     t.date "ended_date", null: false, comment: "終了日"
     t.integer "status", default: 0, null: false, comment: "ステータス"
     t.bigint "assigned_user_id", comment: "担当者ID"
-    t.datetime "assigned_at", comment: "担当日時"
+    t.datetime "assigned_at", precision: nil, comment: "担当日時"
     t.text "memo", comment: "メモ"
     t.bigint "last_updated_user_id", comment: "最終更新者ID"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.date "last_ended_date", null: false, comment: "最終終了日"
-    t.datetime "last_completed_at", comment: "最終完了日時"
+    t.datetime "last_completed_at", precision: nil, comment: "最終完了日時"
     t.bigint "init_assigned_user_id", comment: "初期担当者ID"
     t.index ["assigned_user_id"], name: "index_task_events_on_assigned_user_id"
     t.index ["code"], name: "index_task_events1", unique: true
@@ -327,8 +327,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_19_025521) do
     t.date "ended_date", comment: "終了日"
     t.bigint "created_user_id", null: false, comment: "作成者ID"
     t.bigint "last_updated_user_id", comment: "最終更新者ID"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["created_at", "id"], name: "index_tasks7"
     t.index ["created_user_id", "id"], name: "index_tasks5"
     t.index ["created_user_id"], name: "index_tasks_on_created_user_id"

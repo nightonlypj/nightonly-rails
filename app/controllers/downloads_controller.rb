@@ -103,7 +103,7 @@ class DownloadsController < ApplicationAuthController
       return response_param_error(:space_code, 'not_exist') if @space.blank?
 
       @current_member = Member.where(space: @space, user: current_user).eager_load(:user).first
-      return response_forbidden if @current_member.blank? || !@current_member.power_admin?
+      response_forbidden if @current_member.blank? || !@current_member.power_admin?
     else
       # :nocov:
       @space = nil

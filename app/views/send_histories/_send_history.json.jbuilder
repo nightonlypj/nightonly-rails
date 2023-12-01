@@ -36,18 +36,18 @@ json.error_message send_history.error_message if current_member.present?
 
 if send_history.notice_target_next?
   json.next_task_events do
-    json.partial! './send_histories/task_events', task_event_ids: @next_task_event_ids, task_events:, current_member:
+    json.partial! '/send_histories/task_events', task_event_ids: @next_task_event_ids, task_events:, current_member:
   end
 end
 json.expired_task_events do
-  json.partial! './send_histories/task_events', task_event_ids: @expired_task_event_ids, task_events:, current_member:
+  json.partial! '/send_histories/task_events', task_event_ids: @expired_task_event_ids, task_events:, current_member:
 end
 json.end_today_task_events do
-  json.partial! './send_histories/task_events', task_event_ids: @end_today_task_event_ids, task_events:, current_member:
+  json.partial! '/send_histories/task_events', task_event_ids: @end_today_task_event_ids, task_events:, current_member:
 end
 json.date_include_task_events do
-  json.partial! './send_histories/task_events', task_event_ids: @date_include_task_event_ids, task_events:, current_member:
+  json.partial! '/send_histories/task_events', task_event_ids: @date_include_task_event_ids, task_events:, current_member:
 end
 json.completed_task_events do
-  json.partial! './send_histories/task_events', task_event_ids: @completed_task_event_ids, task_events:, current_member:
+  json.partial! '/send_histories/task_events', task_event_ids: @completed_task_event_ids, task_events:, current_member:
 end

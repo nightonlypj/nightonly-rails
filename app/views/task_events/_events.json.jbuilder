@@ -1,5 +1,5 @@
 json.array! task_events.each do |task_event|
-  json.partial! './task_events/task_event', task:, task_event:, detail: false, current_member:
+  json.partial! '/task_events/task_event', task:, task_event:, detail: false, current_member:
 end
 json.array! next_events.each do |task_cycle, start_date, end_date|
   json.cycle_id task_cycle.id

@@ -94,7 +94,7 @@ class TaskEventsController < ApplicationAuthController
       end
     end
 
-    render './failure', locals: { errors:, alert: t('errors.messages.default') }, status: :unprocessable_entity if errors.present?
+    render '/failure', locals: { errors:, alert: t('errors.messages.default') }, status: :unprocessable_entity if errors.present?
   end
 
   def validate_date(value)
@@ -115,7 +115,7 @@ class TaskEventsController < ApplicationAuthController
     @task_event.assign_attributes(task_event_params.merge(last_updated_user: current_user))
     return if @task_event.valid?
 
-    render './failure', locals: { errors: @task_event.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
+    render '/failure', locals: { errors: @task_event.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
   end
 
   # Only allow a list of trusted parameters through.
