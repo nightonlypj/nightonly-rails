@@ -17,14 +17,14 @@ class Invitation < ApplicationRecord
     result = []
     invalid_domain = nil
     max_count = Settings.invitation_domains_max_count
-    domains&.split(/\R/)&.each do |domain|
+    (domains || '').split(/\R/).each do |domain|
       domain.strip!
-      if domain.present? && !result.include?(domain)
-        result.push(domain)
-        break if result.count > max_count
+      next unless domain.present? && !result.include?(domain)
 
-        invalid_domain = domain if invalid_domain.blank? && !Devise.email_regexp.match?("test@#{domain}")
-      end
+      result.push(domain)
+      break if result.count > max_count
+
+      invalid_domain = domain if invalid_domain.blank? && !Devise.email_regexp.match?("test@#{domain}")
     end
 
     if result.blank?
@@ -32,7 +32,7 @@ class Invitation < ApplicationRecord
       return
     end
     if result.count > max_count
-      errors.add(:domains, :max_count, count: max_count.to_s(:delimited))
+      errors.add(:domains, :max_count, count: max_count.to_formatted_s(:delimited))
       return
     end
     if invalid_domain.present?
@@ -93,7 +93,8 @@ class Invitation < ApplicationRecord
     begin
       result = Time.new(@year, @month, @day, 23, 59, 59, ended_zone)
       return errors.add(:ended_date, :notfound) if result.day != @day.to_i # NOTE: 存在しない日付は丸められる為
-      return errors.add(:ended_date, :before) if (ended_at.blank? || (ended_at&.strftime('%Y%m%d') != result.strftime('%Y%m%d'))) && result <= Time.current
+
+      errors.add(:ended_date, :before) if (ended_at.blank? || (ended_at&.strftime('%Y%m%d') != result.strftime('%Y%m%d'))) && result <= Time.current
     rescue StandardError
       errors.add(:ended_zone, :invalid)
     end

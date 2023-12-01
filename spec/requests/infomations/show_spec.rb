@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Infomations', type: :request do
-  let(:response_json) { response.body.present? ? JSON.parse(response.body) : {} }
+  let(:response_json) { JSON.parse(response.body) }
   let(:response_json_infomation) { response_json['infomation'] }
 
   # GET /infomations/:id お知らせ詳細
@@ -11,6 +11,7 @@ RSpec.describe 'Infomations', type: :request do
   #   対象: 全員, 自分, 他人
   #   開始日時: 過去, 未来
   #   終了日時: 過去, 未来, ない
+  #   本文: ある, ない
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #show' do
@@ -19,6 +20,9 @@ RSpec.describe 'Infomations', type: :request do
     shared_context 'お知らせ作成' do
       let_it_be(:infomation) { FactoryBot.create(:infomation, started_at:, ended_at:, target:, user_id:) }
     end
+    shared_context 'お知らせ作成（本文がない）' do
+      let_it_be(:infomation) { FactoryBot.create(:infomation, started_at:, ended_at:, target:, user_id:, body: nil) }
+    end
 
 =begin
     # テスト内容
@@ -26,7 +30,7 @@ RSpec.describe 'Infomations', type: :request do
       it 'HTTPステータスが200。対象項目が含まれる' do
         is_expected.to eq(200)
         # タイトル
-        expect(response.body).to include(infomation.label_i18n) if infomation.label_i18n.present?
+        expect(response.body).to include(infomation.label_i18n)
         expect(response.body).to include(infomation.title)
         expect(response.body).to include(I18n.l(infomation.started_at.to_date))
         # 本文, サマリー
@@ -81,15 +85,28 @@ RSpec.describe 'Infomations', type: :request do
     end
     shared_examples_for '[*][全員][過去]終了日時が未来' do
       let_it_be(:ended_at) { Time.current + 1.day }
-      include_context 'お知らせ作成'
-      if Settings.api_only_mode
-        it_behaves_like 'ToNG(html)', 406
+      context '本文がある' do
+        include_context 'お知らせ作成'
+        if Settings.api_only_mode
+          it_behaves_like 'ToNG(html)', 406
 =begin
-      else
-        it_behaves_like 'ToOK(html)'
+        else
+          it_behaves_like 'ToOK(html)'
 =end
+        end
+        it_behaves_like 'ToOK(json)'
       end
-      it_behaves_like 'ToOK(json)'
+      context '本文がない' do
+        include_context 'お知らせ作成（本文がない）'
+        if Settings.api_only_mode
+          it_behaves_like 'ToNG(html)', 406
+=begin
+        else
+          it_behaves_like 'ToOK(html)'
+=end
+        end
+        it_behaves_like 'ToOK(json)'
+      end
     end
     shared_examples_for '[ログイン中/削除予約済み][自分][過去]終了日時が未来' do
       let_it_be(:ended_at) { Time.current + 1.day }
