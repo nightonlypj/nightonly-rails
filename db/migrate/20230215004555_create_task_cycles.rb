@@ -13,7 +13,7 @@ class CreateTaskCycles < ActiveRecord::Migration[6.1]
       t.integer :week,         comment: '週'    # 毎月/毎年(週)
 
       t.integer :wday,             comment: '曜日'      # 毎週, 毎月/毎年(週)
-      t.integer :handling_holiday, comment: '休日の扱い' # 毎週, 毎月/毎年(日/週)
+      t.integer :handling_holiday, comment: '休日の場合' # 毎週, 毎月/毎年(日/週)
 
       t.integer :period, null: false, default: 1, comment: '期間（日）'
 

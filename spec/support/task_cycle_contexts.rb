@@ -1,6 +1,6 @@
 # テスト内容（共通）
 def expect_task_cycle_json(response_json_task_cycle, task_cycle)
-  result = 4
+  result = 5
   expect(response_json_task_cycle['id']).to eq(task_cycle.id)
   expect(response_json_task_cycle['cycle']).to eq(task_cycle.cycle)
   expect(response_json_task_cycle['cycle_i18n']).to eq(task_cycle.cycle_i18n)
@@ -61,6 +61,7 @@ def expect_task_cycle_json(response_json_task_cycle, task_cycle)
   end
 
   expect(response_json_task_cycle['period']).to eq(task_cycle.period)
+  expect(response_json_task_cycle['holiday']).to eq(task_cycle.holiday)
 
   result
 end

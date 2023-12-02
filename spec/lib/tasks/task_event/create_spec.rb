@@ -60,13 +60,13 @@ RSpec.describe :task_event, type: :task do
     end
     before_all do # NOTE: 対象外
       task = FactoryBot.create(:task, :skip_validate, :no_end, space:, started_date: Date.new(2023, 1, 4), created_user: user)
-      FactoryBot.create(:task_cycle, :weekly, task:, wday: :mon, handling_holiday: :after, period: 2) # 12/30-1/3（月曜＋翌営業日）
+      FactoryBot.create(:task_cycle, :weekly, task:, wday: :mon, handling_holiday: :after, period: 2, holiday: false) # 12/30-1/3（月曜＋翌営業日）
       task = FactoryBot.create(:task, :skip_validate, :no_end, space:, started_date: Date.new(2022, 12, 31), created_user: user)
-      FactoryBot.create(:task_cycle, :monthly, :day, task:, day: 2, handling_holiday: :before, period: 1) # 12/30（前営業日）
+      FactoryBot.create(:task_cycle, :monthly, :day, task:, day: 2, handling_holiday: :before, period: 1, holiday: false) # 12/30（前営業日）
       task = FactoryBot.create(:task, :skip_validate, :no_end, space:, started_date: Date.new(2023, 1, 4), created_user: user)
-      FactoryBot.create(:task_cycle, :yearly, :business_day, task:, month: 1, business_day: 1, period: 2) # 12/30-1/3（第1営業日）
+      FactoryBot.create(:task_cycle, :yearly, :business_day, task:, month: 1, business_day: 1, period: 3, holiday: false) # 12/30-1/3（第1営業日）
       task = FactoryBot.create(:task, :skip_validate, :no_end, space:, started_date: Date.new(2023, 1, 5), created_user: user)
-      FactoryBot.create(:task_cycle, :yearly, :week, task:, month: 1, week: :first, wday: :wed, handling_holiday: :after, period: 3) # 12/30-1/4（第1水曜）
+      FactoryBot.create(:task_cycle, :yearly, :week, task:, month: 1, week: :first, wday: :wed, handling_holiday: :onday, period: 7, holiday: true) # 12/30-1/4（第1水曜）
     end
 
     shared_context 'タスク担当者作成1' do
@@ -107,10 +107,10 @@ RSpec.describe :task_event, type: :task do
         next [] unless create[:today]
 
         [
-          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :mon, handling_holiday: :after, period: 2), # 12/30-1/3（月曜＋翌営業日）
-          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 2, handling_holiday: :before, period: 1), # 12/30（前営業日）
-          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 1, period: 2), # 12/30-1/3（第1営業日）
-          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :wed, handling_holiday: :after, period: 3) # 12/30-1/4（第1水曜）
+          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :mon, handling_holiday: :after, period: 2, holiday: false), # 12/30-1/3（月曜＋翌営業日）
+          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 2, handling_holiday: :before, period: 1, holiday: false), # 12/30（前営業日）
+          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 1, period: 2, holiday: false), # 12/30-1/3（第1営業日）
+          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :wed, handling_holiday: :onday, period: 6, holiday: true) # 12/30-1/4（第1水曜）
         ]
       end
       let_it_be(:except_today_task_events) do
@@ -128,10 +128,10 @@ RSpec.describe :task_event, type: :task do
         next [] unless create[:next]
 
         [
-          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :wed, handling_holiday: :before, period: 2), # 1/3-4（水曜）
-          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 31, handling_holiday: :after, period: 1), # 1/3（後営業日）
-          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 2, period: 2), # 11/3-4（第2営業日）
-          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :thu, handling_holiday: :before, period: 3) # 1/3-5（第1木曜）
+          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :wed, handling_holiday: :before, period: 2, holiday: false), # 1/3-4（水曜）
+          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 31, handling_holiday: :after, period: 1, holiday: false), # 1/3（後営業日）
+          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 2, period: 2, holiday: false), # 11/3-4（第2営業日）
+          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :thu, handling_holiday: :onday, period: 3, holiday: true) # 1/3-5（第1木曜）
         ]
       end
       let_it_be(:except_next_task_events) do

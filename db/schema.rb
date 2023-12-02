@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_19_025521) do
+ActiveRecord::Schema[7.0].define(version: 2023_12_01_234808) do
   create_table "admin_users", charset: "utf8mb4", collation: "utf8mb4_general_ci", comment: "管理者", force: :cascade do |t|
     t.string "name", null: false, comment: "氏名"
     t.string "email", default: "", null: false, comment: "メールアドレス"
@@ -274,12 +274,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_19_025521) do
     t.integer "business_day", comment: "営業日"
     t.integer "week", comment: "週"
     t.integer "wday", comment: "曜日"
-    t.integer "handling_holiday", comment: "休日の扱い"
+    t.integer "handling_holiday", comment: "休日の場合"
     t.integer "period", default: 1, null: false, comment: "期間（日）"
     t.datetime "deleted_at", precision: nil, comment: "削除日時"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "order", comment: "並び順"
+    t.boolean "holiday", default: false, null: false, comment: "休日含む"
     t.index ["deleted_at", "id"], name: "index_task_cycles3"
     t.index ["deleted_at", "space_id", "cycle", "month"], name: "index_task_cycles1"
     t.index ["order", "updated_at", "id"], name: "index_task_cycles4"

@@ -77,10 +77,10 @@ RSpec.describe 'TaskEvents', type: :request do
       end
       let_it_be(:task_cycles) do
         [
-          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :tue, handling_holiday: :after, period: 2, order: 1),
-          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 1, handling_holiday: :before, period: 1, order: 1),
-          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 2, period: 2, order: 1),
-          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[2], month: 2, week: :third, wday: :wed, handling_holiday: :after, period: 3, order: 1)
+          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :tue, handling_holiday: :after, period: 2, holiday: false, order: 1),
+          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 1, handling_holiday: :before, period: 1, holiday: false, order: 1),
+          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 2, period: 2, holiday: false, order: 1),
+          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[2], month: 2, week: :third, wday: :wed, handling_holiday: :onday, period: 6, holiday: true, order: 1)
         ]
       end
       let_it_be(:task_events) do
@@ -108,7 +108,7 @@ RSpec.describe 'TaskEvents', type: :request do
           { index: 0, started_date: '2023-01-30', last_ended_date: '2023-01-31' },
           { index: 1, started_date: '2023-02-01', last_ended_date: '2023-02-01' },
           { index: 2, started_date: '2023-01-03', last_ended_date: '2023-01-04' },
-          { index: 3, started_date: '2023-02-13', last_ended_date: '2023-02-15' }
+          { index: 3, started_date: '2023-02-10', last_ended_date: '2023-02-15' } # NOTE: 休日除く為 <- started_date: '2023-02-07'
         ]
       end
       let(:expect_tasks) do

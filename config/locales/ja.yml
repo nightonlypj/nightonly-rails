@@ -134,8 +134,9 @@ ja:
         business_day: '営業日'
         week: '週'
         wday: '曜日'
-        handling_holiday: '休日の扱い'
+        handling_holiday: '休日の場合'
         period: '期間（日）'
+        holiday: '休日含む'
         order: '並び順'
         deleted_at: '削除日時'
         created_at: '作成日時'
@@ -349,6 +350,8 @@ ja:
               blank: '入力してください。'
               greater_than_or_equal_to: '%{count}以上の値を入力してください。'
               less_than_or_equal_to: '%{count}以下の値を入力してください。'
+            holiday:
+              inclusion: '選択してください。'
         task_event:
           attributes:
             code:
@@ -503,6 +506,7 @@ ja:
         sat: '土曜日'
       handling_holiday:
         before: '前日'
+        onday: '当日'
         after: '翌日'
     task_event:
       status:

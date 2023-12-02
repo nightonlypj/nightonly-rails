@@ -64,6 +64,15 @@
   wday: fri
   handling_holiday: after
   period: 2
+# 毎週水曜日（当日）までの7日間（休日含む）でやる事
+- id: 191
+  space_id: 1
+  task_id: 19
+  cycle: weekly
+  wday: wed
+  handling_holiday: onday
+  period: 7
+  holiday: true
 
 ## 毎月(日)
 # 毎月1日（前日）

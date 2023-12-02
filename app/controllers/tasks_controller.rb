@@ -194,7 +194,8 @@ class TasksController < ApplicationAuthController
       week: task_cycle.week,
       wday: task_cycle.wday,
       handling_holiday: task_cycle.handling_holiday,
-      period: task_cycle.period
+      period: task_cycle.period,
+      holiday: task_cycle.holiday
     }
   end
 
@@ -311,6 +312,6 @@ class TasksController < ApplicationAuthController
     keys += [:wday] if cycle == :weekly || (%i[monthly yearly].include?(cycle) && target == :week)
     keys += [:handling_holiday] if cycle == :weekly || (%i[monthly yearly].include?(cycle) && %i[day week].include?(target))
 
-    task_cycle.permit(keys + [:period])
+    task_cycle.permit(keys + %i[period holiday])
   end
 end

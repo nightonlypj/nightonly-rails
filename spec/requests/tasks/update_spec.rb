@@ -78,6 +78,7 @@ RSpec.describe 'Tasks', type: :request do
           expect(current_task_cycle.wday&.to_sym).to eq(expect_task_cycles_active[index][:wday])
           expect(current_task_cycle.handling_holiday&.to_sym).to eq(expect_task_cycles_active[index][:handling_holiday])
           expect(current_task_cycle.period).to eq(expect_task_cycles_active[index][:period])
+          expect(current_task_cycle.holiday).to eq(expect_task_cycles_active[index][:holiday])
           expect(current_task_cycle.order).to eq(index + 1)
           expect(current_task_cycle.deleted_at).to be_nil
         end

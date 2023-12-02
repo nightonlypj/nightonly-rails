@@ -127,6 +127,7 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
             wday: :mon,
             handling_holiday: :before,
             period: 1,
+            holiday: false,
             delete: true
           },
           {
@@ -137,8 +138,9 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
             business_day: 2, # 保存されない
             week: :second, # 保存されない
             wday: :tue,
-            handling_holiday: :after,
+            handling_holiday: :onday,
             period: 2,
+            holiday: true,
             delete: false
           }
         ]
@@ -151,7 +153,7 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
       next unless update
 
       # NOTE: 2つ目が存在する + 1つ目はdelete -> 変更なし
-      [FactoryBot.create(:task_cycle, :weekly, task:, wday: :tue, handling_holiday: :after, period: 2, order: 1)]
+      [FactoryBot.create(:task_cycle, :weekly, task:, wday: :tue, handling_holiday: :onday, period: 2, holiday: true, order: 1)]
     end
     let(:expect_task_cycles_active) do
       [
@@ -163,8 +165,9 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
           business_day: nil,
           week: nil,
           wday: :tue,
-          handling_holiday: :after,
-          period: 2
+          handling_holiday: :onday,
+          period: 2,
+          holiday: true
         }
       ]
     end
@@ -203,7 +206,8 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
             week: :first, # 保存されない
             wday: :mon, # 保存されない
             handling_holiday: :before,
-            period: 1
+            period: 1,
+            holiday: false
           },
           {
             cycle: :monthly,
@@ -213,8 +217,9 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
             business_day: 2,
             week: :second, # 保存されない
             wday: :tue, # 保存されない
-            handling_holiday: :before, # 保存されない
-            period: 2
+            handling_holiday: :onday, # 保存されない
+            period: 2,
+            holiday: true
           },
           {
             cycle: :monthly,
@@ -225,7 +230,8 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
             week: :third,
             wday: :wed,
             handling_holiday: :after,
-            period: 3
+            period: 3,
+            holiday: false
           }
         ]
       )
@@ -237,7 +243,7 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
       next unless update
 
       # NOTE: 1つ目が存在する -> 2・3つ目を追加
-      [FactoryBot.create(:task_cycle, :monthly, :day, task:, day: 1, handling_holiday: :before, period: 1, order: 1)]
+      [FactoryBot.create(:task_cycle, :monthly, :day, task:, day: 1, handling_holiday: :before, period: 1, holiday: false, order: 1)]
     end
     let(:expect_task_cycles_active) do
       [
@@ -250,7 +256,8 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
           week: nil,
           wday: nil,
           handling_holiday: :before,
-          period: 1
+          period: 1,
+          holiday: false
         },
         {
           cycle: :monthly,
@@ -261,7 +268,8 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
           week: nil,
           wday: nil,
           handling_holiday: nil,
-          period: 2
+          period: 2,
+          holiday: true
         },
         {
           cycle: :monthly,
@@ -272,7 +280,8 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
           week: :third,
           wday: :wed,
           handling_holiday: :after,
-          period: 3
+          period: 3,
+          holiday: false
         }
       ]
     end
@@ -305,7 +314,8 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
             week: :first, # 保存されない
             wday: :mon, # 保存されない
             handling_holiday: :before,
-            period: 1
+            period: 1,
+            holiday: false
           },
           {
             cycle: :yearly,
@@ -315,8 +325,9 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
             business_day: 2,
             week: :second, # 保存されない
             wday: :tue, # 保存されない
-            handling_holiday: :before, # 保存されない
-            period: 2
+            handling_holiday: :onday, # 保存されない
+            period: 2,
+            holiday: true
           },
           {
             cycle: :yearly,
@@ -327,7 +338,8 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
             week: :third,
             wday: :wed,
             handling_holiday: :after,
-            period: 3
+            period: 3,
+            holiday: false
           }
         ]
       )
@@ -337,7 +349,7 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
       next unless update
 
       # NOTE: 3つ目が削除済みで存在する -> 復帰
-      FactoryBot.create(:task_cycle, :yearly, :week, task:, month: 3, week: :third, wday: :wed, handling_holiday: :after, period: 3, order: 1, deleted_at: Time.current)
+      FactoryBot.create(:task_cycle, :yearly, :week, task:, month: 3, week: :third, wday: :wed, handling_holiday: :after, period: 3, holiday: false, order: 1, deleted_at: Time.current)
     end
     let_it_be(:except_task_cycle_inactive) { FactoryBot.create(:task_cycle, :weekly, task:, order: 2) if update }
     let_it_be(:task_cycles) do # 元の値
@@ -345,7 +357,7 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
 
       [
         # NOTE: 2つ目が存在する + 3つ目が削除済みで存在する -> 1つ目を追加
-        FactoryBot.create(:task_cycle, :yearly, :business_day, task:, month: 2, business_day: 2, period: 2, order: 1),
+        FactoryBot.create(:task_cycle, :yearly, :business_day, task:, month: 2, business_day: 2, period: 2, holiday: true, order: 1),
         except_task_cycle_inactive # NOTE: 存在しない -> 削除
       ]
     end
@@ -360,7 +372,8 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
           week: nil,
           wday: nil,
           handling_holiday: :before,
-          period: 1
+          period: 1,
+          holiday: false
         },
         {
           cycle: :yearly,
@@ -371,7 +384,8 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
           week: nil,
           wday: nil,
           handling_holiday: nil,
-          period: 2
+          period: 2,
+          holiday: true
         },
         {
           cycle: :yearly,
@@ -382,7 +396,8 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
           week: :third,
           wday: :wed,
           handling_holiday: :after,
-          period: 3
+          period: 3,
+          holiday: false
         }
       ]
     end
