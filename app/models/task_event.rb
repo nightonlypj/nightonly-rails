@@ -1,9 +1,10 @@
 class TaskEvent < ApplicationRecord
-  attr_accessor :assign_myself, :assign_delete
+  attr_accessor :assigned_user_code, :new_assigned_user
 
   belongs_to :space
   belongs_to :task_cycle
-  belongs_to :assigned_user, class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
+  belongs_to :init_assigned_user, class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
+  belongs_to :assigned_user, class_name: 'User', optional: true
   belongs_to :last_updated_user, class_name: 'User', optional: true
 
   validates :code, presence: true
@@ -12,6 +13,7 @@ class TaskEvent < ApplicationRecord
   validates :memo, length: { maximum: Settings.task_event_memo_maximum }, allow_blank: true
   validates :last_ended_date, presence: true
   validate :validate_last_ended_date
+  validate :validate_assigned_user_code
 
   scope :by_month, lambda { |months| # NOTE: monthsの形式が正しく、昇順の前提
     task_event = none
@@ -103,6 +105,15 @@ class TaskEvent < ApplicationRecord
     return if started_date.blank? || last_ended_date.blank?
 
     return errors.add(:last_ended_date, :after) if last_ended_date < started_date
-    return errors.add(:last_ended_date, :before) if last_ended_date > (started_date + 1.month).end_of_month
+
+    errors.add(:last_ended_date, :before) if last_ended_date > (started_date + 1.month).end_of_month
+  end
+
+  def validate_assigned_user_code
+    return if assigned_user_code.blank?
+
+    self.new_assigned_user = User.eager_load(:members).where(members: { space: [space, nil] }).find_by(code: assigned_user_code)
+    key = TaskAssigne.check_assigned_user(new_assigned_user)
+    errors.add(:assigned_user, key) if key.present?
   end
 end

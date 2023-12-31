@@ -1,5 +1,4 @@
 require 'rails_helper'
-require 'webmock/rspec'
 
 RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
   include ERB::Util
@@ -51,9 +50,9 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
         FactoryBot.create(:task_event, :completed, task_cycle: task_cycles[1])
       ]
     end
-    let(:current_send_history) { SendHistory.find(send_history.id) }
 
     # テスト内容
+    let(:current_send_history) { SendHistory.find(send_history.id) }
     shared_examples_for 'OK' do |status|
       let!(:start_time) { Time.current.floor }
       it "ステータスが#{status}、対象項目が変更される" do

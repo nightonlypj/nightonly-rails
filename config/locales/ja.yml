@@ -15,6 +15,7 @@ ja:
       download_file: 'ダウンロードファイル'
       task: 'タスク'
       task_cycle: 'タスク周期'
+      task_assigne: 'タスク担当者'
       task_event: 'タスクイベント'
       slack_domain: 'Slackドメイン'
       slack_user: 'Slackユーザー'
@@ -133,10 +134,18 @@ ja:
         business_day: '営業日'
         week: '週'
         wday: '曜日'
-        handling_holiday: '休日の扱い'
+        handling_holiday: '休日の場合'
         period: '期間（日）'
+        holiday: '休日含む'
         order: '並び順'
         deleted_at: '削除日時'
+        created_at: '作成日時'
+        updated_at: '更新日時'
+      task_assigne:
+        id: 'ID'
+        space: 'スペース'
+        task: 'タスク'
+        user_ids: 'ユーザーIDs'
         created_at: '作成日時'
         updated_at: '更新日時'
       task_event:
@@ -149,6 +158,7 @@ ja:
         last_ended_date: '最終終了日'
         last_completed_at: '最終完了日時'
         status: 'ステータス'
+        init_assigned_user: '初期担当者ID'
         assigned_user: '担当者ID'
         assigned_at: '担当日時'
         memo: 'メモ'
@@ -340,6 +350,8 @@ ja:
               blank: '入力してください。'
               greater_than_or_equal_to: '%{count}以上の値を入力してください。'
               less_than_or_equal_to: '%{count}以下の値を入力してください。'
+            holiday:
+              inclusion: '選択してください。'
         task_event:
           attributes:
             code:
@@ -347,6 +359,11 @@ ja:
               taken: '処理に失敗しました。しばらく時間をあけてから、やり直してください。'
             status:
               blank: '選択してください。'
+            assigned_user:
+              notfound: 'ユーザーが見つかりません。'
+              destroy_reserved: 'アカウント削除予定の為、設定できません。'
+              member_notfound: 'メンバーが見つかりません。'
+              member_power_reader: '閲覧者は設定できません。'
             memo:
               too_long: '%{count}文字以下で入力してください。'
             last_ended_date:
@@ -489,6 +506,7 @@ ja:
         sat: '土曜日'
       handling_holiday:
         before: '前日'
+        onday: '当日'
         after: '翌日'
     task_event:
       status:
@@ -532,7 +550,16 @@ ja:
       task_cycles:
         blank: '値がありません。'
         invalid: '形式が正しくありません。'
-        max_count: '有効な周期が最大件数(%{count}件)を超えています。'
+        active_notfound: '有効な周期が存在しません。'
+        active_max_count: '有効な周期が最大件数(%{count}件)を超えています。'
+      assigned_users:
+        invalid: '形式が正しくありません。'
+        code:
+          notfound: 'ユーザーが見つかりません。'
+          destroy_reserved: 'アカウント削除予定の為、設定できません。'
+          member_notfound: 'メンバーが見つかりません。'
+          member_power_reader: '閲覧者は設定できません。'
+        max_count: '最大件数(%{count}件)を超えています。'
   alert:
     page:
       notfound: 'ページが見つかりません。'

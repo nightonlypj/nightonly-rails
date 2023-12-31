@@ -3,8 +3,9 @@ class TaskEventsController < ApplicationAuthController
   include TaskCyclesConcern
   before_action :response_not_acceptable_for_not_api
   before_action :authenticate_user!, only: :update
-  before_action :set_space_current_member_auth_private
   before_action :response_api_for_user_destroy_reserved, only: :update
+  before_action :set_space_current_member_auth_private
+  before_action :response_api_for_space_destroy_reserved, only: :update
   before_action :check_power_writer, only: :update
   before_action :set_task_event, only: %i[show update]
   before_action :set_params_index, only: :index
@@ -43,23 +44,23 @@ class TaskEventsController < ApplicationAuthController
   # GET /task_events/:space_code/detail/:code(.json) タスクイベント詳細API
   def show
     set_task(@task_event.task_cycle.task_id)
+    set_task_assigne_users if @task.present?
   end
 
   # POST /task_events/:space_code/update/:code(.json) タスクイベント変更API(処理)
   def update
+    if @task_event.new_assigned_user.blank?
+      @task_event.assigned_user = nil
+      @task_event.assigned_at = nil
+    elsif @task_event.assigned_user != @task_event.new_assigned_user
+      @task_event.assigned_user = @task_event.new_assigned_user
+      @task_event.assigned_at = Time.current
+    end
+
     before_not_notice_status = TaskEvent::NOT_NOTICE_STATUS.include?(@task_event.status_was&.to_sym)
     after_not_notice_status = TaskEvent::NOT_NOTICE_STATUS.include?(@task_event.status.to_sym)
     @task_event.last_completed_at = Time.current if !before_not_notice_status && after_not_notice_status
     @task_event.last_completed_at = nil if before_not_notice_status && !after_not_notice_status
-
-    if @task_event.assign_myself
-      @task_event.assigned_user = current_user
-      @task_event.assigned_at = Time.current
-    end
-    if @task_event.assign_delete
-      @task_event.assigned_user = nil
-      @task_event.assigned_at = nil
-    end
     @task_event.save!
 
     render locals: { notice: t('notice.task_event.update') }
@@ -93,7 +94,7 @@ class TaskEventsController < ApplicationAuthController
       end
     end
 
-    render './failure', locals: { errors:, alert: t('errors.messages.default') }, status: :unprocessable_entity if errors.present?
+    render '/failure', locals: { errors:, alert: t('errors.messages.default') }, status: :unprocessable_entity if errors.present?
   end
 
   def validate_date(value)
@@ -110,18 +111,19 @@ class TaskEventsController < ApplicationAuthController
   end
 
   def validate_params_update
-    @task_event.assign_attributes(task_event_params.merge(last_updated_user: current_user))
     @detail = params[:detail].to_s == 'true'
+    @task_event.assign_attributes(task_event_params.merge(last_updated_user: current_user))
     return if @task_event.valid?
 
-    render './failure', locals: { errors: @task_event.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
+    render '/failure', locals: { errors: @task_event.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
   end
 
   # Only allow a list of trusted parameters through.
   def task_event_params
     params[:task_event] = TaskEvent.new.attributes if params[:task_event].blank? # NOTE: 変更なしで成功する為
     params[:task_event][:status] = nil if TaskEvent.statuses[params[:task_event][:status]].blank? # NOTE: ArgumentError対策
+    assigned_user_code = params[:task_event][:assigned_user].present? ? params[:task_event][:assigned_user][:code] : nil
 
-    params.require(:task_event).permit(:last_ended_date, :status, :assign_myself, :assign_delete, :memo)
+    params.require(:task_event).permit(:last_ended_date, :status, :memo).merge(assigned_user_code:)
   end
 end

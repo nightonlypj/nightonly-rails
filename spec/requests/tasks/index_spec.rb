@@ -5,11 +5,7 @@ RSpec.describe 'Tasks', type: :request do
   let(:response_json_task)  { response_json['task'] }
   let(:response_json_tasks) { response_json['tasks'] }
   let(:default_params) { { text: nil, priority: Task.priorities.keys.join(','), before: 1, active: 1, after: 0, sort: 'started_date', desc: 1 } }
-
-  let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
-  let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-  let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
-  let_it_be(:other_space) { FactoryBot.create(:space) }
+  let_it_be(:created_user) { FactoryBot.create(:user) }
 
   # テスト内容（共通）
   shared_examples_for 'ToOK[ID]' do
@@ -51,6 +47,7 @@ RSpec.describe 'Tasks', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #index' do
     subject { get tasks_path(space_code: space.code, page: subject_page, format: subject_format), headers: auth_headers.merge(accept_headers) }
+    let_it_be(:other_space) { FactoryBot.create(:space, created_user:) }
 
     # テスト内容
     shared_examples_for 'ToOK(json/json)' do
@@ -83,7 +80,7 @@ RSpec.describe 'Tasks', type: :request do
         (start_no..end_no).each do |no|
           data = response_json_tasks[no - start_no]
           task = tasks[tasks.count - no]
-          count = expect_task_json(data, task, task_cycles[task.id], { detail: false, cycles: true })
+          count = expect_task_json(data, task, task_cycles[task.id], nil, { detail: false, email: member&.power_admin? })
           expect(data.count).to eq(count)
         end
       end
@@ -116,7 +113,7 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space:, user:) }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like 'タスク'
     end
     shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do
@@ -125,21 +122,22 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     shared_examples_for '[*]スペースが存在しない' do
-      let_it_be(:space) { space_not }
+      let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 404
     end
     shared_examples_for '[*]スペースが公開' do
-      let_it_be(:space) { space_public }
+      let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
+      let(:member) { nil }
       it_behaves_like 'タスク'
     end
     shared_examples_for '[未ログイン]スペースが非公開' do
-      let_it_be(:space) { space_private }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 401
     end
     shared_examples_for '[APIログイン中/削除予約済み]スペースが非公開' do
-      let_it_be(:space) { space_private }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :admin
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :reader
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がない'
@@ -176,9 +174,9 @@ RSpec.describe 'Tasks', type: :request do
     subject { get tasks_path(space_code: space.code, format: :json), params:, headers: auth_headers.merge(ACCEPT_INC_JSON) }
 
     include_context 'APIログイン処理'
-    let_it_be(:space) { space_private }
+    let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
     before_all { FactoryBot.create(:member, space:, user:) }
-    let_it_be(:task) { FactoryBot.create(:task, space:, title: 'タイトル(Aaa)', created_user: user) }
+    let_it_be(:task) { FactoryBot.create(:task, space:, title: 'タイトル(Aaa)', created_user:) }
 
     # テストケース
     context '部分一致' do
@@ -202,12 +200,12 @@ RSpec.describe 'Tasks', type: :request do
     subject { get tasks_path(space_code: space.code, format: :json), params:, headers: auth_headers.merge(ACCEPT_INC_JSON) }
 
     include_context 'APIログイン処理'
-    let_it_be(:space) { space_private }
+    let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
     before_all { FactoryBot.create(:member, space:, user:) }
-    let_it_be(:task_high)   { FactoryBot.create(:task, :high, space:, created_user: user) }
-    let_it_be(:task_middle) { FactoryBot.create(:task, :middle, space:, created_user: user) }
-    let_it_be(:task_low)    { FactoryBot.create(:task, :low, space:, created_user: user) }
-    let_it_be(:task_none)   { FactoryBot.create(:task, :none, space:, created_user: user) }
+    let_it_be(:task_high)   { FactoryBot.create(:task, :high, space:, created_user:) }
+    let_it_be(:task_middle) { FactoryBot.create(:task, :middle, space:, created_user:) }
+    let_it_be(:task_low)    { FactoryBot.create(:task, :low, space:, created_user:) }
+    let_it_be(:task_none)   { FactoryBot.create(:task, :none, space:, created_user:) }
 
     # テストケース
     context '■高, ■中, ■低, ■未設定' do
@@ -264,21 +262,21 @@ RSpec.describe 'Tasks', type: :request do
     subject { get tasks_path(space_code: space.code, format: :json), params:, headers: auth_headers.merge(ACCEPT_INC_JSON) }
 
     include_context 'APIログイン処理'
-    let_it_be(:space) { space_private }
+    let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
     before_all { FactoryBot.create(:member, space:, user:) }
     let_it_be(:tasks_before) do
       [
-        FactoryBot.create(:task, :before, :no_end, space:, created_user: user),
-        FactoryBot.create(:task, :before, space:, created_user: user)
+        FactoryBot.create(:task, :before, :no_end, space:, created_user:),
+        FactoryBot.create(:task, :before, space:, created_user:)
       ]
     end
     let_it_be(:tasks_active) do
       [
-        FactoryBot.create(:task, :active, :no_end, space:, created_user: user),
-        FactoryBot.create(:task, :active, space:, created_user: user)
+        FactoryBot.create(:task, :active, :no_end, space:, created_user:),
+        FactoryBot.create(:task, :active, space:, created_user:)
       ]
     end
-    let_it_be(:tasks_after) { [FactoryBot.create(:task, :after, space:, created_user: user)] }
+    let_it_be(:tasks_after) { [FactoryBot.create(:task, :after, space:, created_user:)] }
 
     # テストケース
     context '■開始前, ■期間内, ■終了後' do
@@ -333,9 +331,9 @@ RSpec.describe 'Tasks', type: :request do
     subject { get tasks_path(space_code: space.code, format: :json), params:, headers: auth_headers.merge(ACCEPT_INC_JSON) }
 
     include_context 'APIログイン処理'
-    let_it_be(:space) { space_private }
+    let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
     before_all { FactoryBot.create(:member, space:, user:) }
-    let_it_be(:tasks) { FactoryBot.create_list(:task, 2, space:, created_user: user) }
+    let_it_be(:tasks) { FactoryBot.create_list(:task, 2, space:, created_user:) }
 
     # テストケース
     context '優先度 ASC' do

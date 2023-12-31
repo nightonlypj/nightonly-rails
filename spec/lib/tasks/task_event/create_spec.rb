@@ -31,6 +31,8 @@ RSpec.describe :task_event, type: :task do
   # テストパターン
   #   対象日: ない, 不正値, 前日（営業日, 休日）, 当日（営業日, 休日）, 翌日
   #   実行時間: (開始確認)開始時間より前, (開始確認)開始時間より後, (翌営業日・終了確認)開始時間より後
+  #   タスク担当者: いない, いる
+  #     ユーザーIDs: ない, 閲覧者, [投稿者], 閲覧者+[管理者], [投稿者]+削除済み, [投稿者]+[管理者], 削除予定+[管理者]+[投稿者]+未参加
   #   タスク周期: ある, ない
   #   通知設定: ない, ある
   #     (開始確認/翌営業日・終了確認)必ず通知: する, しない
@@ -58,26 +60,57 @@ RSpec.describe :task_event, type: :task do
     end
     before_all do # NOTE: 対象外
       task = FactoryBot.create(:task, :skip_validate, :no_end, space:, started_date: Date.new(2023, 1, 4), created_user: user)
-      FactoryBot.create(:task_cycle, :weekly, task:, wday: :mon, handling_holiday: :after, period: 2) # 12/30-1/3（月曜＋翌営業日）
+      FactoryBot.create(:task_cycle, :weekly, task:, wday: :mon, handling_holiday: :after, period: 2, holiday: false) # 12/30-1/3（月曜＋翌営業日）
       task = FactoryBot.create(:task, :skip_validate, :no_end, space:, started_date: Date.new(2022, 12, 31), created_user: user)
-      FactoryBot.create(:task_cycle, :monthly, :day, task:, day: 2, handling_holiday: :before, period: 1) # 12/30（前営業日）
+      FactoryBot.create(:task_cycle, :monthly, :day, task:, day: 2, handling_holiday: :before, period: 1, holiday: false) # 12/30（前営業日）
       task = FactoryBot.create(:task, :skip_validate, :no_end, space:, started_date: Date.new(2023, 1, 4), created_user: user)
-      FactoryBot.create(:task_cycle, :yearly, :business_day, task:, month: 1, business_day: 1, period: 2) # 12/30-1/3（第1営業日）
+      FactoryBot.create(:task_cycle, :yearly, :business_day, task:, month: 1, business_day: 1, period: 3, holiday: false) # 12/30-1/3（第1営業日）
       task = FactoryBot.create(:task, :skip_validate, :no_end, space:, started_date: Date.new(2023, 1, 5), created_user: user)
-      FactoryBot.create(:task_cycle, :yearly, :week, task:, month: 1, week: :first, wday: :wed, handling_holiday: :after, period: 3) # 12/30-1/4（第1水曜）
+      FactoryBot.create(:task_cycle, :yearly, :week, task:, month: 1, week: :first, wday: :wed, handling_holiday: :onday, period: 7, holiday: true) # 12/30-1/4（第1水曜）
     end
-    let(:current_task_events) { TaskEvent.where(space:).order(:id) }
-    let(:current_send_histories) { SendHistory.where(space:).order(:id) }
+
+    shared_context 'タスク担当者作成1' do
+      before_all do
+        FactoryBot.create(:task_assigne, task: tasks[1], user_ids: nil) # ユーザーIDs: ない
+        FactoryBot.create(:task_assigne, task: tasks[2], user_ids: user_reader.id.to_s) # ユーザーIDs: 閲覧者
+        FactoryBot.create(:task_assigne, task: tasks[3], user_ids: user_writer.id.to_s) # ユーザーIDs: [投稿者]
+      end
+      let(:except_task_assigne) do
+        {
+          tasks[0].id => { user_id: nil, user_ids: nil },
+          tasks[1].id => { user_id: nil, user_ids: nil },
+          tasks[2].id => { user_id: nil, user_ids: user_reader.id.to_s },
+          tasks[3].id => { user_id: user_writer.id, user_ids: user_writer.id.to_s }
+        }
+      end
+    end
+    shared_context 'タスク担当者作成2' do
+      before_all do
+        FactoryBot.create(:task_assigne, task: tasks[0], user_ids: "#{user_reader.id},#{user_admin.id}") # ユーザーIDs: 閲覧者+[管理者]
+        FactoryBot.create(:task_assigne, task: tasks[1], user_ids: "#{user_writer.id},#{user_destroy.id}") # ユーザーIDs: [投稿者]+削除済み
+        FactoryBot.create(:task_assigne, task: tasks[2], user_ids: "#{user_writer.id},#{user_admin.id}") # ユーザーIDs: [投稿者]+[管理者]
+        user_ids = "#{user_destroy_reserved.id},#{user_admin.id},#{user_writer.id},#{user.id}" # ユーザーIDs: 削除予定+[管理者]+[投稿者]+未参加
+        FactoryBot.create(:task_assigne, task: tasks[3], user_ids:)
+      end
+      let(:except_task_assigne) do
+        {
+          tasks[0].id => { user_id: user_admin.id, user_ids: "#{user_reader.id},#{user_admin.id}" },
+          tasks[1].id => { user_id: user_writer.id, user_ids: "#{user_destroy.id},#{user_writer.id}" },
+          tasks[2].id => { user_id: user_writer.id, user_ids: "#{user_admin.id},#{user_writer.id}" },
+          tasks[3].id => { user_id: user_admin.id, user_ids: "#{user_writer.id},#{user.id},#{user_destroy_reserved.id},#{user_admin.id}" }
+        }
+      end
+    end
 
     shared_context 'タスク周期作成' do |create = { today: false, next: false }|
       let_it_be(:today_task_cycles) do
         next [] unless create[:today]
 
         [
-          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :mon, handling_holiday: :after, period: 2), # 12/30-1/3（月曜＋翌営業日）
-          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 2, handling_holiday: :before, period: 1), # 12/30（前営業日）
-          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 1, period: 2), # 12/30-1/3（第1営業日）
-          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :wed, handling_holiday: :after, period: 3) # 12/30-1/4（第1水曜）
+          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :mon, handling_holiday: :after, period: 2, holiday: false), # 12/30-1/3（月曜＋翌営業日）
+          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 2, handling_holiday: :before, period: 1, holiday: false), # 12/30（前営業日）
+          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 1, period: 2, holiday: false), # 12/30-1/3（第1営業日）
+          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :wed, handling_holiday: :onday, period: 6, holiday: true) # 12/30-1/4（第1水曜）
         ]
       end
       let_it_be(:except_today_task_events) do
@@ -95,10 +128,10 @@ RSpec.describe :task_event, type: :task do
         next [] unless create[:next]
 
         [
-          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :wed, handling_holiday: :before, period: 2), # 1/3-4（水曜）
-          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 31, handling_holiday: :after, period: 1), # 1/3（後営業日）
-          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 2, period: 2), # 11/3-4（第2営業日）
-          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :thu, handling_holiday: :before, period: 3) # 1/3-5（第1木曜）
+          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :wed, handling_holiday: :before, period: 2, holiday: false), # 1/3-4（水曜）
+          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 31, handling_holiday: :after, period: 1, holiday: false), # 1/3（後営業日）
+          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 2, period: 2, holiday: false), # 11/3-4（第2営業日）
+          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :thu, handling_holiday: :onday, period: 3, holiday: true) # 1/3-5（第1木曜）
         ]
       end
       let_it_be(:except_next_task_events) do
@@ -153,7 +186,12 @@ RSpec.describe :task_event, type: :task do
       let_it_be(:task_events) { end_today_task_events + date_include_task_events + completed_task_events }
     end
 
+    include_context 'メンバーパターン作成(user)'
+    include_context 'メンバーパターン作成(member)'
+
     # テスト内容
+    let(:current_task_events) { TaskEvent.where(space:).eager_load(task_cycle: { task: :task_assigne }).order(:id) }
+    let(:current_send_histories) { SendHistory.where(space:).order(:id) }
     shared_examples_for 'OK' do |notice_target, create = { history: true, send: true }, params = { dry_run: false, send_notice: true }|
       let(:dry_run) { params[:dry_run].to_s }
       let(:send_notice) { params[:send_notice].to_s }
@@ -175,8 +213,15 @@ RSpec.describe :task_event, type: :task do
           expect(current_task_event.last_ended_date).to eq(except_task_cycle[:ended_date])
           expect(current_task_event.last_completed_at).to be_nil
           expect(current_task_event.status.to_sym).to eq(:untreated)
-          expect(current_task_event.assigned_user_id).to be_nil
-          expect(current_task_event.assigned_at).to be_nil
+
+          task_id = current_task_event.task_cycle.task_id
+          assigne_user_ids = except_task_assigne[task_id].present? ? except_task_assigne[task_id][:user_ids] : nil
+          expect(current_task_event.task_cycle.task.task_assigne&.user_ids).to eq(assigne_user_ids)
+
+          assigned_user_id = except_task_assigne[task_id].present? ? except_task_assigne[task_id][:user_id] : nil
+          expect(current_task_event.init_assigned_user_id).to eq(assigned_user_id)
+          expect(current_task_event.assigned_user_id).to eq(assigned_user_id)
+          expect(current_task_event.assigned_at).to assigned_user_id.present? ? be_between(current_time, current_time + 1.minute) : be_nil
           expect(current_task_event.memo).to be_nil
           expect(current_task_event.last_updated_user_id).to be_nil
           next unless create[:history]
@@ -346,6 +391,8 @@ RSpec.describe :task_event, type: :task do
       let_it_be(:target_date) { current_date - 1.day }
       let(:current_time) { current_date.to_time }
       let(:send_histories) { [] }
+      include_context 'タスク担当者作成1'
+
       context 'タスク周期がある' do
         include_context 'タスク周期作成', { today: true, next: true }
         let(:except_task_events) { except_today_task_events }
@@ -389,6 +436,8 @@ RSpec.describe :task_event, type: :task do
       before_all { FactoryBot.create(:holiday, date: target_date, name: '休日') }
       let(:current_time) { current_date.to_time }
       let(:send_histories) { [] }
+      include_context 'タスク担当者作成2'
+
       context 'タスク周期がある' do
         include_context 'タスク周期作成', { today: true, next: true }
         let(:except_task_events) { except_today_task_events }
@@ -425,6 +474,8 @@ RSpec.describe :task_event, type: :task do
       let_it_be(:target_date) { current_date }
       context '実行時間が(開始確認)開始時間より前' do
         let(:send_histories) { [] }
+        include_context 'タスク担当者作成1'
+
         context 'タスク周期がある' do
           include_context 'タスク周期作成', { today: true, next: true }
           let(:except_task_events) { except_today_task_events }
@@ -463,6 +514,8 @@ RSpec.describe :task_event, type: :task do
         end
       end
       context '実行時間が(開始確認)開始時間より後' do
+        include_context 'タスク担当者作成2'
+
         context 'タスク周期がある' do
           include_context 'タスク周期作成', { today: true, next: true }
           let_it_be(:except_task_events) { except_today_task_events }
@@ -521,6 +574,8 @@ RSpec.describe :task_event, type: :task do
         end
       end
       context '実行時間が(翌営業日・終了確認)開始時間より後' do
+        include_context 'タスク担当者作成1'
+
         context 'タスク周期がある' do
           include_context 'タスク周期作成', { today: true, next: true }
           let_it_be(:except_task_events) { except_today_task_events + except_next_task_events }
@@ -582,6 +637,8 @@ RSpec.describe :task_event, type: :task do
     context '対象日が当日（休日）' do # 自動実行
       let_it_be(:target_date) { current_date + 1.day }
       let(:send_histories) { [] }
+      include_context 'タスク担当者作成2'
+
       context 'タスク周期がある' do
         include_context 'タスク周期作成', { today: true, next: true }
         let_it_be(:except_task_events) { except_today_task_events + except_next_task_events }

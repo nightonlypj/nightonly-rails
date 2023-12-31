@@ -7,8 +7,9 @@ FactoryBot.define do
     # business_day     { nil }
     # week             { nil }
     wday             { TaskCycle.wdays_i18n.keys[[0, 6].include?(Time.current.wday) ? 0 : Time.current.wday - 1].to_sym } # NOTE: 土・日曜日をコメントアウトしている為
-    handling_holiday { TaskCycle.handling_holidays.keys[rand(2)].to_sym }
+    handling_holiday { TaskCycle.handling_holidays.keys.sample.to_sym }
     period           { rand(1..3) }
+    holiday          { rand(2) == 1 }
     order            { 1 }
 
     # :nocov:
@@ -47,7 +48,7 @@ FactoryBot.define do
       target { :day }
       day    { Time.current.day }
       wday   { nil }
-      # handling_holiday { %i[before after][rand(2)] }
+      # handling_holiday { TaskCycle.handling_holidays.keys.sample.to_sym }
     end
     trait :business_day do
       target           { :business_day }
@@ -59,7 +60,7 @@ FactoryBot.define do
       target           { :week }
       week             { TaskCycle.weeks.keys[(Time.current.day - 1) / 7] }
       # wday             { TaskCycle.wdays_i18n.keys[[0, 6].include?(Time.current.wday) ? 0 : Time.current.wday - 1].to_sym } # NOTE: 土・日曜日をコメントアウトしている為
-      # handling_holiday { %i[before after][rand(2)] }
+      # handling_holiday { TaskCycle.handling_holidays.keys.sample.to_sym }
     end
 
     # 論理削除

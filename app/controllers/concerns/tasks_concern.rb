@@ -4,9 +4,20 @@ module TasksConcern
   private
 
   def set_task(id = params[:id])
-    @task = Task.where(space: @space, id:).eager_load(:task_cycles_active, :created_user, :last_updated_user)
+    @task = Task.where(space: @space, id:).eager_load(:task_cycles_active, :task_assigne, :created_user, :last_updated_user)
                 .merge(TaskCycle.order(:order, :updated_at, :id)).first
     response_not_found if @task.blank?
+  end
+
+  def set_task_assigne_users
+    @task_assigne_user_ids = @task.task_assigne&.user_ids&.split(',')
+    return if @task_assigne_user_ids.blank?
+
+    @task_assigne_users = task_assigne_users(@task_assigne_user_ids, @space)
+  end
+
+  def task_assigne_users(user_ids, space)
+    User.active.where(id: user_ids).joins(:members).where(members: { space:, power: Member::POWER_WRITER_UP }).index_by(&:id)
   end
 
   SORT_COLUMN = {

@@ -27,3 +27,4 @@ if task_cycle.cycle_weekly? || (task_cycle.cycle_monthly_or_yearly? && task_cycl
 end
 
 json.period task_cycle.period
+json.holiday task_cycle.holiday

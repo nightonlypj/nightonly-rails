@@ -12,7 +12,9 @@ RSpec.describe 'Tasks', type: :request do
   #   権限: ある（管理者, 投稿者）, ない（閲覧者, なし）
   #   パラメータなし, 有効なパラメータ, 無効なパラメータ
   #     タスク: 正常値, 不正値
-  #     周期: 毎週 × 削除なし/あり, 毎月/毎年 × 日/営業日/週, ない, 不正値, 文字, 曜日/日/営業日が重複, 最大数より多い
+  #     周期: 毎週 × 削除なし/あり, 毎月/毎年 × 日/営業日/週
+  # TODO: 移動 -> ない, 不正値, 文字, 曜日/日/営業日が重複, 削除のみ, 最大数より多い
+  #     タスク担当者: いない, 正常値, 不正値
   #     monthsパラメータ: ない, ある, 空, 不正値
   #     detailパラメータ: ない, true, false
   #   ＋URLの拡張子: ない, .json
@@ -23,27 +25,28 @@ RSpec.describe 'Tasks', type: :request do
         post create_task_path(space_code: space.code, format: subject_format), params:, headers: auth_headers.merge(accept_headers)
       end
     end
-    let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
-    let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-    let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
-    let_it_be(:space_private_destroy_reserved) { FactoryBot.create(:space, :private, :destroy_reserved, created_user: space_public.created_user) }
 
-    include_context '[task]作成・更新条件'
+    include_context 'タスク作成・更新条件設定'
+    include_context 'メンバーパターン作成(user)'
     let_it_be(:valid_task_attributes)  { FactoryBot.attributes_for(:task, started_date: current_date, ended_date: nil) }
     let_it_be(:valid_cycle_attributes) { FactoryBot.attributes_for(:task_cycle).reject { |key| key == :order } }
     let_it_be(:valid_attributes)         { valid_task_attributes.merge(cycles: [valid_cycle_attributes]) }
     let_it_be(:invalid_task_attributes)  { valid_task_attributes.merge(title: nil) }
     let_it_be(:invalid_cycle_attributes) { valid_cycle_attributes.merge(cycle: nil) }
-    let(:current_task)               { Task.eager_load(:task_cycles_active).last }
-    let(:current_task_cycles_active) { current_task.task_cycles_active.order(:order, :updated_at, :id) }
+    let_it_be(:valid_task_assigne_users)    { [user_admin, user_writer] }
+    let(:valid_assigned_users_attributes)   { [{ code: user_admin.code }, { code: user_writer.code }] }
+    let(:invalid_assigned_users_attributes) { [{ code: nil }] }
+    let_it_be(:created_user) { FactoryBot.create(:user) }
 
     shared_context 'valid_condition' do
-      let(:params) { { task: valid_attributes } }
-      let_it_be(:space) { space_private }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       before_all { FactoryBot.create(:member, space:, user:) if user.present? }
+      let(:params) { { task: valid_attributes } }
     end
 
     # テスト内容
+    let(:current_task)               { Task.eager_load(:task_cycles_active, :task_assigne).last }
+    let(:current_task_cycles_active) { current_task.task_cycles_active.order(:order, :updated_at, :id) }
     shared_examples_for 'OK' do
       it 'タスクが1件・周期が対象数作成・対象項目が設定される' do
         expect do
@@ -72,11 +75,13 @@ RSpec.describe 'Tasks', type: :request do
             expect(current_task_cycle.wday&.to_sym).to eq(expect_task_cycles_active[index][:wday])
             expect(current_task_cycle.handling_holiday&.to_sym).to eq(expect_task_cycles_active[index][:handling_holiday])
             expect(current_task_cycle.period).to eq(expect_task_cycles_active[index][:period])
+            expect(current_task_cycle.holiday).to eq(expect_task_cycles_active[index][:holiday])
             expect(current_task_cycle.order).to eq(index + 1)
             expect(current_task_cycle.deleted_at).to be_nil
           end
 
           expect(current_task.task_cycles_inactive.count).to eq(0)
+          expect(current_task.task_assigne&.user_ids).to eq(task_assigne_users&.pluck(:id)&.join(','))
         end.to change(Task, :count).by(1) && change(TaskCycle, :count).by(expect_task_cycles_active.count)
       end
     end
@@ -95,11 +100,13 @@ RSpec.describe 'Tasks', type: :request do
         result = 3
         expect(response_json['success']).to eq(true)
         expect(response_json['notice']).to eq(get_locale('notice.task.create'))
-        if use_events
+
+        if expect_events.present?
           expect(response_json_events.count).to eq(expect_events.count)
           response_json_events.each_with_index do |response_json_event, index|
             current_task_cycle = current_task_cycles_active[expect_events[index][:index]]
-            count = expect_task_event_json(response_json_event, current_task, current_task_cycle, nil, expect_events[index], { detail: false })
+            use = { detail: false, email: member&.power_admin? }
+            count = expect_task_event_json(response_json_event, current_task, current_task_cycle, nil, expect_events[index], use)
             expect(response_json_event.count).to eq(count)
           end
           result += 1
@@ -107,7 +114,8 @@ RSpec.describe 'Tasks', type: :request do
           expect(response_json_events).to be_nil
         end
 
-        count = expect_task_json(response_json_task, current_task, current_task_cycles_active, { detail: params[:detail], cycles: !use_events })
+        use = { detail: params[:detail], email: member&.power_admin? }
+        count = expect_task_json(response_json_task, current_task, expect_events.present? ? nil : current_task_cycles_active, task_assigne_users, use)
         expect(response_json_task.count).to eq(count)
 
         expect(response_json.count).to eq(result)
@@ -116,13 +124,14 @@ RSpec.describe 'Tasks', type: :request do
 
     # テストケース
     shared_examples_for '[APIログイン中][*]権限がある' do |power|
-      before_all { FactoryBot.create(:member, power, space:, user:) }
-      it_behaves_like '[task]パラメータなし'
-      it_behaves_like '[task]有効なパラメータ'
-      it_behaves_like '[task]無効なパラメータ'
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
+      it_behaves_like 'パラメータなし（タスク）'
+      it_behaves_like '有効なパラメータ（タスク周期）'
+      it_behaves_like '有効なパラメータ（タスク担当者）'
+      it_behaves_like '無効なパラメータ（タスク）'
     end
     shared_examples_for '[APIログイン中][*]権限がない' do |power|
-      before_all { FactoryBot.create(:member, power, space:, user:) if power.present? }
+      let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) if power.present? }
       let(:params) { { task: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
@@ -130,8 +139,16 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like 'ToNG(json)', 403
     end
 
+    shared_examples_for '[APIログイン中][*]' do
+      include_context 'メンバーパターン作成(member)'
+      it_behaves_like '[APIログイン中][*]権限がある', :admin
+      it_behaves_like '[APIログイン中][*]権限がある', :writer
+      it_behaves_like '[APIログイン中][*]権限がない', :reader
+      it_behaves_like '[APIログイン中][*]権限がない', nil
+    end
+
     shared_examples_for '[APIログイン中]スペースが存在しない' do
-      let_it_be(:space) { space_not }
+      let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       let(:params) { { task: valid_attributes } }
       it_behaves_like 'NG(html)'
       it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる
@@ -139,21 +156,21 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like 'ToNG(json)', 404
     end
     shared_examples_for '[APIログイン中]スペースが公開' do
-      let_it_be(:space) { space_public }
-      it_behaves_like '[APIログイン中][*]権限がある', :admin
-      it_behaves_like '[APIログイン中][*]権限がある', :writer
-      it_behaves_like '[APIログイン中][*]権限がない', :reader
-      it_behaves_like '[APIログイン中][*]権限がない', nil
+      let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
+      it_behaves_like '[APIログイン中][*]'
     end
     shared_examples_for '[APIログイン中]スペースが非公開' do
-      let_it_be(:space) { space_private }
-      it_behaves_like '[APIログイン中][*]権限がある', :admin
-      it_behaves_like '[APIログイン中][*]権限がある', :writer
-      it_behaves_like '[APIログイン中][*]権限がない', :reader
-      it_behaves_like '[APIログイン中][*]権限がない', nil
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
+      it_behaves_like '[APIログイン中][*]'
     end
     shared_examples_for '[APIログイン中]スペースが非公開（削除予約済み）' do
-      let_it_be(:space) { space_private_destroy_reserved }
+      let_it_be(:space) { FactoryBot.create(:space, :private, :destroy_reserved, created_user:) }
+      let(:params) { { task: valid_attributes } }
+      before_all { FactoryBot.create(:member, space:, user:) }
+      it_behaves_like 'NG(html)'
+      it_behaves_like 'ToNG(html)', 406
+      it_behaves_like 'NG(json)'
+      it_behaves_like 'ToNG(json)', 422, nil, 'alert.space.destroy_reserved'
     end
 
     context '未ログイン' do

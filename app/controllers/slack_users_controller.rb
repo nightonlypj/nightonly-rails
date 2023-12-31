@@ -68,11 +68,11 @@ class SlackUsersController < ApplicationAuthController
       end
     end
 
-    render './failure', locals: { errors:, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if errors.present?
+    render '/failure', locals: { errors:, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if errors.present?
   end
 
   def current_members
-    current_user.members.where(power: %i[admin writer]).joins({ space: { send_setting_active: :slack_domain } })
+    current_user.members.where(power: Member::POWER_WRITER_UP).joins({ space: { send_setting_active: :slack_domain } })
                 .merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:id)
   end
 end

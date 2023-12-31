@@ -121,7 +121,7 @@ module TaskCyclesConcern
     return if event_end_date < task_start_date || event_end_date > task_end_date
     return unless @months.blank? || @months.include?(event_end_date.strftime('%Y%m'))
 
-    event_start_date = end_to_start_date(event_end_date, task_cycle.period)
+    event_start_date = end_to_start_date(event_end_date, task_cycle)
     if @exist_task_events.key?(task_id: task_cycle.task_id, ended_date: event_end_date)
       false
     else
@@ -131,15 +131,19 @@ module TaskCyclesConcern
   end
 
   def handling_holiday_date(date, handling_holiday)
+    return date if handling_holiday == :onday
+
     add_day = handling_holiday == :after ? 1.day : -1.day
     date += add_day while holiday?(date)
 
     date
   end
 
-  def end_to_start_date(date, period)
+  def end_to_start_date(date, task_cycle)
+    return date - (task_cycle.period - 1).days if task_cycle.holiday # NOTE: 休日含む
+
     count = 1
-    while count < period
+    while count < task_cycle.period
       date -= 1.day
       next if holiday?(date)
 

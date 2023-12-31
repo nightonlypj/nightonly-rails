@@ -26,9 +26,9 @@ RSpec.describe 'SlackUser', type: :request do
     end
     let_it_be(:other_send_setting) { FactoryBot.create(:send_setting, :slack, slack_domain: slack_domains[2]) }
     let_it_be(:valid_memberid) { Faker::Number.hexadecimal(digits: Settings.slack_user_memberid_minimum).upcase }
-    let(:current_slack_users) { SlackUser.where(user:).eager_load(:slack_domain).order(:id) }
 
     # テスト内容
+    let(:current_slack_users) { SlackUser.where(user:).eager_load(:slack_domain).order(:id) }
     shared_examples_for 'OK' do
       it '対象項目が変更される' do
         subject

@@ -3,11 +3,13 @@ class TasksController < ApplicationAuthController
   include TaskCyclesConcern
   before_action :response_not_acceptable_for_not_api
   before_action :authenticate_user!, only: %i[create update destroy]
-  before_action :set_space_current_member_auth_private
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy]
+  before_action :set_space_current_member_auth_private
+  before_action :response_api_for_space_destroy_reserved, only: %i[create update destroy]
   before_action :check_power_admin, only: :destroy
   before_action :check_power_writer, only: %i[create update]
   before_action :set_task, only: %i[show update]
+  before_action :set_task_assigne_users, only: :show
   before_action :set_params_index, only: :index
   before_action :validate_params_create, only: :create
   before_action :validate_params_update, only: :update
@@ -19,7 +21,9 @@ class TasksController < ApplicationAuthController
   end
 
   # GET /tasks/:space_code/detail/:id(.json) タスク詳細API
-  def show; end
+  def show
+    @detail = true
+  end
 
   # POST /tasks/:space_code/create(.json) タスク追加API(処理)
   def create
@@ -29,6 +33,10 @@ class TasksController < ApplicationAuthController
         insert_task_cycles = @insert_task_cycles.map { |insert_task_cycle| insert_task_cycle.merge(task_id: @task.id) }
         TaskCycle.insert_all!(insert_task_cycles)
       end
+      if @task_assigne.user_ids.present?
+        @task_assigne.task = @task
+        @task_assigne.save!
+      end
     end
 
     render_success(:create)
@@ -36,12 +44,13 @@ class TasksController < ApplicationAuthController
 
   # POST /tasks/:space_code/update/:id(.json) タスク設定変更API(処理)
   def update
-    if @task.changed? || @insert_task_cycles.present? || @upsert_task_cycles.present? || @delete_task_cycle_ids.present?
+    if @task.changed? || @insert_task_cycles.present? || @upsert_task_cycles.present? || @delete_task_cycle_ids.present? || @task_assigne.user_ids_changed?
       ActiveRecord::Base.transaction do
         @task.update!(last_updated_user: current_user, updated_at: @now)
         TaskCycle.insert_all!(@insert_task_cycles) if @insert_task_cycles.present?
         TaskCycle.upsert_all(@upsert_task_cycles) if @upsert_task_cycles.present?
         TaskCycle.where(id: @delete_task_cycle_ids).update_all(deleted_at: @now, updated_at: @now) if @delete_task_cycle_ids.present?
+        @task_assigne.save! if @task_assigne.user_ids_changed?
       end
     end
 
@@ -52,7 +61,7 @@ class TasksController < ApplicationAuthController
   def destroy
     key = @ids.count == @tasks.count ? 'destroy' : 'destroy_include_notfound'
     @destroy_count = @tasks.count
-    notice = t("notice.task.#{key}", count: @ids.count.to_s(:delimited), destroy_count: @destroy_count.to_s(:delimited))
+    notice = t("notice.task.#{key}", count: @ids.count.to_formatted_s(:delimited), destroy_count: @destroy_count.to_formatted_s(:delimited))
 
     @tasks.destroy_all
     render locals: { notice: }
@@ -62,7 +71,10 @@ class TasksController < ApplicationAuthController
 
   def render_success(target)
     set_task(@task.id)
-    return render :show_index, locals: { notice: t("notice.task.#{target}") }, status: target == :create ? :created : nil if @months.blank?
+    if @months.blank?
+      set_task_assigne_users if @detail
+      return render :show, locals: { notice: t("notice.task.#{target}") }, status: target == :create ? :created : nil
+    end
 
     if target == :create
       @task_events = []
@@ -86,26 +98,35 @@ class TasksController < ApplicationAuthController
   # Use callbacks to share common setup or constraints between actions.
   def validate_params_create
     @task = Task.new(task_params.merge(space: @space, created_user: current_user))
-    check_validation(:create)
+    validate_params(:create)
   end
 
   def validate_params_update
     @task.assign_attributes(task_params)
-    check_validation(:update)
+    validate_params(:update)
   end
 
-  def check_validation(target)
+  def validate_params(target)
     @detail = params[:detail].to_s == 'true'
     @task.valid?
 
     @now = Time.current
-    check_validation_cycles(params[:task][:cycles], target)
-    check_validation_months(params[:months])
+    validate_cycles(params[:task][:cycles], target)
 
-    render './failure', locals: { errors: @task.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if @task.errors.any?
+    if target == :create || @task.task_assigne.blank?
+      @task_assigne = TaskAssigne.new(space: @space, task: @task)
+    else
+      @task_assigne = @task.task_assigne
+    end
+    errors = @task_assigne.set_user_ids(params[:task][:assigned_users])
+    errors.each { |key, value| @task.errors.add(key, value) }
+
+    validate_months(params[:months])
+
+    render '/failure', locals: { errors: @task.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if @task.errors.any?
   end
 
-  def check_validation_cycles(cycles, target)
+  def validate_cycles(cycles, target)
     return @task.errors.add(:cycles, t('errors.messages.task_cycles.blank')) if cycles.blank?
     return @task.errors.add(:cycles, t('errors.messages.task_cycles.invalid')) unless cycles.instance_of?(Array)
 
@@ -157,7 +178,11 @@ class TasksController < ApplicationAuthController
     logger.debug("@upsert_task_cycles: #{@upsert_task_cycles}")
     logger.debug("@delete_task_cycle_ids: #{@delete_task_cycle_ids}")
 
-    @task.errors.add(:cycles, t('errors.messages.task_cycles.max_count', count: Settings.task_cycles_max_count)) if count > Settings.task_cycles_max_count
+    if count == 0
+      @task.errors.add(:cycles, t('errors.messages.task_cycles.active_notfound'))
+    elsif count > Settings.task_cycles_max_count
+      @task.errors.add(:cycles, t('errors.messages.task_cycles.active_max_count', count: Settings.task_cycles_max_count))
+    end
   end
 
   def task_cycle_key(task_cycle)
@@ -169,7 +194,8 @@ class TasksController < ApplicationAuthController
       week: task_cycle.week,
       wday: task_cycle.wday,
       handling_holiday: task_cycle.handling_holiday,
-      period: task_cycle.period
+      period: task_cycle.period,
+      holiday: task_cycle.holiday
     }
   end
 
@@ -213,7 +239,7 @@ class TasksController < ApplicationAuthController
     end
   end
 
-  def check_validation_months(months)
+  def validate_months(months)
     @months = months
     return if @months.blank?
 
@@ -249,7 +275,7 @@ class TasksController < ApplicationAuthController
       alert = 'alert.task.destroy.ids.notfound' if @tasks.empty?
     end
 
-    render './failure', locals: { alert: t(alert) }, status: :unprocessable_entity if alert.present?
+    render '/failure', locals: { alert: t(alert) }, status: :unprocessable_entity if alert.present?
   end
 
   # Only allow a list of trusted parameters through.
@@ -286,6 +312,6 @@ class TasksController < ApplicationAuthController
     keys += [:wday] if cycle == :weekly || (%i[monthly yearly].include?(cycle) && target == :week)
     keys += [:handling_holiday] if cycle == :weekly || (%i[monthly yearly].include?(cycle) && %i[day week].include?(target))
 
-    task_cycle.permit(keys + [:period])
+    task_cycle.permit(keys + %i[period holiday])
   end
 end

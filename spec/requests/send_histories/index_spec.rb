@@ -5,11 +5,6 @@ RSpec.describe 'SendHistory', type: :request do
   let(:response_json_send_history)   { response_json['send_history'] }
   let(:response_json_send_histories) { response_json['send_histories'] }
 
-  let_it_be(:space_not)     { FactoryBot.build_stubbed(:space) }
-  let_it_be(:space_public)  { FactoryBot.create(:space, :public) }
-  let_it_be(:space_private) { FactoryBot.create(:space, :private, created_user: space_public.created_user) }
-  let_it_be(:other_send_setting) { FactoryBot.create(:send_setting) }
-
   # GET /send_histories/:space_code(.json) 通知履歴一覧API
   # テストパターン
   #   未ログイン, APIログイン中, APIログイン中（削除予約済み）
@@ -25,6 +20,8 @@ RSpec.describe 'SendHistory', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #index' do
     subject { get send_histories_path(space_code: space.code, page: subject_page, format: subject_format), headers: auth_headers.merge(accept_headers) }
+    let_it_be(:created_user) { FactoryBot.create(:user) }
+    let_it_be(:other_send_setting) { FactoryBot.create(:send_setting) }
 
     # テスト内容
     shared_examples_for 'ToOK(json/json)' do
@@ -98,23 +95,23 @@ RSpec.describe 'SendHistory', type: :request do
     end
 
     shared_examples_for '[*]スペースが存在しない' do
-      let_it_be(:space) { space_not }
+      let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 404
     end
     shared_examples_for '[*]スペースが公開' do
-      let_it_be(:space) { space_public }
+      let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       include_context '通知設定作成'
       let(:member) { nil }
       it_behaves_like '通知履歴'
     end
     shared_examples_for '[未ログイン]スペースが非公開' do
-      let_it_be(:space) { space_private }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 401
     end
     shared_examples_for '[APIログイン中/削除予約済み]スペースが非公開' do
-      let_it_be(:space) { space_private }
+      let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       include_context '通知設定作成'
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :admin
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :reader

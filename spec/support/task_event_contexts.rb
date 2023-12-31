@@ -1,5 +1,5 @@
 # テスト内容（共通）
-def expect_task_event_json(response_json_event, task, task_cycle, task_event, expect_event, use = { detail: false })
+def expect_task_event_json(response_json_event, task, task_cycle, task_event, expect_event, use = { detail: false, email: false })
   result = 3
   if task_event.present?
     expect(response_json_event['code']).to eq(task_event.code)
@@ -24,9 +24,19 @@ def expect_task_event_json(response_json_event, task, task_cycle, task_event, ex
     result += 4
     expect(response_json_event['last_completed_at']).to eq(I18n.l(task_event.last_completed_at, format: :json, default: nil))
 
+    data = response_json_event['init_assigned_user']
+    if task_event.init_assigned_user_id.present?
+      count = expect_user_json(data, task_event.init_assigned_user, { email: use[:email] })
+      expect(data['deleted']).to eq(task_event.init_assigned_user.blank?)
+      expect(data.count).to eq(count + 1)
+      result += 1
+    else
+      expect(data).to be_nil
+    end
+
     data = response_json_event['assigned_user']
     if task_event.assigned_user_id.present?
-      count = expect_user_json(data, task_event.assigned_user, { email: true })
+      count = expect_user_json(data, task_event.assigned_user, { email: use[:email] })
       expect(data['deleted']).to eq(task_event.assigned_user.blank?)
       expect(data.count).to eq(count + 1)
       result += 1
@@ -39,7 +49,7 @@ def expect_task_event_json(response_json_event, task, task_cycle, task_event, ex
 
     data = response_json_event['last_updated_user']
     if task_event.last_updated_user_id.present?
-      count = expect_user_json(data, task_event.last_updated_user, { email: true })
+      count = expect_user_json(data, task_event.last_updated_user, { email: use[:email] })
       expect(data['deleted']).to eq(task_event.last_updated_user.blank?)
       expect(data.count).to eq(count + 1)
       result += 1

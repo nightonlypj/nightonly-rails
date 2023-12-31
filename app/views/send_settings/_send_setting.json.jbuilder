@@ -24,7 +24,7 @@ end
 
 if send_setting&.last_updated_user_id.present?
   json.last_updated_user do
-    json.partial! './users/auth/user', user: send_setting.last_updated_user, use_email: true if send_setting.last_updated_user.present?
+    json.partial! '/users/auth/user', user: send_setting.last_updated_user, use_email: current_member&.power_admin? if send_setting.last_updated_user.present?
     json.deleted send_setting.last_updated_user.blank?
   end
 end

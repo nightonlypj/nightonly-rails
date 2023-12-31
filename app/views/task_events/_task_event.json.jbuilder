@@ -10,9 +10,16 @@ return unless detail
 
 json.last_completed_at l(task_event.last_completed_at, format: :json, default: nil)
 
+if task_event.init_assigned_user_id.present?
+  json.init_assigned_user do
+    json.partial! '/users/auth/user', user: task_event.init_assigned_user, use_email: current_member&.power_admin? if task_event.init_assigned_user.present?
+    json.deleted task_event.init_assigned_user.blank?
+  end
+end
+
 if task_event.assigned_user_id.present?
   json.assigned_user do
-    json.partial! './users/auth/user', user: task_event.assigned_user, use_email: true if task_event.assigned_user.present?
+    json.partial! '/users/auth/user', user: task_event.assigned_user, use_email: current_member&.power_admin? if task_event.assigned_user.present?
     json.deleted task_event.assigned_user.blank?
   end
 end
@@ -22,7 +29,7 @@ json.memo task_event.memo
 
 if task_event.last_updated_user_id.present?
   json.last_updated_user do
-    json.partial! './users/auth/user', user: task_event.last_updated_user, use_email: true if task_event.last_updated_user.present?
+    json.partial! '/users/auth/user', user: task_event.last_updated_user, use_email: current_member&.power_admin? if task_event.last_updated_user.present?
     json.deleted task_event.last_updated_user.blank?
   end
 end

@@ -335,14 +335,14 @@ RSpec.describe TaskCycle, type: :model do
     end
   end
 
-  # 休日の扱い
+  # 休日の場合
   # テストパターン
   #   周期: 毎週, 毎月, 毎年
   #   対象: 日, 営業日, 週
-  #   休日の扱い: ない, 前日, 翌日
+  #   休日の場合: ない, 前日, 当日, 翌日
   describe 'validates :handling_holiday' do
     # テストケース
-    shared_examples_for '休日の扱い' do
+    shared_examples_for '休日の場合' do
       context 'ない' do
         let(:handling_holiday) { nil }
         let(:messages) { { handling_holiday: [get_locale('activerecord.errors.models.task_cycle.attributes.handling_holiday.blank')] } }
@@ -350,6 +350,10 @@ RSpec.describe TaskCycle, type: :model do
       end
       context '前日' do
         let(:handling_holiday) { :before }
+        it_behaves_like 'Valid'
+      end
+      context '当日' do
+        let(:handling_holiday) { :onday }
         it_behaves_like 'Valid'
       end
       context '翌日' do
@@ -362,7 +366,7 @@ RSpec.describe TaskCycle, type: :model do
       let(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, target, handling_holiday:) }
       context '対象が日' do
         let(:target) { :day }
-        it_behaves_like '休日の扱い'
+        it_behaves_like '休日の場合'
       end
       context '対象が営業日' do
         let(:target) { :business_day }
@@ -371,13 +375,13 @@ RSpec.describe TaskCycle, type: :model do
       end
       context '対象が週' do
         let(:target) { :week }
-        it_behaves_like '休日の扱い'
+        it_behaves_like '休日の場合'
       end
     end
 
     context '周期が毎週' do
       let(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, handling_holiday:) }
-      it_behaves_like '休日の扱い'
+      it_behaves_like '休日の場合'
     end
     context '周期が毎月' do
       let(:cycle) { :monthly }
@@ -418,6 +422,32 @@ RSpec.describe TaskCycle, type: :model do
       let(:period) { 21 }
       let(:messages) { { period: [get_locale('activerecord.errors.models.task_cycle.attributes.period.less_than_or_equal_to', count: 20)] } }
       it_behaves_like 'InValid'
+    end
+  end
+
+  # 休日含む
+  # テストパターン
+  #   ない, true, false, 文字
+  describe 'validates :holiday' do
+    let(:model) { FactoryBot.build_stubbed(:task_cycle, holiday:) }
+
+    # テストケース
+    context 'ない' do
+      let(:holiday) { nil }
+      let(:messages) { { holiday: [get_locale('activerecord.errors.models.task_cycle.attributes.holiday.inclusion')] } }
+      it_behaves_like 'InValid'
+    end
+    context 'true' do
+      let(:holiday) { true }
+      it_behaves_like 'Valid'
+    end
+    context 'false' do
+      let(:holiday) { false }
+      it_behaves_like 'Valid'
+    end
+    context '文字' do
+      let(:holiday) { 'a' }
+      it_behaves_like 'Valid' # NOTE: trueになる
     end
   end
 end

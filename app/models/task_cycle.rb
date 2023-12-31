@@ -16,6 +16,7 @@ class TaskCycle < ApplicationRecord
   validates :handling_holiday, presence: true, if: proc { |cycle| cycle.cycle_weekly? || (cycle.cycle_monthly_or_yearly? && cycle.target_day_or_week?) }
   validates :period, presence: true
   validates :period, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 20 }, allow_blank: true
+  validates :holiday, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
 
   scope :active, -> { where(deleted_at: nil) }
   scope :by_month, lambda { |months|
@@ -53,18 +54,19 @@ class TaskCycle < ApplicationRecord
 
   # 曜日
   enum wday: {
-    # sun: 0, # 日曜日
+    sun: 0, # 日曜日
     mon: 1, # 月曜日
     tue: 2, # 火曜日
     wed: 3, # 水曜日
     thu: 4, # 木曜日
-    fri: 5 # 金曜日
-    # sat: 6  # 土曜日
+    fri: 5, # 金曜日
+    sat: 6  # 土曜日
   }, _prefix: true
 
-  # 休日の扱い
+  # 休日の場合
   enum handling_holiday: {
     before: -1, # 前日
+    onday: 0,   # 当日
     after: 1    # 翌日
   }, _prefix: true
 

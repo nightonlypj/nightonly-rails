@@ -74,6 +74,14 @@
   created_user_id: 1
   created_at: '2001-12-12 12:34:56+0900'
   updated_at: '2001-12-12 12:34:56+0900'
+- id: 19
+  space_id: 1
+  priority: high
+  title: '毎週水曜日（当日）までの7日間（休日含む）でやる事'
+  started_date: '2001-12-11'
+  created_user_id: 1
+  created_at: '2001-12-11 12:34:56+0900'
+  updated_at: '2001-12-11 12:34:56+0900'
 
 ## 毎月(日)
 - id: 21
