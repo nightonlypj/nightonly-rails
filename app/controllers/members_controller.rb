@@ -51,7 +51,7 @@ class MembersController < ApplicationAuthController
     @create_user_mails = create_users.pluck(:email)
 =begin
     if format_html?
-      return redirect_to result_member_path(@space.code), notice: t('notice.member.create'), flash: {
+      return redirect_to result_member_path(space_code: @space.code), notice: t('notice.member.create'), flash: {
         emails: @emails, exist_user_mails: @exist_user_mails, create_user_mails: @create_user_mails,
         power: @member.power
       }
@@ -65,7 +65,7 @@ class MembersController < ApplicationAuthController
 =begin
   # GET /members/:space_code/result メンバー招待（結果）
   def result
-    redirect_to members_path(@space.code) if flash.blank?
+    redirect_to members_path(space_code: @space.code) if flash.blank?
   end
 =end
 
@@ -80,7 +80,7 @@ class MembersController < ApplicationAuthController
 
       return render '/failure', locals: { errors: @member.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
     end
-    return redirect_to members_path(@space.code, active: @member.user.code), notice: t('notice.member.update') if format_html?
+    return redirect_to members_path(space_code: @space.code, active: @member.user.code), notice: t('notice.member.update') if format_html?
 
     render :show, locals: { notice: t('notice.member.update') }
   end
@@ -99,7 +99,7 @@ class MembersController < ApplicationAuthController
     notice = t("notice.member.#{key}", count: @codes.count.to_formatted_s(:delimited), destroy_count: @destroy_count.to_formatted_s(:delimited))
 
     @members.destroy_all
-    return redirect_to members_path(@space.code), notice: notice if format_html?
+    return redirect_to members_path(space_code: @space.code), notice: notice if format_html?
 
     render locals: { notice: }
   end
@@ -108,7 +108,7 @@ class MembersController < ApplicationAuthController
 
 =begin
   def redirect_members_for_user_destroy_reserved
-    redirect_for_user_destroy_reserved(members_path(@space.code))
+    redirect_for_user_destroy_reserved(members_path(space_code: @space.code))
   end
 =end
 

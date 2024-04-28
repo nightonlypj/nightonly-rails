@@ -103,7 +103,7 @@ RSpec.describe 'Spaces', type: :request do
       let(:subject_page) { 1 }
       it '存在しないメッセージが含まれる' do
         subject
-        expect(response.body).to include('スペースが見つかりません。')
+        expect(response.body).to include(I18n.t('対象の%{name}が見つかりません。', name: I18n.t('スペース')))
       end
     end
     shared_examples_for 'リスト表示' do |page|
@@ -122,7 +122,7 @@ RSpec.describe 'Spaces', type: :request do
           # 説明
           expect(response.body).to include(space.description)
           # (アクション)
-          url = "href=\"#{members_path(space.code)}\""
+          url = "href=\"#{members_path(space_code: space.code)}\""
           if @members[space.id].present?
             expect(response.body).to include(Member.powers_i18n[@members[space.id]])
             expect(response.body).to include(url)
@@ -381,7 +381,7 @@ RSpec.describe 'Spaces', type: :request do
 =begin
         else
           # HTML
-          expect(response.body).to include('スペースが見つかりません。')
+          expect(response.body).to include(I18n.t('対象の%{name}が見つかりません。', name: I18n.t('スペース')))
 =end
         end
       end

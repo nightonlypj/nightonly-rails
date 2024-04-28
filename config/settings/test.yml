@@ -1,5 +1,5 @@
 debug: false
-env_name: null
+server_env: 'test'
 base_domain: 'localhost.test'
 base_image_url: 'http://localhost.test'
 front_url: 'http://front.localhost.test'

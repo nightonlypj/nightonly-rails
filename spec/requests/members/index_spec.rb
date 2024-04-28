@@ -69,9 +69,9 @@ RSpec.describe 'Members', type: :request do
         is_expected.to eq(200)
         expect_space_html(response, space, user_power)
 
-        new_url = "href=\"#{new_member_path(space.code)}\""
+        new_url = "href=\"#{new_member_path(space_code: space.code)}\""
         download_url = "href=\"#{create_download_path(model: :member, space_code: space.code, search_params: { page: subject_page }).gsub('&', '&amp;')}\""
-        destroy_url = "action=\"#{destroy_member_path(space.code)}\""
+        destroy_url = "action=\"#{destroy_member_path(space_code: space.code)}\""
         if user_power == :admin
           expect(response.body).to include(new_url)
           expect(response.body).to include(download_url)
@@ -164,7 +164,7 @@ RSpec.describe 'Members', type: :request do
           else
             expect(response.body).not_to include(member.user.email)
           end
-          url = "href=\"#{edit_member_path(space.code, member.user.code)}\""
+          url = "href=\"#{edit_member_path(space_code: space.code, user_code: member.user.code)}\""
           if user_power == :admin && member.user != user
             expect(response.body).to include(url)
           else
@@ -439,7 +439,7 @@ RSpec.describe 'Members', type: :request do
 =begin
         else
           # HTML
-          expect(response.body).to include('対象のメンバーが見つかりません。')
+          expect(response.body).to include(I18n.t('対象の%{name}が見つかりません。', name: I18n.t('メンバー')))
 =end
         end
       end
