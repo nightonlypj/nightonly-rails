@@ -8,6 +8,13 @@ locales:
   en: 'English'
   ja: '日本語'
 
+# 言語選択
+default_locale: :ja
+# default_locale: :en
+locales:
+  en: 'English'
+  ja: '日本語'
+
 # Devise Token Auth
 confirmation_success_url_not: '/auth/confirmation_success.html?not'
 confirmation_success_url_bad: '/auth/confirmation_success.html?bad'
