@@ -50,12 +50,12 @@ class SlackUsersController < ApplicationAuthController
       domain_names = current_members.map { |member| member.space.send_setting_active.first.slack_domain.name }.uniq
 
       params[:slack_users].each.with_index(1) do |slack_user, index|
-        key = "name#{index}".to_sym
+        key = :"name#{index}"
         next errors[key] = [t('errors.messages.param.blank')] if slack_user[:name].blank?
         next errors[key] = [t('errors.messages.param.not_exist')] unless domain_names.include?(slack_user[:name])
 
         if slack_user[:memberid].present?
-          key = "memberid#{index}".to_sym
+          key = :"memberid#{index}"
           minimum = Settings.slack_user_memberid_minimum
           next errors[key] = [t("#{MEMBERID_KEY}.too_short", count: minimum)] if slack_user[:memberid].length < minimum
 

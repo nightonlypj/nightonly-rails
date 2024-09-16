@@ -4,7 +4,7 @@ RSpec.describe NoticeMailer, type: :mailer do
   # テスト内容（共通）
   shared_examples_for 'Header' do
     it 'タイトル・送信者のメールアドレスが設定と、宛先がユーザーのメールアドレスと一致する' do
-      expect(mail.subject).to eq(get_subject(mail_subject, space_name: space.name))
+      expect(mail.subject).to eq(get_subject(mail_subject, space_name: space.name, env_name: Settings.env_name || ''))
       expect(mail.from).to eq([Settings.mailer_from.email])
       expect(mail.to).to eq([send_setting.email_address])
     end

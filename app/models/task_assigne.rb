@@ -17,7 +17,7 @@ class TaskAssigne < ApplicationRecord
     codes.each.with_index(1) do |code, index|
       key = self.class.check_assigned_user(users[code])
       if key.present?
-        errors["assigned_user#{index}".to_sym] = I18n.t("errors.messages.assigned_users.code.#{key}")
+        errors[:"assigned_user#{index}"] = I18n.t("errors.messages.assigned_users.code.#{key}")
         next
       end
 

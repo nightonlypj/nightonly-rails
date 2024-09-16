@@ -41,7 +41,7 @@ module TasksConcern
     if sort_only
       # @text = nil
 
-      # Task.priorities.each do |key, _value|
+      # Task.priorities.each_key do |key|
       #   @priorities.push(key)
       # end
       # @before = true
@@ -50,7 +50,7 @@ module TasksConcern
     else
       @text = search_params[:text]&.slice(..(255 - 1))
 
-      Task.priorities.each do |key, _value|
+      Task.priorities.each_key do |key|
         @priorities.push(key) if priority_include_key?(search_params[:priority], key)
       end
       @before = params[:before] != '0'

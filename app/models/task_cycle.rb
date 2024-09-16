@@ -4,16 +4,16 @@ class TaskCycle < ApplicationRecord
   has_many :task_events, dependent: :destroy
 
   validates :cycle, presence: true
-  validates :month, presence: true, if: proc { |cycle| cycle.cycle_yearly? }
+  validates :month, presence: true, if: -> { cycle_yearly? }
   validates :month, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 12 }, allow_blank: true
-  validates :target, presence: true, if: proc { |cycle| cycle.cycle_monthly_or_yearly? }
-  validates :day, presence: true, if: proc { |cycle| cycle.cycle_monthly_or_yearly? && cycle.target_day? }
+  validates :target, presence: true, if: -> { cycle_monthly_or_yearly? }
+  validates :day, presence: true, if: -> { cycle_monthly_or_yearly? && target_day? }
   validates :day, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 31 }, allow_blank: true
-  validates :business_day, presence: true, if: proc { |cycle| cycle.cycle_monthly_or_yearly? && cycle.target_business_day? }
+  validates :business_day, presence: true, if: -> { cycle_monthly_or_yearly? && target_business_day? }
   validates :business_day, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 31 }, allow_blank: true
-  validates :week, presence: true, if: proc { |cycle| cycle.cycle_monthly_or_yearly? && cycle.target_week? }
-  validates :wday, presence: true, if: proc { |cycle| cycle.cycle_weekly? || (cycle.cycle_monthly_or_yearly? && cycle.target_week?) }
-  validates :handling_holiday, presence: true, if: proc { |cycle| cycle.cycle_weekly? || (cycle.cycle_monthly_or_yearly? && cycle.target_day_or_week?) }
+  validates :week, presence: true, if: -> { cycle_monthly_or_yearly? && target_week? }
+  validates :wday, presence: true, if: -> { cycle_weekly? || (cycle_monthly_or_yearly? && target_week?) }
+  validates :handling_holiday, presence: true, if: -> { cycle_weekly? || (cycle_monthly_or_yearly? && target_day_or_week?) }
   validates :period, presence: true
   validates :period, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 20 }, allow_blank: true
   validates :holiday, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
