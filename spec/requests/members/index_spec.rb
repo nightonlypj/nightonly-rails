@@ -478,16 +478,16 @@ RSpec.describe 'Members', type: :request do
       it_behaves_like '管理者以外', :reader
     end
 
+=begin
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
-=begin
       include_context 'ログイン処理'
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like '権限'
-=end
     end
+=end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
       let(:subject_format) { :json }
@@ -508,11 +508,11 @@ RSpec.describe 'Members', type: :request do
     let_it_be(:member_reader) { FactoryBot.create(:member, :reader, space:) }
     let_it_be(:member_writer) { FactoryBot.create(:member, :writer, space:) }
 
+=begin
     # テストケース
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
-=begin
       include_context 'ログイン処理'
       let_it_be(:member_admin) { FactoryBot.create(:member, :admin, space:, user:) }
       let(:subject_format) { nil }
@@ -557,8 +557,8 @@ RSpec.describe 'Members', type: :request do
         let(:members) { [] }
         it_behaves_like 'ToOK[氏名]'
       end
-=end
     end
+=end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
       let_it_be(:member_admin) { FactoryBot.create(:member, :admin, space:, user:) }
@@ -642,17 +642,17 @@ RSpec.describe 'Members', type: :request do
       end
     end
 
+=begin
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
-=begin
       include_context 'ログイン処理'
       let_it_be(:member_active) { FactoryBot.create(:member, space:, user:) }
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like '状態'
-=end
     end
+=end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
       let_it_be(:member_active) { FactoryBot.create(:member, space:, user:) }

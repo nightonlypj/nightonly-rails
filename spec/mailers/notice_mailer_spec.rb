@@ -16,8 +16,8 @@ RSpec.describe NoticeMailer, type: :mailer do
   #   通知対象: 開始確認, 翌営業日・終了確認
   #   翌営業日開始/期限切れ/本日期限/期限内の/本日完了したタスク: ない, 2件
   describe '#incomplete_task' do
-    let(:mail) do
-      NoticeMailer.with(
+    subject(:mail) do
+      described_class.with(
         target_date:,
         send_history:,
         next_task_events:,

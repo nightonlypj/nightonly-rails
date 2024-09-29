@@ -18,6 +18,7 @@ RSpec.describe 'SendSetting', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #update' do
     subject { post update_send_setting_path(space_code: space.code, format: subject_format), params:, headers: auth_headers.merge(accept_headers) }
+
     let_it_be(:valid_attributes) { FactoryBot.attributes_for(:send_setting, :changed, :slack, :email) }
     let_it_be(:valid_slack_name) { 'example' }
     let(:params_attributes) do
@@ -107,7 +108,7 @@ RSpec.describe 'SendSetting', type: :request do
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
         result = 3
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
         expect(response_json['notice']).to eq(get_locale('notice.send_setting.update'))
 
         count = expect_send_setting_json(response_json_send_setting, current_send_setting, member)

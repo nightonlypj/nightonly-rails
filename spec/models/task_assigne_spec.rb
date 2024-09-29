@@ -26,14 +26,18 @@ RSpec.describe TaskAssigne, type: :model do
     context 'ない' do
       let(:assigned_users) { nil }
       it_behaves_like 'Value', {}, '{}'
-      let(:user_ids) { nil }
-      it_behaves_like 'user_ids'
+      context do
+        let(:user_ids) { nil }
+        it_behaves_like 'user_ids'
+      end
     end
     context '文字' do
       let(:assigned_users) { 'x' }
       it_behaves_like 'Value', { assigned_user1: get_locale('errors.messages.assigned_users.invalid') }
-      let(:user_ids) { '0' } # 変更されない
-      it_behaves_like 'user_ids'
+      context do
+        let(:user_ids) { '0' } # 変更されない
+        it_behaves_like 'user_ids'
+      end
     end
     context '[管理者]+[投稿者]+閲覧者+未参加+削除予定+削除済み' do
       let(:assigned_users) do
@@ -52,20 +56,26 @@ RSpec.describe TaskAssigne, type: :model do
         assigned_user5: get_locale('errors.messages.assigned_users.code.destroy_reserved'),
         assigned_user6: get_locale('errors.messages.assigned_users.code.notfound')
       }
-      let(:user_ids) { '0' } # 変更されない
-      it_behaves_like 'user_ids'
+      context do
+        let(:user_ids) { '0' } # 変更されない
+        it_behaves_like 'user_ids'
+      end
     end
     context '最大数と同じ' do
       let(:assigned_users) { [{ code: user_admin.code }] + ([{ code: user_writer.code }] * (Settings.task_assigne_users_max_count - 1)) }
       it_behaves_like 'Value', {}, '{}'
-      let(:user_ids) { ([user_admin.id] + ([user_writer.id] * (Settings.task_assigne_users_max_count - 1))).join(',') }
-      it_behaves_like 'user_ids'
+      context do
+        let(:user_ids) { ([user_admin.id] + ([user_writer.id] * (Settings.task_assigne_users_max_count - 1))).join(',') }
+        it_behaves_like 'user_ids'
+      end
     end
     context '最大数より多い' do
       let(:assigned_users) { [{ code: user_admin.code }] + ([{ code: user_writer.code }] * Settings.task_assigne_users_max_count) }
       it_behaves_like 'Value', { assigned_user1: get_locale('errors.messages.assigned_users.max_count', count: Settings.task_assigne_users_max_count) }
-      let(:user_ids) { '0' } # 変更されない
-      it_behaves_like 'user_ids'
+      context do
+        let(:user_ids) { '0' } # 変更されない
+        it_behaves_like 'user_ids'
+      end
     end
   end
 

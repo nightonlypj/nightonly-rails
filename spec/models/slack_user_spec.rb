@@ -5,7 +5,7 @@ RSpec.describe SlackUser, type: :model do
   # テストパターン
   #   ない, 最小文字数より少ない, 最小文字数と同じ, 最大文字数と同じ, 最大文字数より多い, 不正値
   describe 'validates :memberid' do
-    let(:model) { FactoryBot.build_stubbed(:slack_user, memberid:) }
+    subject(:model) { FactoryBot.build_stubbed(:slack_user, memberid:) }
 
     # テストケース
     context 'ない' do

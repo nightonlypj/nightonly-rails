@@ -150,7 +150,7 @@ def expect_task_events_json(response_json_task_events, task_events, use = { emai
   response_json_task_events.each_with_index do |response_json_task_event, index|
     task_event = task_events[index]
     if task_event[:deleted]
-      expect(response_json_task_event['deleted']).to eq(true)
+      expect(response_json_task_event['deleted']).to be(true)
       expect(response_json_task_event.count).to eq(1)
       next
     end

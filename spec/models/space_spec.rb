@@ -111,7 +111,7 @@ RSpec.describe Space, type: :model do
   #   処理優先度: 0, 3×2件, 9
   #   通知設定: ない, ある（1件, 2件（変更あり））
   describe '.create_send_notice_target' do
-    subject { Space.create_send_notice_target }
+    subject(:result) { described_class.create_send_notice_target }
 
     before_all do
       FactoryBot.create(:space, :destroy_reserved, created_user:)
@@ -128,9 +128,9 @@ RSpec.describe Space, type: :model do
       FactoryBot.create(:send_setting, :slack, space: spaces[3])
     end
     it '最初→標準1→標準2→最後の順に返却される。通知設定がある場合、最初がSlack通知になっている' do
-      expect(subject.map(&:name)).to eq(%w[最初 標準1 標準2 最後])
-      subject.each do |space|
-        expect(space.send_setting_active.first.slack_enabled).to eq(true) if space.send_setting_active.count > 0
+      expect(result.map(&:name)).to eq(%w[最初 標準1 標準2 最後])
+      result.each do |space|
+        expect(space.send_setting_active.first.slack_enabled).to be(true) if space.send_setting_active.count > 0
       end
     end
   end

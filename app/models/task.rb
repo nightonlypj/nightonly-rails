@@ -17,7 +17,7 @@ class Task < ApplicationRecord
   validate :validate_started_date
   validate :validate_ended_date
 
-  scope :search, lambda { |text|
+  scope :search, ->(text) {
     return if text&.strip.blank?
 
     sql = "tasks.title #{search_like} ?"
@@ -30,13 +30,13 @@ class Task < ApplicationRecord
 
     task
   }
-  scope :by_priority, lambda { |priorities|
+  scope :by_priority, ->(priorities) {
     return none if priorities.count == 0
     return if priorities.count >= Task.priorities.count
 
     where(priority: priorities)
   }
-  scope :by_start_end_date, lambda { |before, active, after|
+  scope :by_start_end_date, ->(before, active, after) {
     return none if !before && !active && !after
     return if before && active && after
 

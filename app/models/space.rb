@@ -70,7 +70,7 @@ class Space < ApplicationRecord
   scope :destroy_target, -> { where(destroy_schedule_at: ..Time.current) }
 
   # 期間内のタスクイベント作成＋通知の対象
-  scope :create_send_notice_target, lambda {
+  scope :create_send_notice_target, -> {
     active.order(:process_priority, :id).eager_load(:send_setting_active).merge(SendSetting.order(updated_at: :desc, id: :desc))
   }
 

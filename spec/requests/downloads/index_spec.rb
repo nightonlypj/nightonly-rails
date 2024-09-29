@@ -365,16 +365,16 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'IDが存在しない'
     end
 
+=begin
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
-=begin
       include_context 'ログイン処理'
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like 'ID'
-=end
     end
+=end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
       let(:subject_format) { :json }
@@ -470,16 +470,16 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like '存在しない'
     end
 
+=begin
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
-=begin
       include_context 'ログイン処理'
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like '対象ID'
-=end
     end
+=end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
       let(:subject_format) { :json }

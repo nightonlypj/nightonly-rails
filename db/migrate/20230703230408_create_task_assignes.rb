@@ -7,6 +7,6 @@ class CreateTaskAssignes < ActiveRecord::Migration[6.1]
 
       t.timestamps
     end
-    add_index :task_assignes, [:space_id, :task_id], unique: true, name: 'index_task_assignes1'
+    add_index :task_assignes, %i[space_id task_id], unique: true, name: 'index_task_assignes1'
   end
 end

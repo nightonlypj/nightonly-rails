@@ -19,13 +19,13 @@ class TaskCycle < ApplicationRecord
   validates :holiday, inclusion: { in: [true, false] } # NOTE: presenceだとfalseもエラーになる為
 
   scope :active, -> { where(deleted_at: nil) }
-  scope :by_month, lambda { |months|
+  scope :by_month, ->(months) {
     return none if months.count == 0
     return if months.include?(nil) && months.compact.uniq.sort == [*1..12]
 
     where(month: months)
   }
-  scope :by_task_period, lambda { |start_date, end_date|
+  scope :by_task_period, ->(start_date, end_date) {
     where('tasks.started_date <= ? AND (tasks.ended_date IS NULL OR tasks.ended_date >= ?)', end_date, start_date)
   }
 

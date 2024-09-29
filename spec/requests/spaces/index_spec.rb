@@ -399,18 +399,18 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'ToNG[0件]'
     end
 
+=begin
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
-=begin
       include_context 'ログイン処理'
       before_all { FactoryBot.create(:member, :admin, space: join_space, user:) }
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like '部分一致'
       it_behaves_like '不一致'
-=end
     end
+=end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
       before_all { FactoryBot.create(:member, :admin, space: join_space, user:) }
@@ -494,17 +494,17 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like '有効・削除予定が0と0'
     end
 
+=begin
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
-=begin
       include_context 'ログイン処理'
       include_context 'スペース一覧作成', 1, 1, 1, 1
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like 'オプション'
-=end
     end
+=end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
       include_context 'スペース一覧作成', 1, 1, 1, 1

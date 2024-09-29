@@ -87,7 +87,7 @@ RSpec.describe 'Tasks', type: :request do
     end
     shared_examples_for 'NG' do
       it 'タスク・周期が作成されない' do
-        expect { subject }.to change(Task, :count).by(0) && change(TaskCycle, :count).by(0)
+        expect { subject }.not_to change(Task, :count) && change(TaskCycle, :count)
       end
     end
 
@@ -98,7 +98,7 @@ RSpec.describe 'Tasks', type: :request do
       it 'HTTPステータスが201。対象項目が一致する' do
         is_expected.to eq(201)
         result = 3
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
         expect(response_json['notice']).to eq(get_locale('notice.task.create'))
 
         if expect_events.present?

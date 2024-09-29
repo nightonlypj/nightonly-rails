@@ -16,7 +16,9 @@ RSpec.describe 'TaskEvents', type: :request do
   #   ＋URLの拡張子: ない, .json
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #update' do
-    subject { post update_task_event_path(space_code: space.code, code: task_event.code, format: subject_format), params:, headers: auth_headers.merge(accept_headers) }
+    subject { post update_task_event_path(space_code: space.code, code: task_event.code, format: subject_format), params:, headers: }
+    let(:headers) { auth_headers.merge(accept_headers) }
+
     let_it_be(:created_user) { FactoryBot.create(:user) }
     let_it_be(:not_user)     { FactoryBot.build_stubbed(:user) }
     let_it_be(:exist_user)   { FactoryBot.create(:user) }
@@ -42,7 +44,8 @@ RSpec.describe 'TaskEvents', type: :request do
         expect(current_task_event.started_date).to eq(task_event.started_date)
         expect(current_task_event.ended_date).to eq(task_event.ended_date)
         expect(current_task_event.last_ended_date).to eq(attributes[:last_ended_date])
-        expect(current_task_event.last_completed_at).to expect_last_completed_at[:new] ? be_between(start_time, Time.current) : eq(expect_last_completed_at[:data])
+        expect(current_task_event.last_completed_at).to expect_last_completed_at[:new] ? be_between(start_time,
+                                                                                                    Time.current) : eq(expect_last_completed_at[:data])
         expect(current_task_event.status.to_sym).to eq(attributes[:status])
         expect(current_task_event.init_assigned_user_id).to eq(task_event.init_assigned_user_id)
         expect(current_task_event.assigned_user_id).to eq(expect_assigned_user_id)
@@ -64,7 +67,7 @@ RSpec.describe 'TaskEvents', type: :request do
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
         result = 3
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
         expect(response_json['notice']).to eq(get_locale('notice.task_event.update'))
 
         use = { detail: params[:detail], email: member&.power_admin? }

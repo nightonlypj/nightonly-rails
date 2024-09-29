@@ -16,9 +16,9 @@ RSpec.describe SendHistoriesController, type: :routing do
       expect(get: "/send_histories/#{space_code}/detail/1.json").to route_to('send_histories#show', space_code:, id: '1', format: 'json')
     end
 
-    it 'routes to #new' do
-      # expect(get: '/send_histories/new').not_to be_routable # NOTE: send_histories#index
-    end
+    # it 'routes to #new' do
+    #   expect(get: '/send_histories/new').not_to be_routable # NOTE: send_histories#index
+    # end
 
     it 'routes to #create' do
       expect(post: '/send_histories').not_to be_routable

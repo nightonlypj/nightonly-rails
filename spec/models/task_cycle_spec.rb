@@ -7,20 +7,20 @@ RSpec.describe TaskCycle, type: :model do
   describe 'validates :cycle' do
     # テストケース
     context 'ない' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, cycle: nil) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, cycle: nil) }
       let(:messages) { { cycle: [get_locale('activerecord.errors.models.task_cycle.attributes.cycle.blank')] } }
       it_behaves_like 'InValid'
     end
     context '毎週' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly) }
       it_behaves_like 'Valid'
     end
     context '毎月' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :monthly, :day) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :monthly, :day) }
       it_behaves_like 'Valid'
     end
     context '毎年' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :yearly, :day) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :yearly, :day) }
       it_behaves_like 'Valid'
     end
   end
@@ -32,15 +32,15 @@ RSpec.describe TaskCycle, type: :model do
   describe 'validates :month' do
     # テストケース
     context '周期が毎週' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, month: nil) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, month: nil) }
       it_behaves_like 'Valid'
     end
     context '周期が毎月' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :monthly, :day, month: nil) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :monthly, :day, month: nil) }
       it_behaves_like 'Valid'
     end
     context '周期が毎年' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :yearly, :day, month:) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :yearly, :day, month:) }
       context '月がない' do
         let(:month) { nil }
         let(:messages) { { month: [get_locale('activerecord.errors.models.task_cycle.attributes.month.blank')] } }
@@ -75,26 +75,26 @@ RSpec.describe TaskCycle, type: :model do
     # テストケース
     shared_examples_for '[毎月/毎年]' do
       context '対象がない' do
-        let(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, :day, target: nil) }
+        subject(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, :day, target: nil) }
         let(:messages) { { target: [get_locale('activerecord.errors.models.task_cycle.attributes.target.blank')] } }
         it_behaves_like 'InValid'
       end
       context '対象が日' do
-        let(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, :day) }
+        subject(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, :day) }
         it_behaves_like 'Valid'
       end
       context '対象が営業日' do
-        let(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, :business_day) }
+        subject(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, :business_day) }
         it_behaves_like 'Valid'
       end
       context '対象が週' do
-        let(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, :week) }
+        subject(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, :week) }
         it_behaves_like 'Valid'
       end
     end
 
     context '周期が毎週' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, target: nil) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, target: nil) }
       it_behaves_like 'Valid'
     end
     context '周期が毎月' do
@@ -115,7 +115,7 @@ RSpec.describe TaskCycle, type: :model do
   describe 'validates :day' do
     # テストケース
     shared_examples_for '[毎月/毎年]' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, target, day:) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, target, day:) }
       context '対象が日' do
         let(:target) { :day }
         context '日がない' do
@@ -155,7 +155,7 @@ RSpec.describe TaskCycle, type: :model do
     end
 
     context '周期が毎週' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, day: nil) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, day: nil) }
       it_behaves_like 'Valid'
     end
     context '周期が毎月' do
@@ -176,7 +176,7 @@ RSpec.describe TaskCycle, type: :model do
   describe 'validates :business_day' do
     # テストケース
     shared_examples_for '[毎月/毎年]' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, target, business_day:) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, target, business_day:) }
       context '対象が日' do
         let(:target) { :day }
         let(:business_day) { nil }
@@ -216,7 +216,7 @@ RSpec.describe TaskCycle, type: :model do
     end
 
     context '周期が毎週' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, business_day: nil) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, business_day: nil) }
       it_behaves_like 'Valid'
     end
     context '周期が毎月' do
@@ -237,7 +237,7 @@ RSpec.describe TaskCycle, type: :model do
   describe 'validates :week' do
     # テストケース
     shared_examples_for '[毎月/毎年]' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, target, week:) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, target, week:) }
       context '対象が日' do
         let(:target) { :day }
         let(:week) { nil }
@@ -267,7 +267,7 @@ RSpec.describe TaskCycle, type: :model do
     end
 
     context '周期が毎週' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, week: nil) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, week: nil) }
       it_behaves_like 'Valid'
     end
     context '周期が毎月' do
@@ -304,7 +304,7 @@ RSpec.describe TaskCycle, type: :model do
     end
 
     shared_examples_for '[毎月/毎年]' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, target, wday:) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, target, wday:) }
       context '対象が日' do
         let(:target) { :day }
         let(:wday) { nil }
@@ -322,7 +322,7 @@ RSpec.describe TaskCycle, type: :model do
     end
 
     context '周期が毎週' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, wday:) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, wday:) }
       it_behaves_like '曜日'
     end
     context '周期が毎月' do
@@ -363,7 +363,7 @@ RSpec.describe TaskCycle, type: :model do
     end
 
     shared_examples_for '[毎月/毎年]' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, target, handling_holiday:) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, cycle, target, handling_holiday:) }
       context '対象が日' do
         let(:target) { :day }
         it_behaves_like '休日の場合'
@@ -380,7 +380,7 @@ RSpec.describe TaskCycle, type: :model do
     end
 
     context '周期が毎週' do
-      let(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, handling_holiday:) }
+      subject(:model) { FactoryBot.build_stubbed(:task_cycle, :weekly, handling_holiday:) }
       it_behaves_like '休日の場合'
     end
     context '周期が毎月' do
@@ -397,7 +397,7 @@ RSpec.describe TaskCycle, type: :model do
   # テストパターン
   #   ない, 0, 1, 20, 21
   describe 'validates :period' do
-    let(:model) { FactoryBot.build_stubbed(:task_cycle, period:) }
+    subject(:model) { FactoryBot.build_stubbed(:task_cycle, period:) }
 
     # テストケース
     context 'ない' do
@@ -429,7 +429,7 @@ RSpec.describe TaskCycle, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :holiday' do
-    let(:model) { FactoryBot.build_stubbed(:task_cycle, holiday:) }
+    subject(:model) { FactoryBot.build_stubbed(:task_cycle, holiday:) }
 
     # テストケース
     context 'ない' do
