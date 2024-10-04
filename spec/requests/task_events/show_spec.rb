@@ -20,6 +20,7 @@ RSpec.describe 'TaskEvents', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #show' do
     subject { get task_event_path(space_code: space.code, code: task_event.code, format: subject_format), headers: auth_headers.merge(accept_headers) }
+
     let_it_be(:created_user) { FactoryBot.create(:user) }
     let_it_be(:nojoin_user)  { FactoryBot.create(:user) }
     include_context 'メンバーパターン作成(user)'
@@ -38,7 +39,7 @@ RSpec.describe 'TaskEvents', type: :request do
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
 
         count = expect_task_json(response_json_task, task, task_cycles, task_assigne_users, { detail: true, email: member&.power_admin? })
         expect(response_json_task.count).to eq(count)

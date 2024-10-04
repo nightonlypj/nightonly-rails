@@ -349,7 +349,8 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
       next unless update
 
       # NOTE: 3つ目が削除済みで存在する -> 復帰
-      FactoryBot.create(:task_cycle, :yearly, :week, task:, month: 3, week: :third, wday: :wed, handling_holiday: :after, period: 3, holiday: false, order: 1, deleted_at: Time.current)
+      FactoryBot.create(:task_cycle, :yearly, :week, task:, month: 3, week: :third, wday: :wed, handling_holiday: :after, period: 3, holiday: false, order: 1,
+                                                     deleted_at: Time.current)
     end
     let_it_be(:except_task_cycle_inactive) { FactoryBot.create(:task_cycle, :weekly, task:, order: 2) if update }
     let_it_be(:task_cycles) do # 元の値

@@ -5,7 +5,7 @@ RSpec.describe SlackDomain, type: :model do
   # テストパターン
   #   ない, 最大文字数と同じ, 最大文字数より多い, 不正値, 重複
   describe 'validates :name' do
-    let(:model) { FactoryBot.build_stubbed(:slack_domain, name:) }
+    subject(:model) { FactoryBot.build_stubbed(:slack_domain, name:) }
 
     # テストケース
     context 'ない' do

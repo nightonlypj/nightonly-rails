@@ -20,6 +20,7 @@ RSpec.describe 'SendHistory', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #index' do
     subject { get send_histories_path(space_code: space.code, page: subject_page, format: subject_format), headers: auth_headers.merge(accept_headers) }
+
     let_it_be(:created_user) { FactoryBot.create(:user) }
     let_it_be(:other_send_setting) { FactoryBot.create(:send_setting) }
 
@@ -29,7 +30,7 @@ RSpec.describe 'SendHistory', type: :request do
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
 
         expect(response_json_send_history['total_count']).to eq(send_histories.count)
         expect(response_json_send_history['current_page']).to eq(subject_page)

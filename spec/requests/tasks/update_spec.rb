@@ -105,7 +105,7 @@ RSpec.describe 'Tasks', type: :request do
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
         result = 3
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
         expect(response_json['notice']).to eq(get_locale('notice.task.update'))
 
         if expect_events.present?

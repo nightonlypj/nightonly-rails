@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Users::PasswordsController < Devise::PasswordsController
+  include Devise::PasswordsConcern
   prepend_before_action :response_not_found_for_api_mode_not_api
 
 =begin

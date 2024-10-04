@@ -9,8 +9,8 @@ RSpec.describe :task_event, type: :task do
 
     # テスト内容
     shared_examples_for 'OK' do
-      it '正常に終了する' do
-        subject
+      it '正常終了' do
+        expect { subject }.not_to raise_error
       end
     end
 
@@ -66,7 +66,8 @@ RSpec.describe :task_event, type: :task do
       task = FactoryBot.create(:task, :skip_validate, :no_end, space:, started_date: Date.new(2023, 1, 4), created_user: user)
       FactoryBot.create(:task_cycle, :yearly, :business_day, task:, month: 1, business_day: 1, period: 3, holiday: false) # 12/30-1/3（第1営業日）
       task = FactoryBot.create(:task, :skip_validate, :no_end, space:, started_date: Date.new(2023, 1, 5), created_user: user)
-      FactoryBot.create(:task_cycle, :yearly, :week, task:, month: 1, week: :first, wday: :wed, handling_holiday: :onday, period: 7, holiday: true) # 12/30-1/4（第1水曜）
+      FactoryBot.create(:task_cycle, :yearly, :week, task:, month: 1, week: :first, wday: :wed, handling_holiday: :onday, period: 7, holiday: true)
+      # 12/30-1/4（第1水曜）
     end
 
     shared_context 'タスク担当者作成1' do
@@ -110,7 +111,8 @@ RSpec.describe :task_event, type: :task do
           FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :mon, handling_holiday: :after, period: 2, holiday: false), # 12/30-1/3（月曜＋翌営業日）
           FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 2, handling_holiday: :before, period: 1, holiday: false), # 12/30（前営業日）
           FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 1, period: 2, holiday: false), # 12/30-1/3（第1営業日）
-          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :wed, handling_holiday: :onday, period: 6, holiday: true) # 12/30-1/4（第1水曜）
+          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :wed, handling_holiday: :onday, period: 6, holiday: true)
+          # 12/30-1/4（第1水曜）
         ]
       end
       let_it_be(:except_today_task_events) do
@@ -131,7 +133,8 @@ RSpec.describe :task_event, type: :task do
           FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :wed, handling_holiday: :before, period: 2, holiday: false), # 1/3-4（水曜）
           FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 31, handling_holiday: :after, period: 1, holiday: false), # 1/3（後営業日）
           FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 2, period: 2, holiday: false), # 11/3-4（第2営業日）
-          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :thu, handling_holiday: :onday, period: 3, holiday: true) # 1/3-5（第1木曜）
+          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], month: 1, week: :first, wday: :thu, handling_holiday: :onday, period: 3, holiday: true)
+          # 1/3-5（第1木曜）
         ]
       end
       let_it_be(:except_next_task_events) do
@@ -268,7 +271,8 @@ RSpec.describe :task_event, type: :task do
             expect(current_send_history.next_task_event_ids).to next_task_event_ids.present? ? eq(next_task_event_ids.join(',')) : be_nil
             expect(current_send_history.expired_task_event_ids).to expired_task_event_ids.present? ? eq(expired_task_event_ids.join(',')) : be_nil
             expect(current_send_history.end_today_task_event_ids).to end_today_task_event_ids.present? ? eq(end_today_task_event_ids.join(',')) : be_nil
-            expect(current_send_history.date_include_task_event_ids).to date_include_task_event_ids.present? ? eq(date_include_task_event_ids.join(',')) : be_nil
+            data = current_send_history.date_include_task_event_ids
+            expect(data).to date_include_task_event_ids.present? ? eq(date_include_task_event_ids.join(',')) : be_nil
             if send_setting.present? && send_setting["#{notice_target}_notice_completed"]
               expect(current_send_history.completed_task_event_ids).to completed_task_event_ids.present? ? eq(completed_task_event_ids.join(',')) : be_nil
             else
@@ -552,22 +556,30 @@ RSpec.describe :task_event, type: :task do
           context '通知設定がある（必ず通知する）' do
             let(:current_time) { current_date + send_setting.start_notice_start_hour.hours }
             context '完了通知する' do
-              let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space:, start_notice_required: true, start_notice_completed: true) }
+              let_it_be(:send_setting) do
+                FactoryBot.create(:send_setting, :changed, :slack, :email, space:, start_notice_required: true, start_notice_completed: true)
+              end
               it_behaves_like 'OK', :start, { history: true, send: true }
             end
             context '完了通知しない' do
-              let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space:, start_notice_required: true, start_notice_completed: false) }
+              let_it_be(:send_setting) do
+                FactoryBot.create(:send_setting, :changed, :slack, :email, space:, start_notice_required: true, start_notice_completed: false)
+              end
               it_behaves_like 'OK', :start, { history: true, send: true }
             end
           end
           context '通知設定がある（必ずしも通知しない）' do
             let(:current_time) { current_date + send_setting.start_notice_start_hour.hours }
             context '完了通知する' do
-              let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space:, start_notice_required: false, start_notice_completed: true) }
+              let_it_be(:send_setting) do
+                FactoryBot.create(:send_setting, :changed, :slack, :email, space:, start_notice_required: false, start_notice_completed: true)
+              end
               it_behaves_like 'OK', :start, { history: true, send: false }
             end
             context '完了通知しない' do
-              let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space:, start_notice_required: false, start_notice_completed: false) }
+              let_it_be(:send_setting) do
+                FactoryBot.create(:send_setting, :changed, :slack, :email, space:, start_notice_required: false, start_notice_completed: false)
+              end
               it_behaves_like 'OK', :start, { history: true, send: false }
             end
           end
@@ -612,22 +624,30 @@ RSpec.describe :task_event, type: :task do
           context '通知設定がある（必ず通知する）' do
             let(:current_time) { current_date + send_setting.next_notice_start_hour.hours }
             context '完了通知する' do
-              let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space:, next_notice_required: true, next_notice_completed: true) }
+              let_it_be(:send_setting) do
+                FactoryBot.create(:send_setting, :changed, :slack, :email, space:, next_notice_required: true, next_notice_completed: true)
+              end
               it_behaves_like 'OK', :next, { history: true, send: true }
             end
             context '完了通知しない' do
-              let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space:, next_notice_required: true, next_notice_completed: false) }
+              let_it_be(:send_setting) do
+                FactoryBot.create(:send_setting, :changed, :slack, :email, space:, next_notice_required: true, next_notice_completed: false)
+              end
               it_behaves_like 'OK', :next, { history: true, send: true }
             end
           end
           context '通知設定がある（必ずしも通知しない）' do
             let(:current_time) { current_date + send_setting.next_notice_start_hour.hours }
             context '完了通知する' do
-              let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space:, next_notice_required: false, next_notice_completed: true) }
+              let_it_be(:send_setting) do
+                FactoryBot.create(:send_setting, :changed, :slack, :email, space:, next_notice_required: false, next_notice_completed: true)
+              end
               it_behaves_like 'OK', :next, { history: true, send: false }
             end
             context '完了通知しない' do
-              let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space:, next_notice_required: false, next_notice_completed: false) }
+              let_it_be(:send_setting) do
+                FactoryBot.create(:send_setting, :changed, :slack, :email, space:, next_notice_required: false, next_notice_completed: false)
+              end
               it_behaves_like 'OK', :next, { history: true, send: false }
             end
           end

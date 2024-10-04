@@ -14,10 +14,10 @@ RSpec.describe 'Tasks', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'POST #destroy' do
     subject { post destroy_task_path(space_code: space.code, format: subject_format), params:, headers: auth_headers.merge(accept_headers) }
+
     let_it_be(:created_user) { FactoryBot.create(:user) }
     let_it_be(:task_nojoin) { FactoryBot.create(:task) }
     before_all { FactoryBot.create(:task_cycle, task: task_nojoin, order: 1) }
-
     shared_context 'valid_condition' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       let_it_be(:task_destroy) { FactoryBot.create(:task, space:, created_user:) }
@@ -34,7 +34,7 @@ RSpec.describe 'Tasks', type: :request do
     end
     shared_examples_for 'NG' do
       it 'タスク・周期が削除されない' do
-        expect { subject }.to change(Task, :count).by(0) && change(TaskCycle, :count).by(0)
+        expect { subject }.not_to change(Task, :count) && change(TaskCycle, :count)
       end
     end
 
@@ -43,7 +43,7 @@ RSpec.describe 'Tasks', type: :request do
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
         expect(response_json['notice']).to eq(get_locale("notice.task.#{notice_key}", count: input_count, destroy_count:))
         expect(response_json['count']).to eq(input_count)
         expect(response_json['destroy_count']).to eq(destroy_count)

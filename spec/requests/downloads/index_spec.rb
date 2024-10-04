@@ -39,7 +39,7 @@ RSpec.describe 'Downloads', type: :request do
       before { user.cache_undownloaded_count = nil } # NOTE: キャッシュクリア
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
         expect(response_json['search_params']).to eq(default_params.stringify_keys)
 
         expect(response_json_download['total_count']).to eq(downloads.count)
@@ -81,7 +81,7 @@ RSpec.describe 'Downloads', type: :request do
       let(:subject_page) { 1 }
       it '存在しないメッセージが含まれる' do
         subject
-        expect(response.body).to include('対象が見つかりません。')
+        expect(response.body).to include(I18n.t('対象が見つかりません。'))
       end
     end
     shared_examples_for 'リスト表示' do |page|
@@ -101,16 +101,16 @@ RSpec.describe 'Downloads', type: :request do
           # ステータス
           expect(response.body).to include(download.status_i18n)
           # ファイル
-          url = "href=\"#{file_download_path(download.id)}\""
+          url = "href=\"#{file_download_path(id: download.id)}\""
           if download.status.to_sym == :success
             expect(response.body).to include(url)
-            expect(response.body).to include('（済み）') if download.last_downloaded_at.present?
+            expect(response.body).to include(I18n.t('（済み）')) if download.last_downloaded_at.present?
           else
             expect(response.body).not_to include(url)
           end
           # 対象・形式等
           if download.model.to_sym == :member
-            expect(response.body).to include("メンバー: #{download.space.name}")
+            expect(response.body).to include("#{I18n.t('メンバー')}: #{download.space.name}")
           else
             expect(response.body).to include(download.model_i18n)
           end
@@ -340,7 +340,7 @@ RSpec.describe 'Downloads', type: :request do
 =begin
         else
           # HTML
-          expect(response.body).to include('対象が見つかりません。')
+          expect(response.body).to include(I18n.t('対象が見つかりません。'))
 =end
         end
       end
@@ -365,16 +365,16 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'IDが存在しない'
     end
 
+=begin
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
-=begin
       include_context 'ログイン処理'
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like 'ID'
-=end
     end
+=end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
       let(:subject_format) { :json }
@@ -470,16 +470,16 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like '存在しない'
     end
 
+=begin
     context 'ログイン中（URLの拡張子がない/AcceptヘッダにHTMLが含まれる）' do
       next if Settings.api_only_mode
 
-=begin
       include_context 'ログイン処理'
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       it_behaves_like '対象ID'
-=end
     end
+=end
     context 'APIログイン中（URLの拡張子が.json/AcceptヘッダにJSONが含まれる）' do
       include_context 'APIログイン処理'
       let(:subject_format) { :json }

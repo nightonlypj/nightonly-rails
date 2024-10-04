@@ -47,6 +47,7 @@ RSpec.describe 'Tasks', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #index' do
     subject { get tasks_path(space_code: space.code, page: subject_page, format: subject_format), headers: auth_headers.merge(accept_headers) }
+
     let_it_be(:other_space) { FactoryBot.create(:space, created_user:) }
 
     # テスト内容
@@ -55,7 +56,7 @@ RSpec.describe 'Tasks', type: :request do
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
         expect(response_json['search_params']).to eq(default_params.stringify_keys)
 
         expect(response_json_task['total_count']).to eq(tasks.count)

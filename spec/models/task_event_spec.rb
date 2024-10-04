@@ -5,7 +5,7 @@ RSpec.describe TaskEvent, type: :model do
   # テストパターン
   #   ない, 正常値, 重複
   describe 'validates :code' do
-    let(:model) { FactoryBot.build_stubbed(:task_event, code:) }
+    subject(:model) { FactoryBot.build_stubbed(:task_event, code:) }
     let(:valid_code) { Digest::MD5.hexdigest(SecureRandom.uuid) }
 
     # テストケース
@@ -30,7 +30,7 @@ RSpec.describe TaskEvent, type: :model do
   # テストパターン
   #   ない, 正常値
   describe 'validates :status' do
-    let(:model) { FactoryBot.build_stubbed(:task_event, status:) }
+    subject(:model) { FactoryBot.build_stubbed(:task_event, status:) }
 
     # テストケース
     context 'ない' do
@@ -48,7 +48,7 @@ RSpec.describe TaskEvent, type: :model do
   # テストパターン
   #   ない, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :memo' do
-    let(:model) { FactoryBot.build_stubbed(:task_event, memo:) }
+    subject(:model) { FactoryBot.build_stubbed(:task_event, memo:) }
 
     # テストケース
     context 'ない' do
@@ -71,7 +71,7 @@ RSpec.describe TaskEvent, type: :model do
   #   開始日: ない, ある
   #   最終終了日: ない, 開始日より前, 開始日の翌月末, 開始日の翌々月初
   describe 'validates :last_ended_date' do
-    let(:model) { FactoryBot.build_stubbed(:task_event, started_date:, last_ended_date:) }
+    subject(:model) { FactoryBot.build_stubbed(:task_event, started_date:, last_ended_date:) }
     let(:started_date) { Time.zone.today }
 
     # テストケース
@@ -100,8 +100,8 @@ RSpec.describe TaskEvent, type: :model do
   # テストパターン
   #   ない, 存在しない, 管理者
   describe 'validates :assigned_user_code' do
+    subject(:model) { FactoryBot.build_stubbed(:task_event, space:, assigned_user_code:) }
     let_it_be(:space) { FactoryBot.create(:space) }
-    let(:model) { FactoryBot.build_stubbed(:task_event, space:, assigned_user_code:) }
 
     # テストケース
     context 'ない' do

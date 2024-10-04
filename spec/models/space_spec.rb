@@ -7,7 +7,7 @@ RSpec.describe Space, type: :model do
   # テストパターン
   #   ない, 正常値, 重複
   describe 'validates :code' do
-    let(:model) { FactoryBot.build_stubbed(:space, code:) }
+    subject(:model) { FactoryBot.build_stubbed(:space, code:) }
     let(:valid_code) { Digest::MD5.hexdigest(SecureRandom.uuid) }
 
     # テストケース
@@ -32,7 +32,7 @@ RSpec.describe Space, type: :model do
   # テストパターン
   #   ない, 最小文字数より少ない, 最小文字数と同じ, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :name' do
-    let(:model) { FactoryBot.build_stubbed(:space, name:) }
+    subject(:model) { FactoryBot.build_stubbed(:space, name:) }
 
     # テストケース
     context 'ない' do
@@ -64,7 +64,7 @@ RSpec.describe Space, type: :model do
   # テストパターン
   #   ない, 最大文字数と同じ, 最大文字数より多い
   describe 'validates :description' do
-    let(:model) { FactoryBot.build_stubbed(:space, description:) }
+    subject(:model) { FactoryBot.build_stubbed(:space, description:) }
 
     # テストケース
     context 'ない' do
@@ -77,7 +77,8 @@ RSpec.describe Space, type: :model do
     end
     context '最大文字数より多い' do
       let(:description) { 'a' * (Settings.space_description_maximum + 1) }
-      let(:messages) { { description: [get_locale('activerecord.errors.models.space.attributes.description.too_long', count: Settings.space_description_maximum)] } }
+      let(:count) { Settings.space_description_maximum }
+      let(:messages) { { description: [get_locale('activerecord.errors.models.space.attributes.description.too_long', count:)] } }
       it_behaves_like 'InValid'
     end
   end
@@ -86,7 +87,7 @@ RSpec.describe Space, type: :model do
   # テストパターン
   #   ない, true, false
   describe 'validates :private' do
-    let(:model) { FactoryBot.build_stubbed(:space, private:) }
+    subject(:model) { FactoryBot.build_stubbed(:space, private:) }
 
     # テストケース
     context 'ない' do
@@ -110,7 +111,7 @@ RSpec.describe Space, type: :model do
   #   処理優先度: 0, 3×2件, 9
   #   通知設定: ない, ある（1件, 2件（変更あり））
   describe '.create_send_notice_target' do
-    subject { Space.create_send_notice_target }
+    subject(:result) { described_class.create_send_notice_target }
 
     before_all do
       FactoryBot.create(:space, :destroy_reserved, created_user:)
@@ -127,9 +128,9 @@ RSpec.describe Space, type: :model do
       FactoryBot.create(:send_setting, :slack, space: spaces[3])
     end
     it '最初→標準1→標準2→最後の順に返却される。通知設定がある場合、最初がSlack通知になっている' do
-      expect(subject.map(&:name)).to eq(%w[最初 標準1 標準2 最後])
-      subject.each do |space|
-        expect(space.send_setting_active.first.slack_enabled).to eq(true) if space.send_setting_active.count > 0
+      expect(result.map(&:name)).to eq(%w[最初 標準1 標準2 最後])
+      result.each do |space|
+        expect(space.send_setting_active.first.slack_enabled).to be(true) if space.send_setting_active.count > 0
       end
     end
   end
@@ -213,12 +214,12 @@ RSpec.describe Space, type: :model do
   describe '#set_destroy_reserve!' do
     subject { space.set_destroy_reserve! }
     let(:space) { FactoryBot.create(:space, created_user:) }
-    let(:current_space) { Space.find(space.id) }
 
+    let(:current_space) { described_class.find(space.id) }
     let!(:start_time) { Time.current.floor }
     let!(:start_time_schedule) { Time.current.floor + Settings.space_destroy_schedule_days.days }
     it '削除依頼日時が現在日時、削除予定日時が現在日時＋設定日数に変更され、保存される' do
-      is_expected.to eq(true)
+      is_expected.to be(true)
       expect(current_space.destroy_requested_at).to be_between(start_time, Time.current)
       expect(current_space.destroy_schedule_at).to be_between(start_time_schedule, Time.current + Settings.space_destroy_schedule_days.days)
     end
@@ -230,10 +231,10 @@ RSpec.describe Space, type: :model do
   describe '#set_undo_destroy_reserve!' do
     subject { space.set_undo_destroy_reserve! }
     let(:space) { FactoryBot.create(:space, :destroy_reserved, created_user:) }
-    let(:current_space) { Space.find(space.id) }
 
+    let(:current_space) { described_class.find(space.id) }
     it '削除依頼日時・削除予定日時がなしに変更される' do
-      is_expected.to eq(true)
+      is_expected.to be(true)
       expect(space.destroy_requested_at).to be_nil
       expect(space.destroy_schedule_at).to be_nil
     end

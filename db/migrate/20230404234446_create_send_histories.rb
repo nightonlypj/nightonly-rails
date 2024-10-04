@@ -23,7 +23,7 @@ class CreateSendHistories < ActiveRecord::Migration[6.1]
 
       t.timestamps
     end
-    add_index :send_histories, [:space_id, :target_date, :notice_target], name: 'send_histories1'
-    add_index :send_histories, [:target_date, :completed_at, :id],        name: 'send_histories2'
+    add_index :send_histories, %i[space_id target_date notice_target], name: 'send_histories1'
+    add_index :send_histories, %i[target_date completed_at id],        name: 'send_histories2'
   end
 end

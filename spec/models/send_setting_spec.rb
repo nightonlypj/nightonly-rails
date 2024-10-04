@@ -5,7 +5,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :slack_enabled' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled:) }
+    subject(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled:) }
 
     # テストケース
     context 'ない' do
@@ -32,7 +32,7 @@ RSpec.describe SendSetting, type: :model do
   #   Webhook URL: ない, 最大文字数と同じ, 最大文字数より多い, 不正値
   #   通知: する, しない
   describe 'validates :slack_webhook_url' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled:, slack_webhook_url:) }
+    subject(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled:, slack_webhook_url:) }
     let(:url) { Faker::Internet.url(scheme: 'https') }
     let(:url_maximum) { url + ('a' * (Settings.slack_webhook_url_maximum - url.length)) }
 
@@ -61,7 +61,13 @@ RSpec.describe SendSetting, type: :model do
     end
     context 'Webhook URLが最大文字数より多い' do
       let(:slack_webhook_url) { "?#{url_maximum}" } # NOTE: 不正値と一緒に出ないことも確認
-      let(:messages) { { slack_webhook_url: [get_locale('activerecord.errors.models.send_setting.attributes.slack_webhook_url.too_long', count: Settings.slack_webhook_url_maximum)] } }
+      let(:messages) do
+        {
+          slack_webhook_url: [
+            get_locale('activerecord.errors.models.send_setting.attributes.slack_webhook_url.too_long', count: Settings.slack_webhook_url_maximum)
+          ]
+        }
+      end
       it_behaves_like '[InValid]通知'
     end
     context 'Webhook URLが不正値' do
@@ -76,7 +82,7 @@ RSpec.describe SendSetting, type: :model do
   #   メンション: ない, 最大文字数と同じ, 最大文字数より多い, 不正値
   #   通知: する, しない
   describe 'validates :slack_mention' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled:, slack_mention:) }
+    subject(:model) { FactoryBot.build_stubbed(:send_setting, :slack, slack_enabled:, slack_mention:) }
     let(:mention) { '!here' }
     let(:mention_maximum) { mention + ('a' * (Settings.slack_mention_maximum - mention.length)) }
 
@@ -104,7 +110,9 @@ RSpec.describe SendSetting, type: :model do
     end
     context 'メンションが最大文字数より多い' do
       let(:slack_mention) { "?#{mention_maximum}" } # NOTE: 不正値と一緒に出ないことも確認
-      let(:messages) { { slack_mention: [get_locale('activerecord.errors.models.send_setting.attributes.slack_mention.too_long', count: Settings.slack_mention_maximum)] } }
+      let(:messages) do
+        { slack_mention: [get_locale('activerecord.errors.models.send_setting.attributes.slack_mention.too_long', count: Settings.slack_mention_maximum)] }
+      end
       it_behaves_like '[InValid]通知'
     end
     context 'メンションが不正値' do
@@ -118,7 +126,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :email_enabled' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, :email, email_enabled:) }
+    subject(:model) { FactoryBot.build_stubbed(:send_setting, :email, email_enabled:) }
 
     # テストケース
     context 'ない' do
@@ -145,7 +153,7 @@ RSpec.describe SendSetting, type: :model do
   #   アドレス: ない, 正常, 不正値
   #   通知: する, しない
   describe 'validates :email_address' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, :email, email_enabled:, email_address:) }
+    subject(:model) { FactoryBot.build_stubbed(:send_setting, :email, email_enabled:, email_address:) }
 
     # テストケース
     shared_examples_for '[InValid]通知' do
@@ -183,7 +191,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, -1, 0, 22, 23, 文字
   describe 'validates :start_notice_start_hour' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_start_hour:, next_notice_start_hour: 23) }
+    subject(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_start_hour:, next_notice_start_hour: 23) }
 
     # テストケース
     context 'ない' do
@@ -193,7 +201,11 @@ RSpec.describe SendSetting, type: :model do
     end
     context '-1' do
       let(:start_notice_start_hour) { -1 }
-      let(:messages) { { start_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.start_notice_start_hour.greater_than_or_equal_to', count: 0)] } }
+      let(:messages) do
+        {
+          start_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.start_notice_start_hour.greater_than_or_equal_to', count: 0)]
+        }
+      end
       it_behaves_like 'InValid'
     end
     context '0' do
@@ -206,7 +218,9 @@ RSpec.describe SendSetting, type: :model do
     end
     context '23' do
       let(:start_notice_start_hour) { 23 }
-      let(:messages) { { start_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.start_notice_start_hour.less_than_or_equal_to', count: 22)] } }
+      let(:messages) do
+        { start_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.start_notice_start_hour.less_than_or_equal_to', count: 22)] }
+      end
       it_behaves_like 'InValid'
     end
     context '文字' do
@@ -219,7 +233,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :start_notice_completed' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_completed:) }
+    subject(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_completed:) }
 
     # テストケース
     context 'ない' do
@@ -245,7 +259,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :start_notice_required' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_required:) }
+    subject(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_required:) }
 
     # テストケース
     context 'ない' do
@@ -274,7 +288,7 @@ RSpec.describe SendSetting, type: :model do
   #   (開始確認)開始時間が10
   #     10, 11
   describe 'validates :next_notice_start_hour' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_start_hour:, next_notice_start_hour:) }
+    subject(:model) { FactoryBot.build_stubbed(:send_setting, start_notice_start_hour:, next_notice_start_hour:) }
 
     # テストケース
     context '(開始確認)開始時間が0' do
@@ -286,7 +300,11 @@ RSpec.describe SendSetting, type: :model do
       end
       context '(翌営業日・終了確認)開始時間が0' do
         let(:next_notice_start_hour) { 0 }
-        let(:messages) { { next_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.next_notice_start_hour.greater_than_or_equal_to', count: 1)] } }
+        let(:messages) do
+          {
+            next_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.next_notice_start_hour.greater_than_or_equal_to', count: 1)]
+          }
+        end
         it_behaves_like 'InValid'
       end
       context '(翌営業日・終了確認)開始時間が1' do
@@ -299,12 +317,18 @@ RSpec.describe SendSetting, type: :model do
       end
       context '(翌営業日・終了確認)開始時間が24' do
         let(:next_notice_start_hour) { 24 }
-        let(:messages) { { next_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.next_notice_start_hour.less_than_or_equal_to', count: 23)] } }
+        let(:messages) do
+          { next_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.next_notice_start_hour.less_than_or_equal_to', count: 23)] }
+        end
         it_behaves_like 'InValid'
       end
       context '(翌営業日・終了確認)開始時間が文字' do
         let(:next_notice_start_hour) { 'a' }
-        let(:messages) { { next_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.next_notice_start_hour.greater_than_or_equal_to', count: 1)] } }
+        let(:messages) do
+          {
+            next_notice_start_hour: [get_locale('activerecord.errors.models.send_setting.attributes.next_notice_start_hour.greater_than_or_equal_to', count: 1)]
+          }
+        end
         it_behaves_like 'InValid' # NOTE: 0になる
       end
     end
@@ -326,7 +350,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :next_notice_completed' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, next_notice_completed:) }
+    subject(:model) { FactoryBot.build_stubbed(:send_setting, next_notice_completed:) }
 
     # テストケース
     context 'ない' do
@@ -352,7 +376,7 @@ RSpec.describe SendSetting, type: :model do
   # テストパターン
   #   ない, true, false, 文字
   describe 'validates :next_notice_required' do
-    let(:model) { FactoryBot.build_stubbed(:send_setting, next_notice_required:) }
+    subject(:model) { FactoryBot.build_stubbed(:send_setting, next_notice_required:) }
 
     # テストケース
     context 'ない' do

@@ -145,7 +145,7 @@ class TasksController < ApplicationAuthController
       task_cycle = TaskCycle.new(task_cycle_params(task_cycle).merge(space: @space, task: @task))
       if task_cycle.invalid?
         task_cycle.errors.each do |error|
-          @task.errors.add("cycle#{index}_#{error.attribute}".to_sym, error.message)
+          @task.errors.add(:"cycle#{index}_#{error.attribute}", error.message)
           cycle_error += 1
         end
         next

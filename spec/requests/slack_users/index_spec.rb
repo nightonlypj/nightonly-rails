@@ -14,6 +14,7 @@ RSpec.describe 'SlackUser', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #index' do
     subject { get slack_users_path(format: subject_format), headers: auth_headers.merge(accept_headers) }
+
     let_it_be(:spaces) { FactoryBot.create_list(:space, 3) }
     let_it_be(:slack_domains) { FactoryBot.create_list(:slack_domain, 3) }
     let_it_be(:other_user) { FactoryBot.create(:user) }
@@ -25,7 +26,7 @@ RSpec.describe 'SlackUser', type: :request do
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
 
         expect(response_json_slack_users.count).to eq(except_memberids.count)
         response_json_slack_users.each { |data| expect(data['memberid']).to eq(except_memberids[data['name']]) }

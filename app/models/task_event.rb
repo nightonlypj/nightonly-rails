@@ -15,7 +15,7 @@ class TaskEvent < ApplicationRecord
   validate :validate_last_ended_date
   validate :validate_assigned_user_code
 
-  scope :by_month, lambda { |months| # NOTE: monthsの形式が正しく、昇順の前提
+  scope :by_month, ->(months) { # NOTE: monthsの形式が正しく、昇順の前提
     task_event = none
     index = 0
     while index < months.count

@@ -17,6 +17,7 @@ RSpec.describe 'SendSetting', type: :request do
   #   ＋Acceptヘッダ: HTMLが含まれる, JSONが含まれる
   describe 'GET #show' do
     subject { get send_setting_path(space_code: space.code, format: subject_format), headers: auth_headers.merge(accept_headers) }
+
     let_it_be(:created_user)      { FactoryBot.create(:user) }
     let_it_be(:last_updated_user) { FactoryBot.create(:user) }
     let_it_be(:slack_domain) { FactoryBot.create(:slack_domain) }
@@ -29,7 +30,7 @@ RSpec.describe 'SendSetting', type: :request do
         is_expected.to eq(200)
 
         result = 2
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
 
         count = expect_send_setting_json(response_json_send_setting, send_setting, member)
         expect(response_json_send_setting.count).to eq(count)

@@ -41,7 +41,7 @@ RSpec.describe 'TaskEvents', type: :request do
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
         is_expected.to eq(200)
-        expect(response_json['success']).to eq(true)
+        expect(response_json['success']).to be(true)
         expect(response_json['search_params']).to eq({ start_date: search_start_date, end_date: search_end_date }.stringify_keys)
 
         expect(response_json_events.count).to eq(expect_events.count)
@@ -80,15 +80,19 @@ RSpec.describe 'TaskEvents', type: :request do
           FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :tue, handling_holiday: :after, period: 2, holiday: false, order: 1),
           FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 1, handling_holiday: :before, period: 1, holiday: false, order: 1),
           FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 2, period: 2, holiday: false, order: 1),
-          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[2], month: 2, week: :third, wday: :wed, handling_holiday: :onday, period: 6, holiday: true, order: 1)
+          FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[2], month: 2, week: :third, wday: :wed, handling_holiday: :onday, period: 6,
+                                                         holiday: true, order: 1)
         ]
       end
       let_it_be(:task_events) do
         [
           FactoryBot.create(:task_event, :completed, task_cycle: task_cycles[0], started_date: Date.new(2022, 12, 5), ended_date: Date.new(2022, 12, 6)),
-          FactoryBot.create(:task_event, :assigned, :completed, task_cycle: task_cycles[0], started_date: Date.new(2022, 12, 12), ended_date: Date.new(2022, 12, 13)),
-          FactoryBot.create(:task_event, :assigned, task_cycle: task_cycles[0], started_date: Date.new(2022, 12, 19), ended_date: Date.new(2022, 12, 20), last_ended_date: Date.new(2022, 12, 21)),
-          FactoryBot.create(:task_event, task_cycle: task_cycles[0], started_date: Date.new(2022, 12, 26), ended_date: Date.new(2022, 12, 27), last_ended_date: Date.new(2022, 12, 30)),
+          FactoryBot.create(:task_event, :assigned, :completed, task_cycle: task_cycles[0], started_date: Date.new(2022, 12, 12),
+                                                                ended_date: Date.new(2022, 12, 13)),
+          FactoryBot.create(:task_event, :assigned, task_cycle: task_cycles[0], started_date: Date.new(2022, 12, 19), ended_date: Date.new(2022, 12, 20),
+                                                    last_ended_date: Date.new(2022, 12, 21)),
+          FactoryBot.create(:task_event, task_cycle: task_cycles[0], started_date: Date.new(2022, 12, 26), ended_date: Date.new(2022, 12, 27),
+                                         last_ended_date: Date.new(2022, 12, 30)),
           FactoryBot.create(:task_event, task_cycle: task_cycles[1], started_date: Date.new(2022, 12, 30), ended_date: Date.new(2022, 12, 30))
         ]
       end
@@ -176,7 +180,9 @@ RSpec.describe 'TaskEvents', type: :request do
       context '終了日が最大月数より大きい' do
         let(:end_date) { (search_start_date.to_date + Settings.task_events_max_month_count.months).beginning_of_month.strftime('%Y-%m-%d') }
         it_behaves_like 'ToNG(html)', 406
-        it_behaves_like 'ToNG(json)', 422, { end_date: [get_locale('errors.messages.task_events.max_month_count', count: Settings.task_events_max_month_count)] }, 'errors.messages.default'
+        it_behaves_like 'ToNG(json)', 422, {
+          end_date: [get_locale('errors.messages.task_events.max_month_count', count: Settings.task_events_max_month_count)]
+        }, 'errors.messages.default'
       end
     end
 
