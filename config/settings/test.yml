@@ -109,7 +109,7 @@ task_event_memo_maximum: 14 # NOTE: (6+8?)以上 = "memo(#{n})"
 
 ## Slackユーザー
 # SlackメンバーIDの最大文字数
-# slack_user_memberid_minimum: 11
+# slack_user_memberid_minimum: 9
 slack_user_memberid_maximum: 16 # NOTE: Faker::Number.hexadecimal(digits: 11).upcase
 
 ## 通知設定
