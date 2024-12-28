@@ -22,18 +22,6 @@ Metrics/PerceivedComplexity:
   Max: 11
 
 # Offense count: 1
-# Configuration parameters: MinSize.
-Performance/CollectionLiteralInLoop:
-  Exclude:
-    - 'lib/tasks/tool/create_yaml.rake'
-
-# Offense count: 1
-# This cop supports unsafe autocorrection (--autocorrect-all).
-Performance/StringInclude:
-  Exclude:
-    - 'spec/support/application_contexts.rb'
-
-# Offense count: 1
 Security/Eval:
   Exclude:
     - 'config/environments/production.rb'
