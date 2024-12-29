@@ -17,8 +17,8 @@ module ApplicationHelper
   end
 
   # スペース削除予約メッセージを表示するかを返却
-  def space_destroy_reserved_message?
-    return false unless @space&.destroy_reserved?
+  def space_destroy_reserved_message?(space)
+    return false unless space&.destroy_reserved?
 
     case controller_name
     when 'spaces'

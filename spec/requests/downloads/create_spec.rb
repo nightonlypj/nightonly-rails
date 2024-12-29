@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Downloads', type: :request do
-  let(:response_json) { JSON.parse(response.body) }
+  let(:response_json) { response.parsed_body }
   let(:response_json_download) { response_json['download'] }
 
   # POST /downloads/create ダウンロード依頼(処理)
