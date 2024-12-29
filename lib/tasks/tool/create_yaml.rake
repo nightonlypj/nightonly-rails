@@ -9,13 +9,15 @@ namespace :tool do
     raise 'モデルが存在しません。' if model.blank?
     raise '出力カラムを指定してください。' if columns.count == 0 || columns == ['']
 
+    column_types = %i[integer float decimal timestamp boolean]
+
     body = ''
     contents = model.order(model.primary_key)
     contents.each do |content|
       columns.each_with_index do |column, index|
         if content[column].nil?
           data = 'null'
-        elsif %i[integer float decimal timestamp boolean].include?(model.columns_hash[column].type)
+        elsif column_types.include?(model.columns_hash[column].type)
           data = content[column]
         else
           data = format('"%s"', content[column].to_s.gsub('"', '\"').gsub("\r", '\\r').gsub("\n", '\\n'))

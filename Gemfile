@@ -65,6 +65,7 @@ group :development, :test do
   gem 'rubocop'
   gem 'rubocop-rails'
   gem 'rubocop-rspec'
+  gem 'rubocop-performance'
   # Use Brakeman
   gem 'brakeman'
 
@@ -91,6 +92,9 @@ group :development do
   gem 'letter_opener_web'
   # Use Rails ERD
   gem 'rails-erd'
+  # Use Better Errors
+  gem 'better_errors'
+  gem 'binding_of_caller'
   # Use Bullet
   gem 'bullet'
   # Use Capistrano
