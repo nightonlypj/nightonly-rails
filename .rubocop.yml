@@ -1,5 +1,5 @@
 require:
- # - rubocop-rails # NOTE: デフォルトPendingがEnabledになる為、requireしない
+ - rubocop-rails
  - rubocop-rspec
  - rubocop-performance
 
@@ -33,7 +33,7 @@ Layout/LineLength:
 
 # W: Lint/NonLocalExitFromIterator: Non-local exit from iterator, without return value. next, break, Array#find, Array#any?, etc. is preferred.
 Lint/NonLocalExitFromIterator:
- Enabled: false
+  Enabled: false
 
 ### Metrics
 # https://docs.rubocop.org/rubocop/cops_metrics.html
@@ -84,6 +84,45 @@ Naming/AccessorMethodName:
 Naming/VariableNumber:
   Exclude:
     - 'spec/**/*'
+
+### Rails
+# https://docs.rubocop.org/rubocop-rails/cops_rails.html
+
+# C: [Correctable] Rails/ActionOrder: Action xxx should appear before xxx.
+Rails/ActionOrder:
+  Enabled: false # NOTE: Pendingだけど有効になる為
+
+# C: Rails/BulkChangeTable: You can use change_table :xxx, bulk: true to combine alter queries.
+Rails/BulkChangeTable:
+  Enabled: false
+
+# C: Rails/LexicallyScopedActionFilter: xxx is not explicitly defined on the class.
+Rails/LexicallyScopedActionFilter:
+  Enabled: false
+
+# C: [Correctable] Rails/NegateInclude: Use .exclude? and remove the negation part.
+Rails/NegateInclude:
+  Enabled: false # NOTE: Pendingだけど有効になる為
+
+# C: [Correctable] Rails/Output: Do not write to stdout. Use Rails's logger if you want to log.
+Rails/Output:
+  Enabled: false
+
+# C: [Correctable] Rails/RedundantActiveRecordAllMethod: Redundant all detected.
+Rails/RedundantActiveRecordAllMethod:
+  Enabled: false # NOTE: Pendingだけど有効になる為
+
+# C: [Correctable] Rails/RootPathnameMethods: Rails.root is a Pathname, so you can use xxx.
+Rails/RootPathnameMethods:
+  Enabled: false # NOTE: Pendingだけど有効になる為
+
+# C: Rails/SkipsModelValidations: Avoid using xxx because it skips validations.
+Rails/SkipsModelValidations:
+  Enabled: false
+
+# C: Rails/ThreeStateBooleanColumn: Boolean columns should always have a default value and a NOT NULL constraint.
+Rails/ThreeStateBooleanColumn:
+  Enabled: false # NOTE: Pendingだけど有効になる為
 
 ### Style
 # https://docs.rubocop.org/rubocop/cops_style.html
