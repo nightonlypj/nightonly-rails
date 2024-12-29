@@ -64,7 +64,7 @@ class Users::Auth::ConfirmationsController < DeviseTokenAuth::ConfirmationsContr
 
   # 確認済み・不要かを返却
   def already_confirmed?(resource)
-    resource&.confirmed_at&.present? && (resource.confirmation_sent_at.blank? || resource.confirmed_at > resource.confirmation_sent_at)
+    resource&.confirmed_at.present? && (resource.confirmation_sent_at.blank? || resource.confirmed_at > resource.confirmation_sent_at)
   end
 
   protected

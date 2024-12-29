@@ -93,7 +93,7 @@ class MembersController < ApplicationAuthController
       key = 'destroy'
     end
     @destroy_count = @members.count
-    notice = t("notice.member.#{key}", count: @codes.count.to_formatted_s(:delimited), destroy_count: @destroy_count.to_formatted_s(:delimited))
+    notice = t("notice.member.#{key}", count: @codes.count.to_fs(:delimited), destroy_count: @destroy_count.to_fs(:delimited))
 
     @members.destroy_all
     return redirect_to members_path(space_code: @space.code), notice: notice if format_html?
@@ -136,7 +136,7 @@ class MembersController < ApplicationAuthController
       @codes = params[:codes].compact_blank.uniq
 =begin
     elsif params[:codes].present?
-      @codes = params[:codes].to_unsafe_h.map { |code, value| code if value == '1' }.compact.uniq
+      @codes = params[:codes].to_unsafe_h.filter_map { |code, value| code if value == '1' }.uniq
 =end
     else
       @codes = []

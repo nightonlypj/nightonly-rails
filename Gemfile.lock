@@ -84,6 +84,10 @@ GEM
     base64 (0.2.0)
     bcrypt (3.1.20)
     benchmark (0.4.0)
+    better_errors (2.10.1)
+      erubi (>= 1.0.0)
+      rack (>= 0.9.0)
+      rouge (>= 1.0.0)
     bigdecimal (3.1.8)
     bindex (0.8.1)
     binding_of_caller (1.0.1)
@@ -398,6 +402,7 @@ GEM
       actionpack (>= 5.2)
       railties (>= 5.2)
     rexml (3.3.7)
+    rouge (4.5.1)
     rspec-core (3.13.1)
       rspec-support (~> 3.13.0)
     rspec-expectations (3.13.3)
@@ -427,6 +432,9 @@ GEM
       unicode-display_width (>= 2.4.0, < 3.0)
     rubocop-ast (1.32.3)
       parser (>= 3.3.1.0)
+    rubocop-performance (1.23.0)
+      rubocop (>= 1.48.1, < 2.0)
+      rubocop-ast (>= 1.31.1, < 2.0)
     rubocop-rails (2.26.1)
       activesupport (>= 4.2.0)
       rack (>= 1.1)
@@ -525,6 +533,8 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  better_errors
+  binding_of_caller
   bootsnap
   brakeman
   bullet
@@ -572,6 +582,7 @@ DEPENDENCIES
   redcarpet
   rspec-rails
   rubocop
+  rubocop-performance
   rubocop-rails
   rubocop-rspec
   sassc-rails
