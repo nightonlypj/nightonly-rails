@@ -61,7 +61,7 @@ class TasksController < ApplicationAuthController
   def destroy
     key = @ids.count == @tasks.count ? 'destroy' : 'destroy_include_notfound'
     @destroy_count = @tasks.count
-    notice = t("notice.task.#{key}", count: @ids.count.to_formatted_s(:delimited), destroy_count: @destroy_count.to_formatted_s(:delimited))
+    notice = t("notice.task.#{key}", count: @ids.count.to_fs(:delimited), destroy_count: @destroy_count.to_fs(:delimited))
 
     @tasks.destroy_all
     render locals: { notice: }
@@ -84,7 +84,7 @@ class TasksController < ApplicationAuthController
     set_exist_task_events
     logger.debug("@exist_task_events: #{@exist_task_events}")
 
-    set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
+    set_holidays(@start_date - 2.months, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
     next_start_date = [@start_date, Time.zone.today].max
 
     @next_events = {}

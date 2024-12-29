@@ -62,7 +62,7 @@ class NoticeSlack::IncompleteTaskJob < ApplicationJob
     {
       title: I18n.t("notifier.task_event.type.#{key}.title"),
       color: I18n.t("notifier.task_event.type.#{key}.slack_color"),
-      text: text.present? ? text : I18n.t('notifier.task_event.list.notfound')
+      text: text.presence || I18n.t('notifier.task_event.list.notfound')
     }
   end
 

@@ -539,7 +539,7 @@ shared_examples_for '無効なパラメータ（タスク）' do |update|
     it_behaves_like 'ToNG(json)', 422, { cycles: [get_locale('errors.messages.task_cycles.active_notfound')] }
   end
   context '周期が最大数より多い' do
-    let(:cycles) { (Settings.task_cycles_max_count + 1).times.map { |index| FactoryBot.attributes_for(:task_cycle, :monthly, :day, day: index + 1) } }
+    let(:cycles) { Array.new(Settings.task_cycles_max_count + 1) { |index| FactoryBot.attributes_for(:task_cycle, :monthly, :day, day: index + 1) } }
     let(:params) { { task: valid_task_attributes.merge(cycles:) } }
     it_behaves_like 'NG(html)'
     it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる

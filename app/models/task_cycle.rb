@@ -30,30 +30,30 @@ class TaskCycle < ApplicationRecord
   }
 
   # 周期
-  enum cycle: {
+  enum :cycle, {
     weekly: 1,  # 毎週
     monthly: 2, # 毎月
     yearly: 3   # 毎年
-  }, _prefix: true
+  }, prefix: true
 
   # 対象
-  enum target: {
+  enum :target, {
     day: 1,          # 日
     business_day: 2, # 営業日
     week: 3          # 週
-  }, _prefix: true
+  }, prefix: true
 
   # 週
-  enum week: {
+  enum :week, {
     first: 1,  # 第1
     second: 2, # 第2
     third: 3,  # 第3
     fourth: 4, # 第4
     last: 5    # 最終
-  }, _prefix: true
+  }, prefix: true
 
   # 曜日
-  enum wday: {
+  enum :wday, {
     sun: 0, # 日曜日
     mon: 1, # 月曜日
     tue: 2, # 火曜日
@@ -61,14 +61,14 @@ class TaskCycle < ApplicationRecord
     thu: 4, # 木曜日
     fri: 5, # 金曜日
     sat: 6  # 土曜日
-  }, _prefix: true
+  }, prefix: true
 
   # 休日の場合
-  enum handling_holiday: {
+  enum :handling_holiday, {
     before: -1, # 前日
     onday: 0,   # 当日
     after: 1    # 翌日
-  }, _prefix: true
+  }, prefix: true
 
   def cycle_monthly_or_yearly?
     %i[monthly yearly].include?(cycle&.to_sym)

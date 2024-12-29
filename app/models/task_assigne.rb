@@ -12,7 +12,7 @@ class TaskAssigne < ApplicationRecord
 
     errors = {}
     ids = []
-    codes = assigned_users.map { |user| user[:code] }
+    codes = assigned_users.pluck(:code)
     users = User.where(code: codes).eager_load(:members).where(members: { space: [space, nil] }).index_by(&:code)
     codes.each.with_index(1) do |code, index|
       key = self.class.check_assigned_user(users[code])

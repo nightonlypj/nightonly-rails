@@ -61,12 +61,12 @@ FactoryBot.define do
     end
     trait :completed do
       status            { :complete }
-      last_completed_at { Time.current - 1.hour }
+      last_completed_at { 1.hour.ago }
     end
 
     # 担当
     trait :assigned do
-      assigned_at { Time.current - 2.hours }
+      assigned_at { 2.hours.ago }
       association :assigned_user, factory: :user
     end
   end
