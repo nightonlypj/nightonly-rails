@@ -1,4 +1,4 @@
-require:
+plugins:
  - rubocop-rails
  - rubocop-rspec
  - rubocop-performance
@@ -124,7 +124,7 @@ Style/FrozenStringLiteralComment:
 Style/GuardClause:
   Enabled: false
 
-# C: [Corrected] Style/IfInsideElse: Convert if nested inside else to elsif.
+# C: [Correctable] Style/IfInsideElse: Convert if nested inside else to elsif.
 Style/IfInsideElse:
   Enabled: false
 
@@ -132,7 +132,7 @@ Style/IfInsideElse:
 Style/Lambda:
   EnforcedStyle: literal
 
-# C: [Corrected] Style/NumericLiterals: Use underscores(_) as thousands separator and separate every 3 digits with them.
+# C: [Correctable] Style/NumericLiterals: Use underscores(_) as thousands separator and separate every 3 digits with them.
 Style/NumericLiterals:
   MinDigits: 7
 
@@ -212,7 +212,7 @@ RSpec/EmptyLineAfterFinalLet:
 RSpec/EmptyLineAfterHook:
   Enabled: false
 
-# C: [Corrected] RSpec/EmptyLineAfterSubject: Add an empty line after subject.
+# C: [Correctable] RSpec/EmptyLineAfterSubject: Add an empty line after subject.
 RSpec/EmptyLineAfterSubject:
   Enabled: false
 
@@ -224,7 +224,7 @@ RSpec/ExampleLength:
 RSpec/ExpectInLet:
   Enabled: false
 
-# C: [Corrected] RSpec/ImplicitSubject: Don't use implicit subject.
+# C: [Correctable] RSpec/ImplicitSubject: Don't use implicit subject.
 RSpec/ImplicitSubject:
   Enabled: false
 

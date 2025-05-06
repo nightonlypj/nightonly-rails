@@ -1,5 +1,4 @@
-# https://hub.docker.com/_/nginx
-FROM nginx:1.25.3-alpine
+FROM nginx:1.27.5-alpine
 RUN apk update && apk add --no-cache --update gettext
 
 COPY ecs/web/nginx/nginx.conf.template /etc/nginx/
