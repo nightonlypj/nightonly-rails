@@ -5,7 +5,7 @@ module Application::LocaleConcern
 
   def switch_locale(&)
     default_locale = I18n.default_locale.to_s
-    return I18n.with_locale(default_locale, &) if Settings.locales.keys.count < 2 || redirect_switch_locale || Rails.env.test?
+    return I18n.with_locale(default_locale, &) if Settings.locales.keys.count < 2 || redirect_switch_locale? || Rails.env.test?
 
     locale = params[:locale].presence || cookies[:locale].presence
     locale = locale || http_accept_language.compatible_language_from(I18n.available_locales).to_s.presence || default_locale
@@ -19,7 +19,7 @@ module Application::LocaleConcern
     { locale: I18n.locale == I18n.default_locale ? nil : I18n.locale }
   end
 
-  def redirect_switch_locale
+  def redirect_switch_locale?
     new_locale = params[:switch_locale]
     return false if !format_html? || new_locale.blank? || !I18n.available_locales.include?(new_locale.to_sym)
 

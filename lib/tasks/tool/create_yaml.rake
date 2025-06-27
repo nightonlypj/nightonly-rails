@@ -7,7 +7,7 @@ namespace :tool do
     columns = args.extras.compact
     raise '出力ファイル名を指定してください。' if file.blank?
     raise 'モデルが存在しません。' if model.blank?
-    raise '出力カラムを指定してください。' if columns.count == 0 || columns == ['']
+    raise '出力カラムを指定してください。' if columns.none? || columns == ['']
 
     column_types = %i[integer float decimal timestamp boolean]
 
