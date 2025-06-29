@@ -35,6 +35,7 @@ class User < ApplicationRecord
   end
 
   # 画像URLを返却
+  # rubocop:disable Metrics/CyclomaticComplexity
   def image_url(version)
     case version
     when :mini
@@ -52,6 +53,7 @@ class User < ApplicationRecord
       ''
     end
   end
+  # rubocop:enable Metrics/CyclomaticComplexity
 
   # お知らせの未読数を返却
   def infomation_unread_count

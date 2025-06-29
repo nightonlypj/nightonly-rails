@@ -3,6 +3,7 @@ module Application::LocaleConcern
 
   private
 
+  # rubocop:disable Metrics/CyclomaticComplexity
   def switch_locale(&)
     default_locale = I18n.default_locale.to_s
     return I18n.with_locale(default_locale, &) if Settings.locales.keys.count < 2 || redirect_switch_locale? || Rails.env.test?
@@ -14,6 +15,7 @@ module Application::LocaleConcern
     cookies[:locale] = locale if format_html?
     I18n.with_locale(locale, &)
   end
+  # rubocop:enable Metrics/CyclomaticComplexity
 
   def default_url_options
     { locale: I18n.locale == I18n.default_locale ? nil : I18n.locale }

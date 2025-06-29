@@ -27,6 +27,9 @@ Bundler/OrderedGems:
 # C: Layout/LineLength: Line is too long.
 Layout/LineLength:
   Max: 160
+  Exclude:
+    - 'db/**/*'
+    - 'spec/factories/**/*'
 
 ### Lint
 # https://docs.rubocop.org/rubocop/cops_lint.html
@@ -40,16 +43,20 @@ Lint/NonLocalExitFromIterator:
 
 # C: Metrics/AbcSize: Assignment Branch Condition size for xxx is too high.
 Metrics/AbcSize:
+  Max: 80 # NOTE: 生産性を優先して、緩めに設定
   Exclude:
+    - 'db/**/*'
     - 'spec/**/*'
 
 # C: Metrics/BlockLength: Block has too many lines.
 Metrics/BlockLength:
+  Max: 30
   Exclude:
     - 'app/views/**/*.jbuilder'
     - 'config/environments/*'
     - 'config/routes.rb'
     - 'config/routes/*'
+    - 'db/**/*'
     - 'lib/tasks/**/*'
     - 'spec/**/*'
 
@@ -57,11 +64,15 @@ Metrics/BlockLength:
 Metrics/ClassLength:
   Enabled: false
 
+# C: Metrics/CyclomaticComplexity: Cyclomatic complexity for xxx is too high.
+Metrics/CyclomaticComplexity:
+  Max: 10
+
 # C: Metrics/MethodLength: Method has too many lines.
 Metrics/MethodLength:
-  Max: 30
+  Max: 40
   Exclude:
-    - 'db/migrate/*'
+    - 'db/**/*'
     - 'spec/**/*'
 
 # C: Metrics/ModuleLength: Module has too many lines.
@@ -73,6 +84,10 @@ Metrics/ParameterLists:
   Exclude:
     - 'spec/**/*'
 
+# C: Metrics/PerceivedComplexity: Perceived complexity for xxx is too high.
+Metrics/PerceivedComplexity:
+  Max: 20 # NOTE: 生産性を優先して、緩めに設定
+
 ### Naming
 # https://docs.rubocop.org/rubocop/cops_naming.html
 
@@ -83,6 +98,7 @@ Naming/AccessorMethodName:
 # C: Naming/VariableNumber: Use normalcase for symbol numbers.
 Naming/VariableNumber:
   Exclude:
+    - 'db/**/*'
     - 'spec/**/*'
 
 ### Style
@@ -144,6 +160,10 @@ Style/NumericPredicate:
 Style/OptionalBooleanParameter:
   Enabled: false
 
+# C: Style/SafeNavigationChainLength: Avoid safe navigation chains longer than 2 calls.
+Style/SafeNavigationChainLength:
+  Enabled: false # NOTE: Pendingだけど有効になる為
+
 ### Rails
 # https://docs.rubocop.org/rubocop-rails/cops_rails.html
 
@@ -153,6 +173,14 @@ Rails/ActionOrder:
 
 # C: Rails/BulkChangeTable: You can use change_table :xxx, bulk: true to combine alter queries.
 Rails/BulkChangeTable:
+  Enabled: false
+
+# C: Rails/HasManyOrHasOneDependent: Specify a :dependent option.
+Rails/HasManyOrHasOneDependent:
+  Enabled: false
+
+# C: Rails/I18nLocaleTexts: Move locale texts to the locale files in the config/locales directory.
+Rails/I18nLocaleTexts:
   Enabled: false
 
 # C: Rails/LexicallyScopedActionFilter: xxx is not explicitly defined on the class.
