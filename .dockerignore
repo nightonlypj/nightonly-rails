@@ -1,5 +1,6 @@
 .bundle
 .byebug_history
+.env*
 .yardoc
 config/master.key
 coverage/

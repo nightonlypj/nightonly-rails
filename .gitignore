@@ -51,6 +51,7 @@ Thumbs.db
 !/schemaspy/analysis/.keep
 /coverage*
 
+.env
 config/settings/development.yml
 
 /public/uploads/*
