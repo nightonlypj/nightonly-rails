@@ -1,7 +1,7 @@
 # :nocov:
 namespace :tool do
   desc 'DBの値をyamlファイルに出力（seed作成・更新に使用） 例: rails "tool:create_yaml[db/seed/holidays.yml,Holiday,id,date,name]"'
-  task(:create_yaml, %w[file model] => :environment) do |_, args|
+  task :create_yaml, %i[file model] => :environment do |_, args|
     file = args.file
     model = args.model&.constantize
     columns = args.extras.compact

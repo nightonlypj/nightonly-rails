@@ -81,6 +81,7 @@ GEM
     airbrussh (1.5.3)
       sshkit (>= 1.6.1, != 1.7.0)
     ast (2.4.3)
+    attr_extras (7.1.0)
     base64 (0.3.0)
     bcrypt (3.1.20)
     benchmark (0.4.1)
@@ -175,6 +176,10 @@ GEM
       rails (>= 4.2.0, < 8.1)
     diff-lcs (1.6.2)
     docile (1.4.1)
+    dotenv (3.1.8)
+    dotenv-rails (3.1.8)
+      dotenv (= 3.1.8)
+      railties (>= 6.1)
     drb (2.2.3)
     email_validator (2.2.4)
       activemodel
@@ -192,14 +197,7 @@ GEM
       railties (>= 6.1.0)
     faker (3.5.1)
       i18n (>= 1.8.11, < 2)
-    ffi (1.17.2-aarch64-linux-gnu)
-    ffi (1.17.2-aarch64-linux-musl)
-    ffi (1.17.2-arm-linux-gnu)
-    ffi (1.17.2-arm-linux-musl)
-    ffi (1.17.2-arm64-darwin)
-    ffi (1.17.2-x86_64-darwin)
-    ffi (1.17.2-x86_64-linux-gnu)
-    ffi (1.17.2-x86_64-linux-musl)
+    ffi (1.17.2)
     formatador (1.1.0)
     globalid (1.2.1)
       activesupport (>= 6.1)
@@ -286,6 +284,7 @@ GEM
       benchmark
       logger
     mini_mime (1.1.5)
+    mini_portile2 (2.8.9)
     minitest (5.25.5)
     msgpack (1.8.0)
     mysql2 (0.5.6)
@@ -307,25 +306,13 @@ GEM
     net-ssh (7.3.0)
     nio4r (2.7.4)
     nkf (0.2.0)
-    nokogiri (1.18.8-aarch64-linux-gnu)
-      racc (~> 1.4)
-    nokogiri (1.18.8-aarch64-linux-musl)
-      racc (~> 1.4)
-    nokogiri (1.18.8-arm-linux-gnu)
-      racc (~> 1.4)
-    nokogiri (1.18.8-arm-linux-musl)
-      racc (~> 1.4)
-    nokogiri (1.18.8-arm64-darwin)
-      racc (~> 1.4)
-    nokogiri (1.18.8-x86_64-darwin)
-      racc (~> 1.4)
-    nokogiri (1.18.8-x86_64-linux-gnu)
-      racc (~> 1.4)
-    nokogiri (1.18.8-x86_64-linux-musl)
+    nokogiri (1.18.8)
+      mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     notiffany (0.1.3)
       nenv (~> 0.1)
       shellany (~> 0.0)
+    optimist (3.2.1)
     orm_adapter (0.5.0)
     ostruct (0.6.2)
     paper_trail (16.0.0)
@@ -335,6 +322,9 @@ GEM
     parser (3.3.8.0)
       ast (~> 2.4.1)
       racc
+    patience_diff (1.2.0)
+      optimist (~> 3.0)
+    pg (1.6.2)
     pp (0.6.2)
       prettyprint
     prettyprint (0.2.0)
@@ -518,6 +508,8 @@ GEM
       actionpack (>= 6.1)
       activesupport (>= 6.1)
       sprockets (>= 3.0.0)
+    sqlite3 (2.7.3)
+      mini_portile2 (~> 2.8.0)
     sshkit (1.24.0)
       base64
       logger
@@ -529,6 +521,10 @@ GEM
     stimulus-rails (1.3.4)
       railties (>= 6.0.0)
     stringio (3.1.7)
+    super_diff (0.16.0)
+      attr_extras (>= 6.2.4)
+      diff-lcs
+      patience_diff
     test-prof (1.4.4)
     thor (1.3.2)
     tilt (2.6.0)
@@ -568,14 +564,7 @@ GEM
     zeitwerk (2.7.3)
 
 PLATFORMS
-  aarch64-linux-gnu
-  aarch64-linux-musl
-  arm-linux-gnu
-  arm-linux-musl
-  arm64-darwin
-  x86_64-darwin
-  x86_64-linux-gnu
-  x86_64-linux-musl
+  ruby
 
 DEPENDENCIES
   better_errors
@@ -598,6 +587,7 @@ DEPENDENCIES
   devise
   devise-i18n
   devise_token_auth
+  dotenv-rails
   email_validator
   enum_help
   exception_notification
@@ -614,6 +604,7 @@ DEPENDENCIES
   mysql2
   nkf
   paper_trail
+  pg
   pry-byebug
   pry-doc
   pry-rails
@@ -636,7 +627,9 @@ DEPENDENCIES
   simplecov
   slack-notifier
   sprockets-rails
+  sqlite3
   stimulus-rails
+  super_diff
   test-prof
   turbo-rails
   tzinfo-data

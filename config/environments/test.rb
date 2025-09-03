@@ -6,15 +6,6 @@ require 'active_support/core_ext/integer/time'
 # and recreated between test runs. Don't rely on the data there!
 
 Rails.application.configure do
-  ### START ###
-  config.after_initialize do
-    # Bullet.enable        = true
-    Bullet.enable        = false
-    Bullet.bullet_logger = true
-    Bullet.raise         = true # raise an error if n+1 query occurs
-  end
-  ### END ###
-
   # Settings specified here will take precedence over those in config/application.rb.
 
   # While tests run files are not watched, reloading is not necessary.
@@ -86,5 +77,12 @@ Rails.application.configure do
 
   ### START ###
   config.log_level = ENV['CI'].present? ? :fatal : :info
+
+  config.after_initialize do
+    # Bullet.enable        = true
+    Bullet.enable        = false
+    Bullet.bullet_logger = true
+    Bullet.raise         = true # raise an error if n+1 query occurs
+  end
   ### END ###
 end

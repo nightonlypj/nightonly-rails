@@ -10,13 +10,13 @@ gem 'rails', '~> 7.2.0'
 gem 'sprockets-rails'
 
 # Use sqlite3 as the database for Active Record
-# gem 'sqlite3'
+gem 'sqlite3'
 
 # Use mysql as the database for Active Record
 gem 'mysql2'
 
 # Use postgresql as the database for Active Record
-# gem 'pg'
+gem 'pg'
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem 'puma'
@@ -53,6 +53,9 @@ gem 'sassc-rails'
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem 'image_processing'
+
+# Use dotenv
+gem 'dotenv-rails'
 
 # Use i18n
 gem 'rails-i18n'
@@ -112,6 +115,7 @@ group :development, :test do
   # Use RSpec
   gem 'rspec-rails'
   gem 'factory_bot_rails'
+  gem 'super_diff'
 
   # Use RuboCop
   gem 'rubocop'

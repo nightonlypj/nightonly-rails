@@ -1,23 +1,40 @@
-# https://hub.docker.com/_/ruby
 FROM ruby:3.4.3-alpine
-RUN apk update && apk add --no-cache --update build-base tzdata bash python3 imagemagick graphviz ttf-freefont gcompat
-# RUN apk add --no-cache --update sqlite-dev sqlite-libs
-RUN apk add --no-cache --update mysql-dev mysql-client
-RUN apk add --no-cache --update postgresql-dev postgresql-client
-
+RUN apk add --no-cache \
+    tzdata \
+    build-base \
+    yaml-dev \
+    linux-headers \
+    yarn \
+    # SQLite
+    sqlite-dev \
+    sqlite-libs \
+    # MySQL
+    mysql-dev \
+    mysql-client \
+    # PostgreSQL
+    postgresql-dev \
+    postgresql-client \
+    # 実行時に必要
+    bash \
+    shared-mime-info \
+    imagemagick \
+    imagemagick-dev \
+    graphviz \
+    ttf-freefont
+    
 WORKDIR /workdir
-ENV LANG="ja_JP.UTF-8"
+ENV TZ='Asia/Tokyo'
 
 ENV RAILS_ENV="production"
 ENV RAILS_LOG_TO_STDOUT=1
 
 COPY Gemfile Gemfile.lock ./
-RUN bundle config set --local without 'test development'
-RUN bundle install --no-cache
+RUN gem install bundler -v 2.5.22 && \
+    bundle config set --local without 'test development' && \
+    bundle install -j4 --retry=3
 
-COPY . ./
-RUN mkdir -p tmp/pids
-RUN mkdir -p tmp/sockets
+COPY . .
+RUN mkdir -p tmp/pids tmp/sockets
 
 # NOTE: 存在チェック
 COPY public/robots.txt ./public/

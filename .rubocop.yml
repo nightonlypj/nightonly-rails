@@ -31,6 +31,10 @@ Layout/LineLength:
     - 'db/**/*'
     - 'spec/factories/**/*'
 
+# C: [Correctable] Layout/MultilineMethodCallIndentation: Use 2 (not ?) spaces for indenting an expression in an assignment spanning multiple lines.
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
 ### Lint
 # https://docs.rubocop.org/rubocop/cops_lint.html
 
