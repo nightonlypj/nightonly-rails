@@ -10,7 +10,7 @@ namespace :user do
 
     ActiveRecord::Base.connection_pool.with_connection do # NOTE: 念の為（PG::UnableToSend: no connection to the server対策）
       users = User.destroy_target
-      logger.debug(users)
+      logger.debug users
 
       count = users.count
       logger.info "count: #{count}"
