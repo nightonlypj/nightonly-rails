@@ -1,5 +1,6 @@
 class InfomationsController < ApplicationAuthController
   include InfomationsConcern
+
   before_action :response_not_acceptable_for_not_api, only: :important
   before_action :set_important_infomations, only: :important
 

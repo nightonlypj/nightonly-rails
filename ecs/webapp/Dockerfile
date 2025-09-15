@@ -32,7 +32,7 @@ ENV RAILS_ENV="production"
 ENV RAILS_LOG_TO_STDOUT=1
 
 COPY Gemfile Gemfile.lock ./
-RUN gem install bundler -v 2.5.22 && \
+RUN gem install bundler -v 2.7.2 && \
     bundle config set --local without 'test development' && \
     bundle install -j4 --retry=3
 

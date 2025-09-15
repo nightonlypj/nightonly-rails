@@ -304,7 +304,7 @@ $ cp -a .env.sample .env
 $ cp -a config/settings/development.yml,local config/settings/development.yml
 
 # Gemインストール
-gem install bundler -v 2.5.22
+gem install bundler -v 2.7.2
 bundle install -j4 --retry=3
 （$ bundle update）
 

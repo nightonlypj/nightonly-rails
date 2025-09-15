@@ -39,7 +39,7 @@ ENV LANG='ja_JP.UTF-8'
 ENV LC_ALL='ja_JP.UTF-8'
 
 COPY Gemfile Gemfile.lock ./
-RUN gem install bundler -v 2.5.22 && \
+RUN gem install bundler -v 2.7.2 && \
     bundle install -j4 --retry=3
 
 COPY package.json yarn.lock ./
