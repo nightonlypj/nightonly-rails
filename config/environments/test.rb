@@ -77,5 +77,12 @@ Rails.application.configure do
 
   ### START ###
   config.log_level = ENV['CI'].present? ? :fatal : :info
+
+  config.after_initialize do
+    # Bullet.enable        = true
+    Bullet.enable        = false
+    Bullet.bullet_logger = true
+    Bullet.raise         = true # raise an error if n+1 query occurs
+  end
   ### END ###
 end
