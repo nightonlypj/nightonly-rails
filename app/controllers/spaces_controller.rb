@@ -19,7 +19,7 @@ class SpacesController < ApplicationAuthController
   # GET /spaces スペース一覧
   # GET /spaces(.json) スペース一覧API
   def index
-    @spaces = Space.by_target(current_user, @checked).search(@text).order(created_at: :desc, id: :desc)
+    @spaces = Space.by_target(current_user, @checked).search(@text).order(created_at: :desc, id: :desc).distinct(false)
                    .page(params[:page]).per(Settings.default_spaces_limit)
     @members = []
     if current_user.present?
