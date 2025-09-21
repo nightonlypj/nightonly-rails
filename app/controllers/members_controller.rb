@@ -1,5 +1,6 @@
 class MembersController < ApplicationAuthController
   include MembersConcern
+
   before_action :response_not_acceptable_for_not_api, only: :show
   before_action :response_not_acceptable_for_not_html, only: %i[new result edit]
   before_action :authenticate_user!
@@ -147,7 +148,7 @@ class MembersController < ApplicationAuthController
   def validate_params_destroy
     alert = nil
     alert = 'alert.member.destroy.codes.blank' if @codes.blank?
-    alert = 'alert.member.destroy.codes.myself' if @codes.count == 1 && @include_myself
+    alert = 'alert.member.destroy.codes.myself' if @codes.one? && @include_myself
     if alert.blank?
       delete_codes = @include_myself ? @codes.reject { |key| key == @current_member.user.code } : @codes
       @members = Member.where(space: @space).joins(:user).where(user: { code: delete_codes }).order(:id)

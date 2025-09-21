@@ -34,7 +34,7 @@ RSpec.describe 'Infomations', type: :request do
         expect(response.body).to include(infomation.title)
         expect(response.body).to include(I18n.l(infomation.started_at.to_date))
         # 本文, サマリー
-        expect(response.body).to include((infomation.body.presence || infomation.summary))
+        expect(response.body).to include(infomation.body.presence || infomation.summary)
       end
     end
 =end

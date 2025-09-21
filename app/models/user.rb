@@ -7,6 +7,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable,
          :confirmable, :lockable, :timeoutable, :trackable
   include DeviseTokenAuth::Concerns::User
+
   attr_accessor :redirect_url, :cache_infomation_unread_count, :cache_undownloaded_count, # NOTE: redirect_urlは/users/auth/{update,sign_in}で使用
                 :email_local, :email_domain # NOTE: 招待URLで使用
 
@@ -42,6 +43,7 @@ class User < ApplicationRecord
   end
 
   # 画像URLを返却
+  # rubocop:disable Metrics/CyclomaticComplexity
   def image_url(version)
     case version
     when :mini
@@ -59,6 +61,7 @@ class User < ApplicationRecord
       ''
     end
   end
+  # rubocop:enable Metrics/CyclomaticComplexity
 
   # お知らせの未読数を返却
   def infomation_unread_count

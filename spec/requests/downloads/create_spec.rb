@@ -214,7 +214,7 @@ RSpec.describe 'Downloads', type: :request do
 
     let(:output_items)  { '["user.name"]' }
     let(:select_items)  { '["code000000000000000000001", "code000000000000000000002"]' }
-    let(:search_params) { '{"text"=>"aaa"}' }
+    let(:search_params) { '{"text" => "aaa"}' }
     shared_examples_for '[ログイン中/削除予約済み]modelがmember（spaceが存在する）' do
       let(:params) { { model: 'member', space_code: space.code } }
       let(:add_attributes) do
