@@ -1,5 +1,6 @@
 class MembersController < ApplicationAuthController
   include MembersConcern
+
   before_action :response_not_acceptable_for_not_api, only: :show
   before_action :response_not_acceptable_for_not_html, only: %i[new result edit]
   before_action :authenticate_user!

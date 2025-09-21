@@ -1,5 +1,6 @@
 class SpacesController < ApplicationAuthController
   include Utils::CreateUniqueCodeConcern
+
   before_action :response_not_acceptable_for_not_html, only: %i[new edit delete undo_delete]
   before_action :authenticate_user!, only: %i[new create edit update delete destroy undo_delete undo_destroy]
   before_action :redirect_spaces_for_user_destroy_reserved, only: %i[new create], if: :format_html?
@@ -20,7 +21,7 @@ class SpacesController < ApplicationAuthController
   # GET /spaces(.json) スペース一覧API
   def index
     @spaces = Space.by_target(current_user, @checked).search(@text).order(created_at: :desc, id: :desc).distinct(false)
-                   .page(params[:page]).per(Settings.default_spaces_limit)
+      .page(params[:page]).per(Settings.default_spaces_limit)
     @members = []
     if current_user.present?
       members = Member.where(space_id: @spaces.ids, user: current_user)

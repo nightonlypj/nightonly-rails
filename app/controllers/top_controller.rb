@@ -9,7 +9,7 @@ class TopController < ApplicationController
   # GET / トップページ
   def index
     @public_spaces = Space.where(private: false).active.order(created_at: :desc, id: :desc)
-                          .limit(Settings.default_spaces_limit)
+      .limit(Settings.default_spaces_limit)
   end
 
   private

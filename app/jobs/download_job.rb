@@ -1,5 +1,6 @@
 class DownloadJob < ApplicationJob
   include MembersConcern
+
   queue_as :default
   rescue_from StandardError, with: :status_failure
 

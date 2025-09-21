@@ -2,7 +2,7 @@ module DeviseViewSpecHelper
   # Gets the actual resource stored in the instance variable
   def resource
     # instance_variable_get(:"@#{resource_name}")
-    @resource # rubocop:disable Rails/HelperInstanceVariable
+    @resource
   end
 
   # Attempt to find the mapped route for devise based on request path
