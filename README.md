@@ -17,7 +17,7 @@ https://orbstack.dev/download
 
 ### コンテナ作成＆起動
 
-.env.sampleを.envにコピーして、変更（下記はMySQLを使う場合）
+.env.exampleを.envにコピーして、変更（下記はMySQLを使う場合）
 ```bash
 # local
 # MYSQL_HOST=127.0.0.1
@@ -300,7 +300,7 @@ $ brew uninstall postgresql@17
 ### 起動まで
 
 ```bash
-$ cp -a .env.sample .env
+$ cp -a .env.example .env
 $ cp -a config/settings/development.yml,local config/settings/development.yml
 
 # Gemインストール

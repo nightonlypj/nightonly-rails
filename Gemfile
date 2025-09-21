@@ -81,6 +81,9 @@ gem 'paper_trail'
 # Use Config
 gem 'config'
 
+# Use NKF # NOTE: Dockerのjobの起動に失敗する為
+gem 'nkf'
+
 # Use kaminari
 gem 'kaminari'
 gem 'kaminari-i18n'
@@ -105,8 +108,7 @@ gem 'daemons'
 
 # Use Faker # NOTE: テスト以外でも使えるように
 gem 'faker'
-
-gem 'nkf'
+gem 'faker-japanese'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

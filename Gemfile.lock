@@ -197,6 +197,7 @@ GEM
       railties (>= 6.1.0)
     faker (3.5.2)
       i18n (>= 1.8.11, < 2)
+    faker-japanese (0.0.1)
     ffi (1.17.2)
     formatador (1.2.0)
       reline
@@ -593,6 +594,7 @@ DEPENDENCIES
   exception_notification
   factory_bot_rails
   faker
+  faker-japanese
   guard-yard
   http_accept_language
   importmap-rails

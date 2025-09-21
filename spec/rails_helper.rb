@@ -12,9 +12,6 @@ require 'rspec/rails'
 require 'webmock/rspec'
 # Add additional requires below this line. Rails is not loaded until this point!
 
-# Use Devise
-require 'devise'
-
 # Use Ruby Tests Profiling Toolbox
 require 'test_prof/recipes/rspec/let_it_be'
 require 'test_prof/recipes/rspec/before_all'

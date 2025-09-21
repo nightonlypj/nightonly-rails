@@ -79,12 +79,12 @@ module MembersConcern
 
   def members_select(codes)
     Member.where(space: @space).includes(:user).where(user: { code: codes }).eager_load(:user, :invitationed_user, :last_updated_user)
-      .order(SORT_COLUMN[@sort] + (@desc ? ' DESC' : ''), id: :desc)
+      .order(Arel.sql("#{SORT_COLUMN.fetch(@sort)} #{'DESC' if @desc}"), id: :desc)
   end
 
   def members_search
     Member.where(space: @space).search(@text, @current_member).by_power(@powers).by_target(@checked).eager_load(:user, :invitationed_user, :last_updated_user)
-      .order(SORT_COLUMN[@sort] + (@desc ? ' DESC' : ''), id: :desc)
+      .order(Arel.sql("#{SORT_COLUMN.fetch(@sort)} #{'DESC' if @desc}"), id: :desc)
   end
 
   # ダウンロードファイルのデータ作成

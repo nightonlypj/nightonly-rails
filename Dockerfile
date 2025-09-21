@@ -5,7 +5,6 @@ RUN apk add --no-cache \
     build-base \
     yaml-dev \
     linux-headers \
-    yarn \
     # SQLite
     sqlite-dev \
     sqlite-libs \
@@ -23,6 +22,7 @@ RUN apk add --no-cache \
     graphviz \
     ttf-freefont \
     # 以降はdevelopmentのみ
+    yarn \
     musl-locales \
     musl-locales-lang \
     coreutils \
@@ -42,6 +42,7 @@ COPY Gemfile Gemfile.lock ./
 RUN gem install bundler -v 2.7.2 && \
     bundle install -j4 --retry=3
 
+# developmentのみ
 COPY package.json yarn.lock ./
 RUN yarn install
 

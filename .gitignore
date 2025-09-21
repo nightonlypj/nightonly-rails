@@ -40,7 +40,7 @@ nbproject/
 
 # Local env files
 .env*
-!.env.sample
+!.env.example
 
 /node_modules/
 /yarn-error.log
