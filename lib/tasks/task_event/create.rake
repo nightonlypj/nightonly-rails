@@ -85,7 +85,7 @@ namespace :task_event do
     task_cycles = TaskCycle.active.where(space:).by_month(cycle_months(start_date, end_date) + [nil])
       .eager_load(task: :task_assigne).by_task_period(target_date, end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
     @logger.info("task_cycles.count: #{task_cycles.count}")
-    return 0 if task_cycles.count == 0
+    return 0 if task_cycles.none?
 
     @task_events = TaskEvent.where(space:, started_date: start_date..)
       .eager_load(task_cycle: :task).merge(Task.order(:priority)).order(:id)
@@ -98,7 +98,7 @@ namespace :task_event do
     end
     insert_events = @next_events.values.filter { |_, event_start_date, event_end_date| event_start_date <= next_start_date && event_end_date >= target_date }
     @logger.info("insert: #{insert_events.count}")
-    return 0 if insert_events.count == 0
+    return 0 if insert_events.none?
 
     codes = create_unique_codes(insert_events.count)
     now = Time.current
@@ -113,7 +113,7 @@ namespace :task_event do
           if index.present?
             user_id = user_ids[index]
 
-            task_cycle.task.task_assigne.user_ids = (user_ids[index + 1..] + user_ids[0..index]).join(',')
+            task_cycle.task.task_assigne.user_ids = (user_ids[(index + 1)..] + user_ids[0..index]).join(',')
             task_cycle.task.task_assigne.save!
           end
         end
@@ -175,7 +175,7 @@ namespace :task_event do
       next unless enable_send_target[send_target]
 
       send_history = SendHistory.new(history_params.merge(send_target:, started_at: Time.current))
-      if !send_setting["#{notice_target}_notice_required"] && @processing_task_events.count == 0 && @completed_task_events.count == 0
+      if !send_setting["#{notice_target}_notice_required"] && @processing_task_events.none? && @completed_task_events.none?
         send_history.status = :skip
         send_history.completed_at = Time.current
         send_history.save! unless dry_run

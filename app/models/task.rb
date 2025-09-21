@@ -31,7 +31,7 @@ class Task < ApplicationRecord
     task
   }
   scope :by_priority, ->(priorities) {
-    return none if priorities.count == 0
+    return none if priorities.none?
     return if priorities.count >= Task.priorities.count
 
     where(priority: priorities)

@@ -130,7 +130,7 @@ RSpec.describe Space, type: :model do
     it '最初→標準1→標準2→最後の順に返却される。通知設定がある場合、最初がSlack通知になっている' do
       expect(result.map(&:name)).to eq(%w[最初 標準1 標準2 最後])
       result.each do |space|
-        expect(space.send_setting_active.first.slack_enabled).to be(true) if space.send_setting_active.count > 0
+        expect(space.send_setting_active.first.slack_enabled).to be(true) if space.send_setting_active.any?
       end
     end
   end

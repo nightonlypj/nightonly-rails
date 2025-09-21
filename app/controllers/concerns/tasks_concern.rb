@@ -1,6 +1,18 @@
 module TasksConcern
   extend ActiveSupport::Concern
 
+  SORT_COLUMN = {
+    'priority' => 'tasks.priority',
+    'title' => 'tasks.title',
+    'cycles' => 'task_cycles.cycle',
+    'started_date' => 'tasks.started_date',
+    'ended_date' => 'tasks.ended_date',
+    'created_user.name' => 'users.name',
+    'created_at' => 'tasks.created_at',
+    'last_updated_user.name' => 'last_updated_users_tasks.name',
+    'last_updated_at' => 'tasks.updated_at'
+  }.freeze
+
   private
 
   def set_task(id = params[:id])
@@ -19,18 +31,6 @@ module TasksConcern
   def task_assigne_users(user_ids, space)
     User.active.where(id: user_ids).joins(:members).where(members: { space:, power: Member::POWER_WRITER_UP }).index_by(&:id)
   end
-
-  SORT_COLUMN = {
-    'priority' => 'tasks.priority',
-    'title' => 'tasks.title',
-    'cycles' => 'task_cycles.cycle',
-    'started_date' => 'tasks.started_date',
-    'ended_date' => 'tasks.ended_date',
-    'created_user.name' => 'users.name',
-    'created_at' => 'tasks.created_at',
-    'last_updated_user.name' => 'last_updated_users_tasks.name',
-    'last_updated_at' => 'tasks.updated_at'
-  }.freeze
 
   def get_value(task, output_item)
     # TODO

@@ -53,6 +53,7 @@ Metrics/AbcSize:
     - 'spec/**/*'
     # TODO: 対応後、削除
     - 'app/controllers/downloads_controller.rb' # Max: 93.32
+    - 'app/controllers/tasks_controller.rb' # Max: 82.78
 
 # C: Metrics/BlockLength: Block has too many lines.
 Metrics/BlockLength:
@@ -75,8 +76,14 @@ Metrics/CyclomaticComplexity:
   Max: 10
   Exclude:
     # TODO: 対応後、削除
+    - 'app/controllers/tasks_controller.rb' # Max: 18
+    - 'spec/support/send_setting_contexts.rb' # Max: 18
+    - 'app/models/task_event.rb' # Max: 17
+    - 'lib/tasks/task_event/create.rake' # Max: 14
     - 'app/models/invitation.rb' # Max: 13
+    - 'spec/support/task_cycle_contexts.rb' # Max: 13
     - 'app/controllers/downloads_controller.rb' # Max: 12
+    - 'app/controllers/slack_users_controller.rb' # Max: 12
     - 'app/models/member.rb' # Max: 11
     - 'app/models/space.rb' # Max: 11
 
@@ -86,6 +93,9 @@ Metrics/MethodLength:
   Exclude:
     - 'db/**/*'
     - 'spec/**/*'
+    # TODO: 対応後、削除
+    - 'app/controllers/tasks_controller.rb' # Max: 49
+    - 'lib/tasks/task_event/create.rake' # Max: 45
 
 # C: Metrics/ModuleLength: Module has too many lines.
 Metrics/ModuleLength:
@@ -95,6 +105,8 @@ Metrics/ModuleLength:
 Metrics/ParameterLists:
   Exclude:
     - 'spec/**/*'
+    # TODO: 対応後、削除
+    - 'lib/tasks/task_event/create.rake' # Max: 6
 
 # C: Metrics/PerceivedComplexity: Perceived complexity for xxx is too high.
 Metrics/PerceivedComplexity:

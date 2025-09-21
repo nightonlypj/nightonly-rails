@@ -29,7 +29,7 @@ class TaskAssigne < ApplicationRecord
       errors[:assigned_user1] = I18n.t('errors.messages.assigned_users.max_count', count: Settings.task_assigne_users_max_count)
     end
 
-    self.user_ids = ids.join(',') if errors.count == 0
+    self.user_ids = ids.join(',') if errors.none?
     errors
   end
 
