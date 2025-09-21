@@ -10,6 +10,7 @@ namespace :task_event do
   task(:create_send_notice, %i[target_date dry_run send_notice] => :environment) do |task, args|
     include TasksConcern
     include TaskCyclesConcern
+
     @months = nil
 
     raise '日付が指定されていません。' if args.target_date.blank?
@@ -82,12 +83,12 @@ namespace :task_event do
   # タスクイベント作成
   def create_task_events(dry_run, space, target_date, next_start_date, start_date, end_date)
     task_cycles = TaskCycle.active.where(space:).by_month(cycle_months(start_date, end_date) + [nil])
-                           .eager_load(task: :task_assigne).by_task_period(target_date, end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
+      .eager_load(task: :task_assigne).by_task_period(target_date, end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
     @logger.info("task_cycles.count: #{task_cycles.count}")
     return 0 if task_cycles.count == 0
 
     @task_events = TaskEvent.where(space:, started_date: start_date..)
-                            .eager_load(task_cycle: :task).merge(Task.order(:priority)).order(:id)
+      .eager_load(task_cycle: :task).merge(Task.order(:priority)).order(:id)
     set_exist_task_events
     @logger.debug("@exist_task_events: #{@exist_task_events}")
 
@@ -157,13 +158,13 @@ namespace :task_event do
 
     # REVIEW: dry_runでは今回作成分が対象にならない
     @processing_task_events = TaskEvent.where(space:).where.not(status: TaskEvent::NOT_NOTICE_STATUS)
-                                       .eager_load(task_cycle: :task).order(:status).merge(Task.order(:priority)).order(:id)
+      .eager_load(task_cycle: :task).order(:status).merge(Task.order(:priority)).order(:id)
     set_task_event_datas(notice_target, target_date)
 
     if send_setting["#{notice_target}_notice_completed"]
       @completed_task_events = TaskEvent.where(space:, status: TaskEvent::NOT_NOTICE_STATUS,
                                                last_completed_at: complete_start_date.beginning_of_day..target_date.end_of_day)
-                                        .eager_load(task_cycle: :task).order(:last_completed_at)
+        .eager_load(task_cycle: :task).order(:last_completed_at)
     else
       @completed_task_events = []
     end

@@ -1,6 +1,7 @@
 class NoticeSlack::IncompleteTaskJob < ApplicationJob
   include ERB::Util
   include SendHistoriesConcern
+
   queue_as :default
 
   # 未完了タスクのお知らせ（Slack）

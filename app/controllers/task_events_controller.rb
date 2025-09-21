@@ -1,6 +1,7 @@
 class TaskEventsController < ApplicationAuthController
   include TasksConcern
   include TaskCyclesConcern
+
   before_action :response_not_acceptable_for_not_api
   before_action :authenticate_user!, only: :update
   before_action :response_api_for_user_destroy_reserved, only: :update
@@ -19,7 +20,7 @@ class TaskEventsController < ApplicationAuthController
 
     @tasks = {}
     @task_events = TaskEvent.where(space: @space, started_date: @start_date..@end_date)
-                            .eager_load(task_cycle: [task: %i[created_user last_updated_user]]).merge(Task.order(:priority)).order(:id)
+      .eager_load(task_cycle: [task: %i[created_user last_updated_user]]).merge(Task.order(:priority)).order(:id)
     @task_events.each do |task_event|
       task_cycle = task_event.task_cycle
       @tasks[task_cycle.task_id] = task_cycle.task if @tasks[task_cycle.task_id].blank?
@@ -33,8 +34,8 @@ class TaskEventsController < ApplicationAuthController
 
     set_holidays(@start_date - 2.months, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
     task_cycles = TaskCycle.active.where(space: @space).by_month(cycle_months(next_start_date, @end_date) + [nil])
-                           .eager_load(task: %i[created_user last_updated_user])
-                           .by_task_period(next_start_date, @end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
+      .eager_load(task: %i[created_user last_updated_user])
+      .by_task_period(next_start_date, @end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
     task_cycles.each do |task_cycle|
       result = cycle_set_next_events(task_cycle, task_cycle.task, next_start_date, @end_date)
       @tasks[task_cycle.task_id] = task_cycle.task if result && @tasks[task_cycle.task_id].blank?

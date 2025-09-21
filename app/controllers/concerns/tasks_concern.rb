@@ -5,7 +5,7 @@ module TasksConcern
 
   def set_task(id = params[:id])
     @task = Task.where(space: @space, id:).eager_load(:task_cycles_active, :task_assigne, :created_user, :last_updated_user)
-                .merge(TaskCycle.order(:order, :updated_at, :id)).first
+      .merge(TaskCycle.order(:order, :updated_at, :id)).first
     response_not_found if @task.blank?
   end
 
@@ -72,8 +72,8 @@ module TasksConcern
 
   def tasks_search
     Task.where(space: @space).search(@text).by_priority(@priorities).by_start_end_date(@before, @active, @after)
-        .eager_load(:task_cycles_active, :created_user, :last_updated_user)
-        .order(SORT_COLUMN[@sort] + (@desc ? ' DESC' : ''), id: :desc)
+      .eager_load(:task_cycles_active, :created_user, :last_updated_user)
+      .order(SORT_COLUMN[@sort] + (@desc ? ' DESC' : ''), id: :desc)
     # .merge(TaskCycle.order(:order, :updated_at, :id)) # NOTE: ページの最後のtaskにtask_cycleが複数紐付く場合、次ページでの取得になる為
   end
 

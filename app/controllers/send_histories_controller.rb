@@ -1,5 +1,6 @@
 class SendHistoriesController < ApplicationAuthController
   include SendHistoriesConcern
+
   before_action :response_not_acceptable_for_not_api
   before_action :set_space_current_member_auth_private
   before_action :set_send_history, only: :show
@@ -7,7 +8,7 @@ class SendHistoriesController < ApplicationAuthController
   # GET /send_histories/:space_code(.json) 通知履歴一覧API
   def index
     @send_histories = SendHistory.where(space: @space).eager_load(:send_setting).order(target_date: :desc, completed_at: :desc, id: :desc)
-                                 .page(params[:page]).per(Settings.default_send_histories_limit)
+      .page(params[:page]).per(Settings.default_send_histories_limit)
   end
 
   # GET /send_histories/:space_code/detail/:id(.json) 通知履歴詳細API

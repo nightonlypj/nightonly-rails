@@ -73,6 +73,6 @@ class SlackUsersController < ApplicationAuthController
 
   def current_members
     current_user.members.where(power: Member::POWER_WRITER_UP).joins({ space: { send_setting_active: :slack_domain } })
-                .merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:id)
+      .merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:id)
   end
 end

@@ -1,6 +1,7 @@
 class TasksController < ApplicationAuthController
   include TasksConcern
   include TaskCyclesConcern
+
   before_action :response_not_acceptable_for_not_api
   before_action :authenticate_user!, only: %i[create update destroy]
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy]
