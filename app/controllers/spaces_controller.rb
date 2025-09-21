@@ -46,7 +46,7 @@ class SpacesController < ApplicationAuthController
   # POST /spaces/create スペース作成(処理)
   # POST /spaces/create(.json) スペース作成API(処理)
   def create
-    ActiveRecord::Base.transaction do
+    ApplicationRecord.transaction do
       @space.save!
       @current_member = Member.create!(space: @space, user: current_user, power: :admin)
     end
