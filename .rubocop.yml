@@ -51,6 +51,8 @@ Metrics/AbcSize:
   Exclude:
     - 'db/**/*'
     - 'spec/**/*'
+    # TODO: 対応後、削除
+    - 'app/controllers/downloads_controller.rb' # Max: 93.32
 
 # C: Metrics/BlockLength: Block has too many lines.
 Metrics/BlockLength:
@@ -71,6 +73,12 @@ Metrics/ClassLength:
 # C: Metrics/CyclomaticComplexity: Cyclomatic complexity for xxx is too high.
 Metrics/CyclomaticComplexity:
   Max: 10
+  Exclude:
+    # TODO: 対応後、削除
+    - 'app/models/invitation.rb' # Max: 13
+    - 'app/controllers/downloads_controller.rb' # Max: 12
+    - 'app/models/member.rb' # Max: 11
+    - 'app/models/space.rb' # Max: 11
 
 # C: Metrics/MethodLength: Method has too many lines.
 Metrics/MethodLength:

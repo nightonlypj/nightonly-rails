@@ -1,8 +1,6 @@
 module MembersConcern
   extend ActiveSupport::Concern
 
-  private
-
   SORT_COLUMN = {
     'user.name' => 'users.name',
     'user.email' => 'users.email',
@@ -12,6 +10,8 @@ module MembersConcern
     'last_updated_user.name' => 'last_updated_users_members.name',
     'last_updated_at' => 'members.updated_at'
   }.freeze
+
+  private
 
   def get_value(member, output_item)
     case output_item
