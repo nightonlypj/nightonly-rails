@@ -2,7 +2,7 @@ namespace :download do
   desc "ダウンロード削除（完了日時か依頼日時の#{Settings.download_destroy_schedule_days}日後以降）"
   task :destroy, [:dry_run] => :environment do |task, args|
     args.with_defaults(dry_run: 'true')
-    dry_run = (args.dry_run != 'false')
+    dry_run = (args[:dry_run] != 'false')
 
     logger = new_logger(task.name)
     logger.info "=== START #{task.name} ==="

@@ -103,7 +103,7 @@ class Space < ApplicationRecord
     when :xlarge
       image? ? image.xlarge.url : "/images/space/#{version}_noimage.jpg"
     else
-      logger.warn("[WARN]Not found: Space.image_url(#{version})")
+      logger.warn "[WARN]Not found: Space.image_url(#{version})"
       ''
     end
   end

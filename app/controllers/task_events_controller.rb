@@ -30,7 +30,7 @@ class TaskEventsController < ApplicationAuthController
     return if next_start_date > @end_date
 
     set_exist_task_events
-    logger.debug("@exist_task_events: #{@exist_task_events}")
+    logger.debug "@exist_task_events: #{@exist_task_events}"
 
     set_holidays(@start_date - 2.months, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
     task_cycles = TaskCycle.active.where(space: @space).by_month(cycle_months(next_start_date, @end_date) + [nil])

@@ -21,7 +21,7 @@ class SendSettingsController < ApplicationAuthController
     end
 
     now = Time.current
-    ActiveRecord::Base.transaction do
+    ApplicationRecord.transaction do
       if exist_send_setting.present?
         exist_send_setting.update!(last_updated_user: current_user, deleted_at: nil)
         if @send_setting.present? && @send_setting.id != exist_send_setting.id

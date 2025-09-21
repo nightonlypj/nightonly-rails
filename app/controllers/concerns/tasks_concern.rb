@@ -73,7 +73,7 @@ module TasksConcern
   def tasks_search
     Task.where(space: @space).search(@text).by_priority(@priorities).by_start_end_date(@before, @active, @after)
       .eager_load(:task_cycles_active, :created_user, :last_updated_user)
-      .order(SORT_COLUMN[@sort] + (@desc ? ' DESC' : ''), id: :desc)
+      .order(Arel.sql("#{SORT_COLUMN.fetch(@sort)} #{'DESC' if @desc}"), id: :desc)
     # .merge(TaskCycle.order(:order, :updated_at, :id)) # NOTE: ページの最後のtaskにtask_cycleが複数紐付く場合、次ページでの取得になる為
   end
 

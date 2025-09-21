@@ -2,7 +2,7 @@ namespace :space do
   desc 'スペース削除（削除予定日時以降）'
   task :destroy, [:dry_run] => :environment do |task, args|
     args.with_defaults(dry_run: 'true')
-    dry_run = (args.dry_run != 'false')
+    dry_run = (args[:dry_run] != 'false')
 
     logger = new_logger(task.name)
     logger.info "=== START #{task.name} ==="
