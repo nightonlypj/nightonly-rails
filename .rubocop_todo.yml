@@ -18,14 +18,6 @@ Rails/HelperInstanceVariable:
   Exclude:
     - 'app/helpers/devise_view_spec_helper.rb'
 
-# Offense count: 7
-# This cop supports unsafe autocorrection (--autocorrect-all).
-# Configuration parameters: Include.
-# Include: **/Rakefile, **/*.rake
-Rails/RakeEnvironment:
-  Exclude:
-    - 'lib/tasks/unicorn.rake'
-
 # Offense count: 8
 Security/Eval:
   Exclude:

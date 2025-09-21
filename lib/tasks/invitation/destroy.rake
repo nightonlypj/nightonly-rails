@@ -2,7 +2,7 @@ namespace :invitation do
   desc "招待削除（削除予定日時または終了日時か参加日時から#{Settings.invitation_destroy_schedule_days}日後以降）"
   task :destroy, [:dry_run] => :environment do |task, args|
     args.with_defaults(dry_run: 'true')
-    dry_run = (args.dry_run != 'false')
+    dry_run = (args[:dry_run] != 'false')
 
     logger = new_logger(task.name)
     logger.info "=== START #{task.name} ==="
