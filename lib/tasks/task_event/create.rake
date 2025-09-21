@@ -1,15 +1,16 @@
 namespace :task_event do
   namespace :create_send_notice do
     desc '期間内のタスクイベント作成＋通知（作成・通知は開始時間以降）'
-    task(:now, [:dry_run] => :environment) do |_, args|
-      Rake::Task['task_event:create_send_notice'].invoke(Time.zone.today, args.dry_run, 'true')
+    task :now, [:dry_run] => :environment do |_, args|
+      Rake::Task['task_event:create_send_notice'].invoke(Time.zone.today, args[:dry_run], 'true')
     end
   end
 
   desc '期間内のタスクイベント作成＋通知（当日に実行できなかった場合に手動実行）'
-  task(:create_send_notice, %i[target_date dry_run send_notice] => :environment) do |task, args|
+  task :create_send_notice, %i[target_date dry_run send_notice] => :environment do |task, args|
     include TasksConcern
     include TaskCyclesConcern
+
     @months = nil
 
     raise '日付が指定されていません。' if args.target_date.blank?
@@ -22,12 +23,12 @@ namespace :task_event do
     raise '翌日以降の日付は指定できません。' if target_date >= Time.zone.today + 1.day
 
     args.with_defaults(dry_run: 'true', send_notice: 'false')
-    dry_run = (args.dry_run != 'false')
+    dry_run = (args[:dry_run] != 'false')
     send_notice = args.send_notice == 'true'
 
     @logger = new_logger(task.name)
-    @logger.info("=== START #{task.name} ===")
-    @logger.info("target_date: #{target_date}, dry_run: #{dry_run}, send_notice: #{send_notice}")
+    @logger.info "=== START #{task.name} ==="
+    @logger.info "target_date: #{target_date}, dry_run: #{dry_run}, send_notice: #{send_notice}"
 
     total_insert_count = 0
     total_notice_count = 0
@@ -40,7 +41,7 @@ namespace :task_event do
       prev_business_date = handling_holiday_date(target_date - 1.day, :before)
       next_business_date = handling_holiday_date(target_date + 1.day, :after)
       business_date = "#{before_business_date}, #{after_business_date}, #{prev_business_date}, #{next_business_date}"
-      @logger.info("start_date: #{start_date}, end_date: #{end_date}, business_date: #{business_date}")
+      @logger.info "start_date: #{start_date}, end_date: #{end_date}, business_date: #{business_date}"
 
       spaces = Space.create_send_notice_target
       count = spaces.count
@@ -51,7 +52,7 @@ namespace :task_event do
         next_start_date = next_notice ? next_business_date : target_date # NOTE: 翌営業日分は開始時間以降に作成
 
         next_notice_start = "#{next_notice_start_hour}#{'(default)' if send_setting.blank?}"
-        @logger.info("[#{index}/#{count}] space.id: #{space.id}, next_notice_start: #{next_notice_start}, next_start_date: #{next_start_date}")
+        @logger.info "[#{index}/#{count}] space.id: #{space.id}, next_notice_start: #{next_notice_start}, next_start_date: #{next_start_date}"
 
         # タスクイベント作成
         total_insert_count += create_task_events(dry_run, space, target_date, next_start_date, start_date, end_date)
@@ -64,7 +65,7 @@ namespace :task_event do
           notice_target = :next
           complete_start_date = target_date
         else
-          @logger.info("start_notice_start: #{send_setting.start_notice_start_hour}")
+          @logger.info "start_notice_start: #{send_setting.start_notice_start_hour}"
           next if target_date + send_setting.start_notice_start_hour.hours > Time.current # NOTE: (開始確認)開始時間以降に通知
 
           notice_target = :start
@@ -75,34 +76,34 @@ namespace :task_event do
       end
     end
 
-    @logger.info("Total insert: #{total_insert_count}, notice: #{total_notice_count}")
-    @logger.info("=== END #{task.name} ===")
+    @logger.info "Total insert: #{total_insert_count}, notice: #{total_notice_count}"
+    @logger.info "=== END #{task.name} ==="
   end
 
   # タスクイベント作成
   def create_task_events(dry_run, space, target_date, next_start_date, start_date, end_date)
     task_cycles = TaskCycle.active.where(space:).by_month(cycle_months(start_date, end_date) + [nil])
-                           .eager_load(task: :task_assigne).by_task_period(target_date, end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
-    @logger.info("task_cycles.count: #{task_cycles.count}")
-    return 0 if task_cycles.count == 0
+      .eager_load(task: :task_assigne).by_task_period(target_date, end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
+    @logger.info "task_cycles.count: #{task_cycles.count}"
+    return 0 if task_cycles.none?
 
     @task_events = TaskEvent.where(space:, started_date: start_date..)
-                            .eager_load(task_cycle: :task).merge(Task.order(:priority)).order(:id)
+      .eager_load(task_cycle: :task).merge(Task.order(:priority)).order(:id)
     set_exist_task_events
-    @logger.debug("@exist_task_events: #{@exist_task_events}")
+    @logger.debug "@exist_task_events: #{@exist_task_events}"
 
     @next_events = {}
     task_cycles.each do |task_cycle|
       cycle_set_next_events(task_cycle, task_cycle.task, start_date, end_date)
     end
     insert_events = @next_events.values.filter { |_, event_start_date, event_end_date| event_start_date <= next_start_date && event_end_date >= target_date }
-    @logger.info("insert: #{insert_events.count}")
-    return 0 if insert_events.count == 0
+    @logger.info "insert: #{insert_events.count}"
+    return 0 if insert_events.none?
 
     codes = create_unique_codes(insert_events.count)
     now = Time.current
     insert_params = { space_id: space.id, created_at: now, updated_at: now }
-    ActiveRecord::Base.transaction do
+    ApplicationRecord.transaction do
       insert_datas = insert_events.map.with_index do |(task_cycle, event_start_date, event_end_date), insert_index|
         user_id = nil
         user_ids = task_cycle.task.task_assigne&.user_ids&.split(',')
@@ -112,7 +113,7 @@ namespace :task_event do
           if index.present?
             user_id = user_ids[index]
 
-            task_cycle.task.task_assigne.user_ids = (user_ids[index + 1..] + user_ids[0..index]).join(',')
+            task_cycle.task.task_assigne.user_ids = (user_ids[(index + 1)..] + user_ids[0..index]).join(',')
             task_cycle.task.task_assigne.save!
           end
         end
@@ -121,7 +122,7 @@ namespace :task_event do
                             started_date: event_start_date, ended_date: event_end_date, last_ended_date: event_end_date,
                             init_assigned_user_id: user_id, assigned_user_id: user_id, assigned_at: user_id.present? ? now : nil)
       end
-      @logger.debug("insert_datas: #{insert_datas}")
+      @logger.debug "insert_datas: #{insert_datas}"
       TaskEvent.insert_all!(insert_datas) if !dry_run && insert_datas.present?
     end
 
@@ -133,16 +134,16 @@ namespace :task_event do
     unique_codes = []
     try_count = 1
     loop do
-      codes = (count - unique_codes.count).times.map { Digest::MD5.hexdigest(SecureRandom.uuid).to_i(16).to_s(36).rjust(25, '0') }
+      codes = Array.new(count - unique_codes.count) { Digest::MD5.hexdigest(SecureRandom.uuid).to_i(16).to_s(36).rjust(25, '0') }
       unique_codes += codes - TaskEvent.where(code: codes).pluck(:code)
       return unique_codes if unique_codes.count >= count
 
       # :nocov:
       if try_count < 10
-        @logger.warn("[WARN](#{try_count})Not unique code(#{codes})")
+        @logger.warn "[WARN](#{try_count})Not unique code(#{codes})"
       elsif try_count >= 10
         message = "[ERROR](#{try_count})Not unique code(#{codes})"
-        @logger.error(message)
+        @logger.error message
         raise message
       end
       try_count += 1
@@ -157,13 +158,13 @@ namespace :task_event do
 
     # REVIEW: dry_runでは今回作成分が対象にならない
     @processing_task_events = TaskEvent.where(space:).where.not(status: TaskEvent::NOT_NOTICE_STATUS)
-                                       .eager_load(task_cycle: :task).order(:status).merge(Task.order(:priority)).order(:id)
+      .eager_load(task_cycle: :task).order(:status).merge(Task.order(:priority)).order(:id)
     set_task_event_datas(notice_target, target_date)
 
     if send_setting["#{notice_target}_notice_completed"]
       @completed_task_events = TaskEvent.where(space:, status: TaskEvent::NOT_NOTICE_STATUS,
                                                last_completed_at: complete_start_date.beginning_of_day..target_date.end_of_day)
-                                        .eager_load(task_cycle: :task).order(:last_completed_at)
+        .eager_load(task_cycle: :task).order(:last_completed_at)
     else
       @completed_task_events = []
     end
@@ -174,7 +175,7 @@ namespace :task_event do
       next unless enable_send_target[send_target]
 
       send_history = SendHistory.new(history_params.merge(send_target:, started_at: Time.current))
-      if !send_setting["#{notice_target}_notice_required"] && @processing_task_events.count == 0 && @completed_task_events.count == 0
+      if !send_setting["#{notice_target}_notice_required"] && @processing_task_events.none? && @completed_task_events.none?
         send_history.status = :skip
         send_history.completed_at = Time.current
         send_history.save! unless dry_run
@@ -206,7 +207,7 @@ namespace :task_event do
       end
     end
 
-    @logger.info("notice_count: #{notice_count}")
+    @logger.info "notice_count: #{notice_count}"
     notice_count
   end
 
@@ -218,7 +219,7 @@ namespace :task_event do
       last_statuss[send_history.send_target] = send_history.status unless last_statuss.key?(send_history.send_target)
       break if SendHistory.send_targets.keys - last_statuss.keys == []
     end
-    @logger.debug("last_statuss: #{last_statuss}")
+    @logger.debug "last_statuss: #{last_statuss}"
 
     enable_send_target = {}
     SendHistory.send_targets.each_key do |send_target|
@@ -227,7 +228,7 @@ namespace :task_event do
 
       enable_send_target[send_target] = enabled
     end
-    @logger.debug("enable_send_target: #{enable_send_target}")
+    @logger.debug "enable_send_target: #{enable_send_target}"
 
     enable_send_target
   end

@@ -39,7 +39,7 @@ class TaskEvent < ApplicationRecord
 
   # ステータス
   NOT_NOTICE_STATUS = %i[complete unnecessary].freeze
-  enum status: {
+  enum :status, {
     untreated: 0,         # 未処理
     waiting_premise: 1,   # 前提対応待ち
     confirmed_premise: 2, # 前提確認済み
@@ -48,7 +48,7 @@ class TaskEvent < ApplicationRecord
     waiting_confirm: 7,   # 確認待ち
     complete: 8,          # 完了
     unnecessary: 9        # 対応不要
-  }, _prefix: true
+  }, prefix: true
 
   # 最終更新日時
   def last_updated_at

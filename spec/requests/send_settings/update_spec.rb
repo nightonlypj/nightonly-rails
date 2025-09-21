@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'SendSetting', type: :request do
-  let(:response_json) { JSON.parse(response.body) }
+  let(:response_json) { response.parsed_body }
   let(:response_json_send_setting)       { response_json['send_setting'] }
   let(:response_json_current_slack_user) { response_json['current_slack_user'] }
 

@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'SlackUser', type: :request do
-  let(:response_json) { JSON.parse(response.body) }
+  let(:response_json) { response.parsed_body }
   let(:response_json_slack_users) { response_json['slack_users'] }
 
   # GET /slack_users(.json) Slackユーザー情報一覧API

@@ -37,14 +37,14 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
       [FactoryBot.create(:task_event, :today_end, :processing, :assigned, task_cycle:)]
     end
     let_it_be(:date_include_task_events) do
-      task_cycles = 2.times.map { |index| FactoryBot.create(:task_cycle, task: tasks[index + 2]) }
+      task_cycles = Array.new(2) { |index| FactoryBot.create(:task_cycle, task: tasks[index + 2]) }
       [
         FactoryBot.create(:task_event, :tommorow_end, :assigned, task_cycle: task_cycles[0], assigned_user: user),
         FactoryBot.create(:task_event, :today_end, :update_end, task_cycle: task_cycles[1])
       ]
     end
     let_it_be(:completed_task_events) do
-      task_cycles = 2.times.map { |index| FactoryBot.create(:task_cycle, task: tasks[index + 2]) }
+      task_cycles = Array.new(2) { |index| FactoryBot.create(:task_cycle, task: tasks[index + 2]) }
       [
         FactoryBot.create(:task_event, :completed, :assigned, task_cycle: task_cycles[0], assigned_user: user),
         FactoryBot.create(:task_event, :completed, task_cycle: task_cycles[1])

@@ -21,7 +21,7 @@ class SendSettingsController < ApplicationAuthController
     end
 
     now = Time.current
-    ActiveRecord::Base.transaction do
+    ApplicationRecord.transaction do
       if exist_send_setting.present?
         exist_send_setting.update!(last_updated_user: current_user, deleted_at: nil)
         if @send_setting.present? && @send_setting.id != exist_send_setting.id
@@ -93,10 +93,10 @@ class SendSettingsController < ApplicationAuthController
 
     {
       slack_enabled: slack[:enabled],
-      slack_webhook_url: slack[:webhook_url].present? ? slack[:webhook_url] : nil,
-      slack_mention: slack[:mention].present? ? slack[:mention] : nil,
+      slack_webhook_url: slack[:webhook_url].presence,
+      slack_mention: slack[:mention].presence,
       email_enabled: email[:enabled],
-      email_address: email[:address].present? ? email[:address] : nil,
+      email_address: email[:address].presence,
       start_notice_start_hour: start_notice[:start_hour],
       start_notice_completed: start_notice[:completed],
       start_notice_required: start_notice[:required],

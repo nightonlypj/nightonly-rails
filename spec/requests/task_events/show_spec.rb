@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'TaskEvents', type: :request do
-  let(:response_json) { JSON.parse(response.body) }
+  let(:response_json) { response.parsed_body }
   let(:response_json_task)          { response_json['task'] }
   let(:response_json_event)         { response_json['event'] }
   let(:response_json_deleted_cycle) { response_json['deleted_cycle'] }

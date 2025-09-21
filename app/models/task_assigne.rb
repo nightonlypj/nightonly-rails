@@ -12,7 +12,7 @@ class TaskAssigne < ApplicationRecord
 
     errors = {}
     ids = []
-    codes = assigned_users.map { |user| user[:code] }
+    codes = assigned_users.pluck(:code)
     users = User.where(code: codes).eager_load(:members).where(members: { space: [space, nil] }).index_by(&:code)
     codes.each.with_index(1) do |code, index|
       key = self.class.check_assigned_user(users[code])
@@ -29,7 +29,7 @@ class TaskAssigne < ApplicationRecord
       errors[:assigned_user1] = I18n.t('errors.messages.assigned_users.max_count', count: Settings.task_assigne_users_max_count)
     end
 
-    self.user_ids = ids.join(',') if errors.count == 0
+    self.user_ids = ids.join(',') if errors.none?
     errors
   end
 

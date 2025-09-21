@@ -1,6 +1,7 @@
 class TaskEventsController < ApplicationAuthController
   include TasksConcern
   include TaskCyclesConcern
+
   before_action :response_not_acceptable_for_not_api
   before_action :authenticate_user!, only: :update
   before_action :response_api_for_user_destroy_reserved, only: :update
@@ -19,7 +20,7 @@ class TaskEventsController < ApplicationAuthController
 
     @tasks = {}
     @task_events = TaskEvent.where(space: @space, started_date: @start_date..@end_date)
-                            .eager_load(task_cycle: [task: %i[created_user last_updated_user]]).merge(Task.order(:priority)).order(:id)
+      .eager_load(task_cycle: [task: %i[created_user last_updated_user]]).merge(Task.order(:priority)).order(:id)
     @task_events.each do |task_event|
       task_cycle = task_event.task_cycle
       @tasks[task_cycle.task_id] = task_cycle.task if @tasks[task_cycle.task_id].blank?
@@ -29,12 +30,12 @@ class TaskEventsController < ApplicationAuthController
     return if next_start_date > @end_date
 
     set_exist_task_events
-    logger.debug("@exist_task_events: #{@exist_task_events}")
+    logger.debug "@exist_task_events: #{@exist_task_events}"
 
-    set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
+    set_holidays(@start_date - 2.months, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
     task_cycles = TaskCycle.active.where(space: @space).by_month(cycle_months(next_start_date, @end_date) + [nil])
-                           .eager_load(task: %i[created_user last_updated_user])
-                           .by_task_period(next_start_date, @end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
+      .eager_load(task: %i[created_user last_updated_user])
+      .by_task_period(next_start_date, @end_date).merge(Task.order(:priority)).order(:order, :updated_at, :id)
     task_cycles.each do |task_cycle|
       result = cycle_set_next_events(task_cycle, task_cycle.task, next_start_date, @end_date)
       @tasks[task_cycle.task_id] = task_cycle.task if result && @tasks[task_cycle.task_id].blank?
@@ -100,11 +101,11 @@ class TaskEventsController < ApplicationAuthController
   def validate_date(value)
     return nil, t('errors.messages.param.blank') if value.blank?
 
-    result, year, month, day = */^(\d+)-(\d+)-(\d+)$/.match(value.gsub(%r{/}, '-'))
+    result, year, month, day = */^(\d+)-(\d+)-(\d+)$/.match(value.tr('/', '-'))
     result, year, month, day = */^(\d{4})(\d{2})(\d{2})$/.match(value) if result.blank?
     return nil, t('errors.messages.param.invalid') if result.blank? || !(0..9999).cover?(year.to_i) || !(1..12).cover?(month.to_i) || !(1..31).cover?(day.to_i)
 
-    result = Time.new(year, month, day).to_date
+    result = Time.zone.local(year, month, day).to_date
     result = (result - 1.month).end_of_month if result.day != day.to_i # NOTE: 存在しない日付は丸められる為
 
     result

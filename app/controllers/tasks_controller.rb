@@ -1,6 +1,7 @@
 class TasksController < ApplicationAuthController
   include TasksConcern
   include TaskCyclesConcern
+
   before_action :response_not_acceptable_for_not_api
   before_action :authenticate_user!, only: %i[create update destroy]
   before_action :response_api_for_user_destroy_reserved, only: %i[create update destroy]
@@ -27,7 +28,7 @@ class TasksController < ApplicationAuthController
 
   # POST /tasks/:space_code/create(.json) タスク追加API(処理)
   def create
-    ActiveRecord::Base.transaction do
+    ApplicationRecord.transaction do
       @task.save!
       if @insert_task_cycles.present?
         insert_task_cycles = @insert_task_cycles.map { |insert_task_cycle| insert_task_cycle.merge(task_id: @task.id) }
@@ -45,7 +46,7 @@ class TasksController < ApplicationAuthController
   # POST /tasks/:space_code/update/:id(.json) タスク設定変更API(処理)
   def update
     if @task.changed? || @insert_task_cycles.present? || @upsert_task_cycles.present? || @delete_task_cycle_ids.present? || @task_assigne.user_ids_changed?
-      ActiveRecord::Base.transaction do
+      ApplicationRecord.transaction do
         @task.update!(last_updated_user: current_user, updated_at: @now)
         TaskCycle.insert_all!(@insert_task_cycles) if @insert_task_cycles.present?
         TaskCycle.upsert_all(@upsert_task_cycles) if @upsert_task_cycles.present?
@@ -61,7 +62,7 @@ class TasksController < ApplicationAuthController
   def destroy
     key = @ids.count == @tasks.count ? 'destroy' : 'destroy_include_notfound'
     @destroy_count = @tasks.count
-    notice = t("notice.task.#{key}", count: @ids.count.to_formatted_s(:delimited), destroy_count: @destroy_count.to_formatted_s(:delimited))
+    notice = t("notice.task.#{key}", count: @ids.count.to_fs(:delimited), destroy_count: @destroy_count.to_fs(:delimited))
 
     @tasks.destroy_all
     render locals: { notice: }
@@ -82,9 +83,9 @@ class TasksController < ApplicationAuthController
       @task_events = TaskEvent.joins(:task_cycle).where(space: @space, task_cycle: { task_id: @task.id }).by_month(@months).order(:id)
     end
     set_exist_task_events
-    logger.debug("@exist_task_events: #{@exist_task_events}")
+    logger.debug "@exist_task_events: #{@exist_task_events}"
 
-    set_holidays(@start_date - 2.month, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
+    set_holidays(@start_date - 2.months, @end_date) # NOTE: 期間が20営業日でも1ヶ月を超える場合がある為
     next_start_date = [@start_date, Time.zone.today].max
 
     @next_events = {}
@@ -174,9 +175,9 @@ class TasksController < ApplicationAuthController
     return if cycle_error > 0
 
     @delete_task_cycle_ids = active_task_cycles.values.pluck(:id) - active_task_cycle_ids
-    logger.debug("@insert_task_cycles: #{@insert_task_cycles}")
-    logger.debug("@upsert_task_cycles: #{@upsert_task_cycles}")
-    logger.debug("@delete_task_cycle_ids: #{@delete_task_cycle_ids}")
+    logger.debug "@insert_task_cycles: #{@insert_task_cycles}"
+    logger.debug "@upsert_task_cycles: #{@upsert_task_cycles}"
+    logger.debug "@delete_task_cycle_ids: #{@delete_task_cycle_ids}"
 
     if count == 0
       @task.errors.add(:cycles, t('errors.messages.task_cycles.active_notfound'))

@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'TaskEvents', type: :request do
-  let(:response_json) { JSON.parse(response.body) }
+  let(:response_json) { response.parsed_body }
   let(:response_json_event) { response_json['event'] }
 
   # POST /task_events/:space_code/update/:code(.json) タスクイベント変更API(処理)

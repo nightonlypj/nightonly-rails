@@ -1,11 +1,23 @@
 module TasksConcern
   extend ActiveSupport::Concern
 
+  SORT_COLUMN = {
+    'priority' => 'tasks.priority',
+    'title' => 'tasks.title',
+    'cycles' => 'task_cycles.cycle',
+    'started_date' => 'tasks.started_date',
+    'ended_date' => 'tasks.ended_date',
+    'created_user.name' => 'users.name',
+    'created_at' => 'tasks.created_at',
+    'last_updated_user.name' => 'last_updated_users_tasks.name',
+    'last_updated_at' => 'tasks.updated_at'
+  }.freeze
+
   private
 
   def set_task(id = params[:id])
     @task = Task.where(space: @space, id:).eager_load(:task_cycles_active, :task_assigne, :created_user, :last_updated_user)
-                .merge(TaskCycle.order(:order, :updated_at, :id)).first
+      .merge(TaskCycle.order(:order, :updated_at, :id)).first
     response_not_found if @task.blank?
   end
 
@@ -19,18 +31,6 @@ module TasksConcern
   def task_assigne_users(user_ids, space)
     User.active.where(id: user_ids).joins(:members).where(members: { space:, power: Member::POWER_WRITER_UP }).index_by(&:id)
   end
-
-  SORT_COLUMN = {
-    'priority' => 'tasks.priority',
-    'title' => 'tasks.title',
-    'cycles' => 'task_cycles.cycle',
-    'started_date' => 'tasks.started_date',
-    'ended_date' => 'tasks.ended_date',
-    'created_user.name' => 'users.name',
-    'created_at' => 'tasks.created_at',
-    'last_updated_user.name' => 'last_updated_users_tasks.name',
-    'last_updated_at' => 'tasks.updated_at'
-  }.freeze
 
   def get_value(task, output_item)
     # TODO
@@ -72,8 +72,8 @@ module TasksConcern
 
   def tasks_search
     Task.where(space: @space).search(@text).by_priority(@priorities).by_start_end_date(@before, @active, @after)
-        .eager_load(:task_cycles_active, :created_user, :last_updated_user)
-        .order(SORT_COLUMN[@sort] + (@desc ? ' DESC' : ''), id: :desc)
+      .eager_load(:task_cycles_active, :created_user, :last_updated_user)
+      .order(Arel.sql("#{SORT_COLUMN.fetch(@sort)} #{'DESC' if @desc}"), id: :desc)
     # .merge(TaskCycle.order(:order, :updated_at, :id)) # NOTE: ページの最後のtaskにtask_cycleが複数紐付く場合、次ページでの取得になる為
   end
 

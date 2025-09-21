@@ -133,7 +133,7 @@ RSpec.describe TaskEvent, type: :model do
       it_behaves_like 'Value', nil, 'nil'
     end
     context '更新日時が作成日時以降' do
-      let(:task_event) { FactoryBot.create(:task_event, created_at: Time.current - 1.hour, updated_at: Time.current) }
+      let(:task_event) { FactoryBot.create(:task_event, created_at: 1.hour.ago, updated_at: Time.current) }
       it '更新日時' do
         is_expected.to eq(task_event.updated_at)
       end

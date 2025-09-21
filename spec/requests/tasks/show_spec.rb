@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Tasks', type: :request do
-  let(:response_json) { JSON.parse(response.body) }
+  let(:response_json) { response.parsed_body }
   let(:response_json_task) { response_json['task'] }
 
   # GET /tasks/:space_code/detail/:id(.json) タスク詳細API

@@ -5,6 +5,8 @@ class SlackUsersController < ApplicationAuthController
   before_action :set_slack_users, only: :index
   before_action :validate_params_update, only: :update
 
+  MEMBERID_KEY = 'activerecord.errors.models.slack_user.attributes.memberid'.freeze
+
   # GET /slack_users(.json) Slackユーザー情報一覧API
   def index; end
 
@@ -39,7 +41,6 @@ class SlackUsersController < ApplicationAuthController
     @slack_users = SlackUser.where(slack_domain_id: slack_domain_ids, user: current_user).index_by(&:slack_domain_id)
   end
 
-  MEMBERID_KEY = 'activerecord.errors.models.slack_user.attributes.memberid'.freeze
   def validate_params_update
     errors = {}
     @memberids = {}
@@ -73,6 +74,6 @@ class SlackUsersController < ApplicationAuthController
 
   def current_members
     current_user.members.where(power: Member::POWER_WRITER_UP).joins({ space: { send_setting_active: :slack_domain } })
-                .merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:id)
+      .merge(SendSetting.order(updated_at: :desc, id: :desc)).order(:id)
   end
 end

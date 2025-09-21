@@ -1,11 +1,12 @@
 class NoticeSlack::IncompleteTaskJob < ApplicationJob
   include ERB::Util
   include SendHistoriesConcern
+
   queue_as :default
 
   # 未完了タスクのお知らせ（Slack）
   def perform(send_history_id)
-    logger.info("=== START #{self.class.name}.#{__method__}(#{send_history_id}) ===")
+    logger.info "=== START #{self.class.name}.#{__method__}(#{send_history_id}) ==="
 
     @send_history = SendHistory.eager_load(:send_setting).find(send_history_id)
     set_task_events(@send_history)
@@ -43,7 +44,7 @@ class NoticeSlack::IncompleteTaskJob < ApplicationJob
     @send_history.completed_at = Time.current
     @send_history.save!
 
-    logger.info("=== END #{self.class.name}.#{__method__}(#{send_history_id}) ===")
+    logger.info "=== END #{self.class.name}.#{__method__}(#{send_history_id}) ==="
   end
 
   private
@@ -62,7 +63,7 @@ class NoticeSlack::IncompleteTaskJob < ApplicationJob
     {
       title: I18n.t("notifier.task_event.type.#{key}.title"),
       color: I18n.t("notifier.task_event.type.#{key}.slack_color"),
-      text: text.present? ? text : I18n.t('notifier.task_event.list.notfound')
+      text: text.presence || I18n.t('notifier.task_event.list.notfound')
     }
   end
 

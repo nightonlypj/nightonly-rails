@@ -13,7 +13,7 @@ class Users::SessionsController < Devise::SessionsController
         next if flash[:alert] != message
 
         flash[:alert] = t("devise.failure.#{key}", locale: I18n.locale)
-        logger.debug("flash[:alert]: #{message} -> #{flash[:alert]}")
+        logger.debug "flash[:alert]: #{message} -> #{flash[:alert]}"
         break
       end
     end

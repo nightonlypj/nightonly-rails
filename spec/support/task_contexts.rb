@@ -20,8 +20,8 @@ shared_context 'タスク一覧作成' do |high_count, middle_count, low_count, 
     FactoryBot.create(:task_cycle, :weekly, wday: :mon, task: tasks[0], deleted_at: Time.current) # NOTE: 対象外
 
     result = {}
-    result[tasks[0].id] = [FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :wed, order: 1)] if tasks.count > 0
-    result[tasks[1].id] = [FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], order: 1)] if tasks.count > 1
+    result[tasks[0].id] = [FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :wed, order: 1)] if tasks.any?
+    result[tasks[1].id] = [FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], order: 1)] if tasks.many?
     result[tasks[2].id] = [FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], order: 1)] if tasks.count > 2
     result[tasks[3].id] = [FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[3], order: 1)] if tasks.count > 3
     if tasks.count > 4
@@ -539,7 +539,7 @@ shared_examples_for '無効なパラメータ（タスク）' do |update|
     it_behaves_like 'ToNG(json)', 422, { cycles: [get_locale('errors.messages.task_cycles.active_notfound')] }
   end
   context '周期が最大数より多い' do
-    let(:cycles) { (Settings.task_cycles_max_count + 1).times.map { |index| FactoryBot.attributes_for(:task_cycle, :monthly, :day, day: index + 1) } }
+    let(:cycles) { Array.new(Settings.task_cycles_max_count + 1) { |index| FactoryBot.attributes_for(:task_cycle, :monthly, :day, day: index + 1) } }
     let(:params) { { task: valid_task_attributes.merge(cycles:) } }
     it_behaves_like 'NG(html)'
     it_behaves_like 'ToNG(html)', 406 # NOTE: HTMLもログイン状態になる

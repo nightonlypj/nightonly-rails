@@ -120,7 +120,7 @@ RSpec.describe NoticeMailer, type: :mailer do
         it_behaves_like 'OK'
       end
       context '一昨日' do
-        let(:target_date) { Time.current - 2.days }
+        let(:target_date) { 2.days.ago }
         let(:target_date_i18n) { I18n.l(target_date) }
         it_behaves_like 'OK'
       end

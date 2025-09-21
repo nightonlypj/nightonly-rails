@@ -2,6 +2,7 @@
 
 class Users::ConfirmationsController < Devise::ConfirmationsController
   include Devise::ConfirmationsConcern
+
   prepend_before_action :response_not_found_for_api_mode_not_api
 
 =begin

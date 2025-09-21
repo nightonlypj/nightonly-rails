@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Tasks', type: :request do
-  let(:response_json) { JSON.parse(response.body) }
+  let(:response_json) { response.parsed_body }
   let(:response_json_task)  { response_json['task'] }
   let(:response_json_tasks) { response_json['tasks'] }
   let(:default_params) { { text: nil, priority: Task.priorities.keys.join(','), before: 1, active: 1, after: 0, sort: 'started_date', desc: 1 } }
@@ -20,7 +20,8 @@ RSpec.describe 'Tasks', type: :request do
         expect(response_json_tasks[tasks.count - index - 1]['id']).to eq(task.id)
       end
 
-      input_params = params.to_h { |key, value| [key, %i[text priority sort].include?(key) ? value : value.to_i] }
+      string_keys = %i[text priority sort]
+      input_params = params.to_h { |key, value| [key, string_keys.include?(key) ? value : value.to_i] }
       expect(response_json['search_params']).to eq(default_params.merge(input_params).stringify_keys)
     end
   end
@@ -29,7 +30,8 @@ RSpec.describe 'Tasks', type: :request do
       is_expected.to eq(200)
       expect(response_json_tasks.count).to eq(tasks.count)
 
-      input_params = params.to_h { |key, value| [key, %i[text power sort].include?(key) ? value : value.to_i] }
+      string_keys = %i[text priority sort]
+      input_params = params.to_h { |key, value| [key, string_keys.include?(key) ? value : value.to_i] }
       expect(response_json['search_params']).to eq(default_params.merge(input_params).stringify_keys)
     end
   end

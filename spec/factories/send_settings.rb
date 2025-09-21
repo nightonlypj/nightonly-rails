@@ -36,11 +36,11 @@ FactoryBot.define do
 
     # 論理削除
     trait :deleted do
-      deleted_at { Time.current - 1.day }
+      deleted_at { 1.day.ago }
     end
 
     trait :before_updated do
-      updated_at { Time.current - 1.day }
+      updated_at { 1.day.ago }
     end
   end
 end

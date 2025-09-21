@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'SendHistory', type: :request do
-  let(:response_json) { JSON.parse(response.body) }
+  let(:response_json) { response.parsed_body }
   let(:response_json_send_history)   { response_json['send_history'] }
   let(:response_json_send_histories) { response_json['send_histories'] }
 

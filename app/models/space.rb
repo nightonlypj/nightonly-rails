@@ -10,7 +10,7 @@ class Space < ApplicationRecord
   has_many :invitations, dependent: :destroy
   has_many :tasks, dependent: :destroy
   has_many :send_setting, dependent: :destroy
-  has_many :send_setting_active, -> { where(deleted_at: nil) }, class_name: 'SendSetting'
+  has_many :send_setting_active, -> { where(deleted_at: nil) }, class_name: 'SendSetting', inverse_of: :space, dependent: nil
   has_many :send_history, dependent: :destroy
 
   validates :code, presence: true
@@ -23,7 +23,7 @@ class Space < ApplicationRecord
   # 名称（ユニーク）
   def validate_name_uniqueness(current_user)
     checked = { public: true, private: true, join: true, nojoin: true, active: true, destroy: false } # NOTE: 検索オプションと同じ
-    errors.add(:name, :taken) if Space.by_target(current_user, checked).where(name:).exists?
+    errors.add(:name, :taken) if Space.by_target(current_user, checked).exists?(name:)
   end
 
   scope :by_target, ->(current_user, checked) {
@@ -103,7 +103,7 @@ class Space < ApplicationRecord
     when :xlarge
       image? ? image.xlarge.url : "/images/space/#{version}_noimage.jpg"
     else
-      logger.warn("[WARN]Not found: Space.image_url(#{version})")
+      logger.warn "[WARN]Not found: Space.image_url(#{version})"
       ''
     end
   end

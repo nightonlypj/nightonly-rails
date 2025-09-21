@@ -3,8 +3,8 @@ class Task < ApplicationRecord
   belongs_to :created_user,      class_name: 'User', optional: true # NOTE: アカウント削除済みでも変更できるようにoptionalを追加
   belongs_to :last_updated_user, class_name: 'User', optional: true
   has_many :task_cycles, dependent: :destroy
-  has_many :task_cycles_active, -> { where(deleted_at: nil) }, class_name: 'TaskCycle'
-  has_many :task_cycles_inactive, -> { where.not(deleted_at: nil) }, class_name: 'TaskCycle'
+  has_many :task_cycles_active, -> { where(deleted_at: nil) }, class_name: 'TaskCycle', inverse_of: :task, dependent: nil
+  has_many :task_cycles_inactive, -> { where.not(deleted_at: nil) }, class_name: 'TaskCycle', inverse_of: :task, dependent: nil
   has_one :task_assigne, dependent: :destroy
 
   validates :priority, presence: true
@@ -31,7 +31,7 @@ class Task < ApplicationRecord
     task
   }
   scope :by_priority, ->(priorities) {
-    return none if priorities.count == 0
+    return none if priorities.none?
     return if priorities.count >= Task.priorities.count
 
     where(priority: priorities)
@@ -49,12 +49,12 @@ class Task < ApplicationRecord
   }
 
   # 優先度
-  enum priority: {
+  enum :priority, {
     high: 1,   # 高
     middle: 2, # 中
     low: 3,    # 低
     none: 9    # 未設定
-  }, _prefix: true
+  }, prefix: true
 
   # 最終更新日時
   def last_updated_at
