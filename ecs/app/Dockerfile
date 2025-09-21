@@ -1,32 +1,14 @@
-FROM ruby:3.4.3-alpine
+FROM ruby:3.4.3-alpine AS builder
 RUN apk add --no-cache \
-    tzdata \
     build-base \
     yaml-dev \
     linux-headers \
-    yarn \
-    # SQLite
-    sqlite-dev \
-    sqlite-libs \
     # MySQL
     mysql-dev \
-    mysql-client \
     # PostgreSQL
-    postgresql-dev \
-    postgresql-client \
-    # 実行時に必要
-    bash \
-    shared-mime-info \
-    imagemagick \
-    imagemagick-dev \
-    graphviz \
-    ttf-freefont
-    
-WORKDIR /workdir
-ENV TZ='Asia/Tokyo'
+    postgresql-dev
 
-ENV RAILS_ENV="production"
-ENV RAILS_LOG_TO_STDOUT=1
+WORKDIR /workdir
 
 COPY Gemfile Gemfile.lock ./
 RUN gem install bundler -v 2.7.2 && \
@@ -34,6 +16,29 @@ RUN gem install bundler -v 2.7.2 && \
     bundle install -j4 --retry=3
 
 COPY . .
+
+FROM ruby:3.4.3-alpine
+RUN apk add --no-cache \
+    tzdata \
+    bash \
+    shared-mime-info \
+    imagemagick \
+    imagemagick-dev \
+    graphviz \
+    ttf-freefont \
+    # MySQL
+    mysql-client \
+    # PostgreSQL
+    postgresql-client
+
+WORKDIR /workdir
+ENV TZ='Asia/Tokyo'
+
+ENV RAILS_ENV="production"
+ENV RAILS_LOG_TO_STDOUT=1
+
+COPY --from=builder /workdir ./
+COPY --from=builder /usr/local/bundle /usr/local/bundle
 RUN mkdir -p tmp/pids tmp/sockets
 
 # NOTE: 存在チェック
