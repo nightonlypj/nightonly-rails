@@ -23,14 +23,12 @@ https://orbstack.dev/download
 # MYSQL_HOST=127.0.0.1
 # POSTGRES_HOST=127.0.0.1
 
-# Docker
+# docker
 MYSQL_HOST=mysql
 POSTGRES_HOST=pg
 ```
 
 ```bash
-$ cp -a config/settings/development.yml,local config/settings/development.yml
-
 # dockerをビルドして起動（Ctrl-Cで強制終了。-dは[make down]で終了）
 $ make up-all（または up-all-d）
 
@@ -301,7 +299,6 @@ $ brew uninstall postgresql@17
 
 ```bash
 $ cp -a .env.example .env
-$ cp -a config/settings/development.yml,local config/settings/development.yml
 
 # Gemインストール
 gem install bundler -v 2.7.2
@@ -520,10 +517,14 @@ nginx: configuration file /opt/homebrew/etc/nginx/nginx.conf test is successful
 
 $ brew services start nginx
 ```
+.envを変更
 ```bash
-$ cp -a config/settings/development.yml,dev config/settings/development.yml
-overwrite config/settings/development.yml? (y/n [n]) y
-
+# BASE_DOMAIN=localhost:3000
+# BASE_IMAGE_URL=http://localhost:3000
+BASE_DOMAIN=localhost
+BASE_IMAGE_URL=http://localhost
+```
+```bash
 # Railsサーバー起動
 $ make s
 
