@@ -8,7 +8,7 @@ RUN apk add --no-cache \
     # SQLite
     sqlite-dev \
     sqlite-libs \
-    # MySQL
+    # MySQL/MariaDB
     mysql-dev \
     mysql-client \
     # PostgreSQL
@@ -16,6 +16,7 @@ RUN apk add --no-cache \
     postgresql-client \
     # 実行時に必要
     bash \
+    curl \
     shared-mime-info \
     imagemagick \
     imagemagick-dev \
@@ -28,7 +29,6 @@ RUN apk add --no-cache \
     coreutils \
     busybox-extras \
     git \
-    curl \
     vim
 
 WORKDIR /workdir

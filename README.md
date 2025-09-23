@@ -329,7 +329,7 @@ $ make j（または jobs）
 
 ```bash
 # Schemaspy実行
-$ make ssd-mysql（または schemaspy-docker-mysql, ssd-pg, schemaspy-docker-pg, ssd-sqlite, schemaspy-docker-sqlite）
+$ make ssd-mysql（または schemaspy-docker-mysql, ssd-mariadb, schemaspy-docker-mariadb, ssd-pg, schemaspy-docker-pg, ssd-sqlite, schemaspy-docker-sqlite）
 ```
 
 #### localで実行
@@ -359,7 +359,7 @@ $ java -version
 openjdk version "24.0.2" 2025-07-15
 
 # Schemaspy実行
-$ make ss-mariadb（または schemaspy-mariadb, ss-mysql, schemaspy-mysql, ss-pg, schemaspy-pg, ss-sqlite, schemaspy-sqlite）
+$ make ss-mysql（または schemaspy-mysql, ss-mariadb, schemaspy-mariadb, ss-pg, schemaspy-pg, ss-sqlite, schemaspy-sqlite）
 ```
 
 ## 使い方

@@ -38,12 +38,12 @@ up-all-d:
 .PHONY: up-base
 up-base:
 	$(call CHECK_OUTSIDE_DOCKER)
-	docker compose up mysql pg schemaspy --build
+	docker compose up mysql mariadb pg schemaspy --build
 
 .PHONY: up-base-d
 up-base-d:
 	$(call CHECK_OUTSIDE_DOCKER)
-	docker compose up mysql pg schemaspy -d --build
+	docker compose up mysql mariadb pg schemaspy -d --build
 
 .PHONY: down
 down: ## dockerを停止します（通常終了）
@@ -186,12 +186,6 @@ schemaspy-docker-sqlite:
 	$(MAKE) -C schemaspy docker-sqlite
 ssd-sqlite: schemaspy-docker-sqlite
 
-.PHONY: schemaspy-mariadb ss-mariadb
-schemaspy-mariadb:
-	$(call CHECK_OUTSIDE_DOCKER)
-	$(MAKE) -C schemaspy mariadb
-ss-mariadb: schemaspy-mariadb
-
 .PHONY: schemaspy-mysql ss-mysql
 schemaspy-mysql:
 	$(call CHECK_OUTSIDE_DOCKER)
@@ -203,6 +197,18 @@ schemaspy-docker-mysql:
 	$(call CHECK_OUTSIDE_DOCKER)
 	$(MAKE) -C schemaspy docker-mysql
 ssd-mysql: schemaspy-docker-mysql
+
+.PHONY: schemaspy-mariadb ss-mariadb
+schemaspy-mariadb:
+	$(call CHECK_OUTSIDE_DOCKER)
+	$(MAKE) -C schemaspy mariadb
+ss-mariadb: schemaspy-mariadb
+
+.PHONY: schemaspy-docker-mariadb ssd-mariadb
+schemaspy-docker-mariadb:
+	$(call CHECK_OUTSIDE_DOCKER)
+	$(MAKE) -C schemaspy docker-mariadb
+ssd-mariadb: schemaspy-docker-mariadb
 
 .PHONY: schemaspy-pg ss-pg
 schemaspy-pg:

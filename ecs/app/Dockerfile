@@ -3,13 +3,14 @@ RUN apk add --no-cache \
     build-base \
     yaml-dev \
     linux-headers \
-    # MySQL
+    # MySQL/MariaDB
     mysql-dev \
     # PostgreSQL
     postgresql-dev
 
 WORKDIR /workdir
 
+ENV BUNDLE_NO_DOCUMENT=1
 COPY Gemfile Gemfile.lock ./
 RUN gem install bundler -v 2.7.2 && \
     bundle config set --local without 'test development' && \
@@ -20,16 +21,18 @@ COPY . .
 FROM ruby:3.4.3-alpine
 RUN apk add --no-cache \
     tzdata \
+    # MySQL/MariaDB
+    mysql-client \
+    # PostgreSQL
+    postgresql-client \
+    # 実行時に必要
     bash \
+    curl \
     shared-mime-info \
     imagemagick \
     imagemagick-dev \
     graphviz \
-    ttf-freefont \
-    # MySQL
-    mysql-client \
-    # PostgreSQL
-    postgresql-client
+    ttf-freefont
 
 WORKDIR /workdir
 ENV TZ='Asia/Tokyo'

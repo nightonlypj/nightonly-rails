@@ -6,10 +6,26 @@ services:
     volumes:
       - mysql:/var/lib/mysql
     env_file: .env
+    environment:
+      TZ: Asia/Tokyo
     ports:
       - 3306:3306
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "mysql"]
+      test: ["CMD", "mysqladmin" ,"ping", "-u", "root", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 5s # <- 30s
+      timeout: 10s # <- 30s
+      retries: 10 # <- 3
+  mariadb:
+    image: mariadb:12.0.2 # https://hub.docker.com/_/mariadb
+    volumes:
+      - mariadb:/var/lib/mysql
+    env_file: .env
+    environment:
+      TZ: Asia/Tokyo
+    ports:
+      - 4306:3306
+    healthcheck:
+      test: ["CMD", "mariadb-admin" ,"ping", "-u", "root", "-p$MARIADB_ROOT_PASSWORD"]
       interval: 5s # <- 30s
       timeout: 10s # <- 30s
       retries: 10 # <- 3
@@ -40,6 +56,7 @@ services:
       - 3000:3000
     depends_on:
       - mysql
+      - mariadb
       - pg
   web:
     image: nginx:1.27.5-alpine # https://hub.docker.com/_/nginx
@@ -73,6 +90,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      mariadb:
+        condition: service_healthy
       pg:
         condition: service_healthy
   schemaspy:
@@ -81,9 +100,11 @@ services:
       - ./schemaspy:/workdir/schemaspy
     depends_on:
       - mysql
+      - mariadb
       - pg
 volumes:
   mysql:
+  mariadb:
   pg:
   bundle_ruby_3.4:
   node_modules:
