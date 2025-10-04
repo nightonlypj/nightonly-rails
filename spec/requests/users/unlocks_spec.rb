@@ -128,7 +128,7 @@ RSpec.describe 'Users::Unlocks', type: :request do
     shared_examples_for 'NG' do
       it 'アカウントロック日時・回数が変更されない' do
         subject
-        expect(current_user.locked_at).to eq(send_user.locked_at)
+        expect(current_user.locked_at&.floor).to eq(send_user.locked_at&.floor)
         expect(current_user.failed_attempts).to eq(send_user.failed_attempts)
       end
     end

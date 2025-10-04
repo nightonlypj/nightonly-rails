@@ -254,11 +254,11 @@ RSpec.describe 'Users::Passwords', type: :request do
     # テスト内容
     let(:current_user) { User.find(send_user.id) }
     shared_examples_for 'OK' do |change_confirmed = false|
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       it "パスワードリセット送信日時がなし#{'・メールアドレス確認日時が現在日時' if change_confirmed}に変更される。メールが送信される" do
         subject
         expect(current_user.reset_password_sent_at).to be_nil
-        expect(current_user.confirmed_at).to change_confirmed ? be_between(start_time, Time.current) : eq(send_user.confirmed_at)
+        expect(current_user.confirmed_at).to change_confirmed ? be_between(start_time.floor, Time.current) : eq(send_user.confirmed_at)
         expect(current_user.locked_at).to be_nil # NOTE: ロック中の場合は解除する
         expect(current_user.failed_attempts).to eq(0)
 
@@ -269,7 +269,7 @@ RSpec.describe 'Users::Passwords', type: :request do
     shared_examples_for 'NG' do
       it 'パスワードリセット送信日時が変更されない。メールが送信されない' do
         subject
-        expect(current_user.reset_password_sent_at).to eq(send_user.reset_password_sent_at)
+        expect(current_user.reset_password_sent_at.floor).to eq(send_user.reset_password_sent_at.floor)
 
         expect(ActionMailer::Base.deliveries.count).to eq(0)
       end

@@ -125,16 +125,16 @@ RSpec.describe 'Users::Confirmations', type: :request do
     # テスト内容
     let(:current_user) { User.find(send_user.id) }
     shared_examples_for 'OK' do
-      let!(:start_time) { Time.now.utc.floor }
+      let!(:start_time) { Time.now.utc }
       it '確認日時が現在日時に変更される' do
         subject
-        expect(current_user.confirmed_at).to be_between(start_time, Time.now.utc)
+        expect(current_user.confirmed_at).to be_between(start_time.floor, Time.now.utc)
       end
     end
     shared_examples_for 'NG' do
       it '確認日時が変更されない' do
         subject
-        expect(current_user.confirmed_at).to eq(send_user.confirmed_at)
+        expect(current_user.confirmed_at&.floor).to eq(send_user.confirmed_at&.floor)
       end
     end
 

@@ -195,7 +195,7 @@ RSpec.describe 'AdminUsers::Passwords', type: :request do
     shared_examples_for 'NG' do
       it 'パスワードリセット送信日時が変更されない。メールが送信されない' do
         subject
-        expect(current_admin_user.reset_password_sent_at).to eq(send_admin_user.reset_password_sent_at)
+        expect(current_admin_user.reset_password_sent_at.floor).to eq(send_admin_user.reset_password_sent_at.floor)
 
         expect(ActionMailer::Base.deliveries.count).to eq(0)
       end

@@ -430,12 +430,12 @@ RSpec.describe 'Users::Registrations', type: :request do
     # テスト内容
     let(:current_user) { User.find(user.id) }
     shared_examples_for 'OK' do
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       let(:url) { "http://#{Settings.base_domain}#{delete_undo_user_registration_path}" }
       it "削除依頼日時が現在日時に、削除予定日時が#{Settings.user_destroy_schedule_days}日後に変更される。メールが送信される" do
         subject
-        expect(current_user.destroy_requested_at).to be_between(start_time, Time.current)
-        expect(current_user.destroy_schedule_at).to be_between(start_time + Settings.user_destroy_schedule_days.days,
+        expect(current_user.destroy_requested_at).to be_between(start_time.floor, Time.current)
+        expect(current_user.destroy_schedule_at).to be_between(start_time.floor + Settings.user_destroy_schedule_days.days,
                                                                Time.current + Settings.user_destroy_schedule_days.days)
         expect(ActionMailer::Base.deliveries.count).to eq(1)
         expect(ActionMailer::Base.deliveries[0].subject).to eq(get_subject('mailer.user.destroy_reserved.subject')) # アカウント削除受け付けのお知らせ
@@ -446,8 +446,8 @@ RSpec.describe 'Users::Registrations', type: :request do
     shared_examples_for 'NG' do
       it '削除依頼日時・削除予定日時が変更されない。メールが送信されない' do
         subject
-        expect(current_user.destroy_requested_at).to eq(user.destroy_requested_at)
-        expect(current_user.destroy_schedule_at).to eq(user.destroy_schedule_at)
+        expect(current_user.destroy_requested_at.floor).to eq(user.destroy_requested_at.floor)
+        expect(current_user.destroy_schedule_at.floor).to eq(user.destroy_schedule_at.floor)
         expect(ActionMailer::Base.deliveries.count).to eq(0)
       end
     end

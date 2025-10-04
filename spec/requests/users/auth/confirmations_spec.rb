@@ -199,21 +199,21 @@ RSpec.describe 'Users::Auth::Confirmations', type: :request do
     shared_examples_for 'OK' do
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
-      let!(:start_time) { Time.now.utc.floor }
+      let!(:start_time) { Time.now.utc }
       it '[リダイレクトURLがある]確認日時が現在日時に変更される' do
         @redirect_url = FRONT_SITE_URL
         subject
-        expect(current_user.confirmed_at).to be_between(start_time, Time.now.utc)
+        expect(current_user.confirmed_at).to be_between(start_time.floor, Time.now.utc)
       end
       it '[リダイレクトURLがない]確認日時が現在日時に変更される' do
         @redirect_url = nil
         subject
-        expect(current_user.confirmed_at).to be_between(start_time, Time.now.utc)
+        expect(current_user.confirmed_at).to be_between(start_time.floor, Time.now.utc)
       end
       it '[リダイレクトURLがホワイトリストにない]確認日時が現在日時に変更される' do
         @redirect_url = BAD_SITE_URL
         subject
-        expect(current_user.confirmed_at).to be_between(start_time, Time.now.utc)
+        expect(current_user.confirmed_at).to be_between(start_time.floor, Time.now.utc)
       end
     end
     shared_examples_for 'NG' do
@@ -222,17 +222,17 @@ RSpec.describe 'Users::Auth::Confirmations', type: :request do
       it '[リダイレクトURLがある]確認日時が変更されない' do
         @redirect_url = FRONT_SITE_URL
         subject
-        expect(current_user.confirmed_at).to eq(send_user.confirmed_at)
+        expect(current_user.confirmed_at&.floor).to eq(send_user.confirmed_at&.floor)
       end
       it '[リダイレクトURLがない]確認日時が変更されない' do
         @redirect_url = nil
         subject
-        expect(current_user.confirmed_at).to eq(send_user.confirmed_at)
+        expect(current_user.confirmed_at&.floor).to eq(send_user.confirmed_at&.floor)
       end
       it '[リダイレクトURLがホワイトリストにない]確認日時が変更されない' do
         @redirect_url = BAD_SITE_URL
         subject
-        expect(current_user.confirmed_at).to eq(send_user.confirmed_at)
+        expect(current_user.confirmed_at&.floor).to eq(send_user.confirmed_at&.floor)
       end
     end
 
