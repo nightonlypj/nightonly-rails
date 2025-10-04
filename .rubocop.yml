@@ -197,7 +197,9 @@ Rails/NegateInclude:
 
 # C: [Correctable] Rails/Output: Do not write to stdout. Use Rails's logger if you want to log.
 Rails/Output:
-  Enabled: false
+  Exclude:
+    - 'config/unicorn.rb'
+    - 'db/seeds.rb'
 
 # C: [Correctable] Rails/RedundantActiveRecordAllMethod: Redundant all detected.
 Rails/RedundantActiveRecordAllMethod:

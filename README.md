@@ -30,7 +30,7 @@ POSTGRES_HOST=pg
 
 ```bash
 # dockerをビルドして起動（Ctrl-Cで強制終了。-dは[make down]で終了）
-$ make up-all（または up-all-d）
+$ make up（または up-all, up-d, up-all-d）
 
 # データベース・初期データ作成・更新
 $ make db
@@ -380,7 +380,7 @@ $ make db
 $ make reset
 
 # Gemインストール
-$ make bundle
+$ make install（または bundle）
 ```
 
 ### 起動
@@ -503,6 +503,8 @@ server {
         proxy_set_header    X-Real-IP           $remote_addr;
         proxy_redirect      off;
         proxy_pass          http://127.0.0.1:3000;
+
+        proxy_hide_header   X-Runtime;
     }
 }
 ### END ###

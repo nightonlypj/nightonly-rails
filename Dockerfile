@@ -15,7 +15,6 @@ RUN apk add --no-cache \
     postgresql-dev \
     postgresql-client \
     # 実行時に必要
-    bash \
     curl \
     shared-mime-info \
     imagemagick \
@@ -28,6 +27,7 @@ RUN apk add --no-cache \
     musl-locales-lang \
     coreutils \
     busybox-extras \
+    bash \
     git \
     vim
 
@@ -38,15 +38,12 @@ ENV TZ='Asia/Tokyo'
 ENV LANG='ja_JP.UTF-8'
 ENV LC_ALL='ja_JP.UTF-8'
 
-COPY Gemfile Gemfile.lock ./
-RUN gem install bundler -v 2.7.2 && \
-    bundle install -j4 --retry=3
+# NOTE: developmentではcompose.ymlのcommandで実行している為、不要
+# COPY Gemfile Gemfile.lock ./
+# RUN gem install bundler -v 2.7.2 && \
+#     bundle install -j4 --retry=3
 
-# developmentのみ
-COPY package.json yarn.lock ./
-RUN yarn install
-
-# developmentは不要
+# NOTE: developmentではcompose.ymlのvolumesを使用している為、不要
 # COPY . .
 
 # developmentのみ

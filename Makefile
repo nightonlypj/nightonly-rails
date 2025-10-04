@@ -25,15 +25,17 @@ define RUN_CMD
 	$(1)
 endef
 
-.PHONY: up-all
-up-all:
+.PHONY: up up-all
+up:
 	$(call CHECK_OUTSIDE_DOCKER)
 	docker compose up --build
+up-all: up
 
-.PHONY: up-all-d
-up-all-d:
+.PHONY: up-d up-all-d
+up-d:
 	$(call CHECK_OUTSIDE_DOCKER)
 	docker compose up -d --build
+up-all-d: up-d
 
 .PHONY: up-base
 up-base:
@@ -46,7 +48,7 @@ up-base-d:
 	docker compose up mysql mariadb pg schemaspy -d --build
 
 .PHONY: down
-down: ## dockerを停止します（通常終了）
+down:
 	$(call CHECK_OUTSIDE_DOCKER)
 	docker compose down
 
@@ -60,10 +62,11 @@ bash-new:
 	$(call CHECK_OUTSIDE_DOCKER)
 	docker compose run --rm app bash
 
-.PHONY: bundle
+.PHONY: bundle install
 bundle:
 	@CMD="bundle install -j4 --retry=3"; \
-	if $(IS_IN_DOCKER); then $(call RUN_CMD,$$CMD); else $(call RUN_CMD,docker compose run --rm app $$CMD); fi
+	if $(IS_IN_DOCKER) || ! $(IS_APP_RUNNING); then $(call RUN_CMD,$$CMD); else $(call RUN_CMD,docker compose exec app $$CMD); fi
+install: bundle
 
 .PHONY: db
 db:

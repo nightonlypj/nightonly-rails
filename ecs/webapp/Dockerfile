@@ -26,7 +26,6 @@ RUN apk add --no-cache \
     # PostgreSQL
     postgresql-client \
     # 実行時に必要
-    bash \
     curl \
     shared-mime-info \
     imagemagick \
@@ -62,4 +61,4 @@ ENTRYPOINT ["entrypoint.sh"]
 
 # Configure the main process to run when running the image
 # NOTE: assets:precompileは起動時に実施。SECRET_KEY_BASEが必要な為
-CMD ["bash", "-c", "nginx && bundle exec rails db:migrate db:seed assets:precompile && bundle exec unicorn -c config/unicorn.rb"]
+CMD ["/bin/sh", "-c", "nginx && bundle exec rails db:migrate db:seed assets:precompile && bundle exec unicorn -c config/unicorn.rb"]

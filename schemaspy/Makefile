@@ -21,7 +21,7 @@ docker-sqlite:
 
 .PHONY: mysql
 mysql:
-	@bash -c '\
+	@/bin/sh -c '\
 		set -e; \
 		set -a; source ../.env; set +a; \
 		CMD="java -jar $(SCHEMASPY_JAR) -t mysql -host 127.0.0.1 -port $$MYSQL_PORT -s $$DB_NAME_DEVELOPMENT -db $$DB_NAME_DEVELOPMENT -u $$DB_MYSQL_USER -p $$DB_MYSQL_PASSWORD"; \
@@ -31,7 +31,7 @@ mysql:
 
 .PHONY: docker-mysql
 docker-mysql:
-	@bash -c '\
+	@/bin/sh -c '\
 		set -e; \
 		set -a; source ../.env; set +a; \
 		CMD="docker compose run --rm schemaspy java -jar $(SCHEMASPY_JAR) -t mysql -host mysql -port 3306 -s $$DB_NAME_DEVELOPMENT -db $$DB_NAME_DEVELOPMENT -u $$DB_MYSQL_USER -p $$DB_MYSQL_PASSWORD"; \
@@ -41,7 +41,7 @@ docker-mysql:
 
 .PHONY: mariadb
 mariadb:
-	@bash -c '\
+	@/bin/sh -c '\
 		set -e; \
 		set -a; source ../.env; set +a; \
 		CMD="java -jar $(SCHEMASPY_JAR) -t mariadb -host 127.0.0.1 -port $$MYSQL_PORT -s $$DB_NAME_DEVELOPMENT -db $$DB_NAME_DEVELOPMENT -u $$DB_MYSQL_USER -p $$DB_MYSQL_PASSWORD"; \
@@ -51,7 +51,7 @@ mariadb:
 
 .PHONY: docker-mariadb
 docker-mariadb:
-	@bash -c '\
+	@/bin/sh -c '\
 		set -e; \
 		set -a; source ../.env; set +a; \
 		CMD="docker compose run --rm schemaspy java -jar $(SCHEMASPY_JAR) -t mariadb -host mariadb -port 3306 -s $$DB_NAME_DEVELOPMENT -db $$DB_NAME_DEVELOPMENT -u $$DB_MYSQL_USER -p $$DB_MYSQL_PASSWORD"; \
@@ -61,7 +61,7 @@ docker-mariadb:
 
 .PHONY: pg
 pg:
-	@bash -c '\
+	@/bin/sh -c '\
 		set -e; \
 		set -a; source ../.env; set +a; \
 		CMD="java -jar $(SCHEMASPY_JAR) -t pgsql -host 127.0.0.1 -port $$POSTGRES_PORT -s public -db $$DB_NAME_DEVELOPMENT -u $$POSTGRES_USER -p $$POSTGRES_PASSWORD"; \
@@ -71,7 +71,7 @@ pg:
 
 .PHONY: docker-pg
 docker-pg:
-	@bash -c '\
+	@/bin/sh -c '\
 		set -e; \
 		set -a; source ../.env; set +a; \
 		CMD="docker compose run --rm schemaspy java -jar $(SCHEMASPY_JAR) -t pgsql -host pg -port 5432 -s public -db $$DB_NAME_DEVELOPMENT -u $$POSTGRES_USER -p $$POSTGRES_PASSWORD"; \
