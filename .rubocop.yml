@@ -234,7 +234,7 @@ RSpec/DescribeSymbol:
 RSpec/EmptyLineAfterExample:
   Enabled: false
 
-# C: [Correctable] RSpec/EmptyLineAfterExampleGroup: Add an empty line after shared_examples_for.
+# C: [Correctable] RSpec/EmptyLineAfterExampleGroup: Add an empty line after shared_examples.
 RSpec/EmptyLineAfterExampleGroup:
   Enabled: false
 
