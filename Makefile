@@ -151,7 +151,7 @@ l: rubocop
 rspec:
 	@CMD="bundle exec rspec $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))"; \
 	if $(IS_IN_DOCKER) || ! $(IS_APP_RUNNING); then $(call RUN_CMD,$$CMD); else $(call RUN_CMD,docker compose exec app $$CMD); fi
-	if [ $(words $(MAKECMDGOALS)) -eq 1 ]; then open coverage/index.html; fi
+	@if [ $(words $(MAKECMDGOALS)) -eq 1 ]; then $(call RUN_CMD,open coverage/index.html); fi
 
 .PHONY: brakeman b
 brakeman:
