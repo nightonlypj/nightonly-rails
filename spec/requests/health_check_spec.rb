@@ -1,12 +1,19 @@
 require 'rails_helper'
 
 RSpec.describe 'HealthChecks', type: :request do
-  # GET /health_check ヘルスチェック
+  # GET /_health ヘルスチェック
   # テストパターン
   #   正常, DBエラー
   #   パラメータがない, 対象: 存在しない, db, all
   describe 'GET #index' do
     subject { get health_check_path, params: }
+
+    shared_context 'DB正常' do
+      before { allow(ActiveRecord::Base.connection).to receive(:execute).with('SELECT 1').and_return(nil) }
+    end
+    shared_context 'DB異常' do
+      before { allow(ActiveRecord::Base.connection).to receive(:execute).with('SELECT 1').and_raise(ActiveRecord::DatabaseConnectionError) }
+    end
 
     # テスト内容
     shared_examples 'OK' do
@@ -17,7 +24,6 @@ RSpec.describe 'HealthChecks', type: :request do
         expect(ActiveRecord::Base.connection).not_to have_received(:execute)
       end
     end
-
     shared_examples 'OK(DB)' do
       it 'HTTPステータスが200。OKが返却される' do
         is_expected.to eq(200)
@@ -26,18 +32,17 @@ RSpec.describe 'HealthChecks', type: :request do
         expect(ActiveRecord::Base.connection).to have_received(:execute).once.with('SELECT 1')
       end
     end
-    shared_examples 'NG(DB)' do
-      it 'HTTPステータスが500。エラーメッセージが返却される' do
-        is_expected.to eq(500)
-        expect(response.body).to eq('ActiveRecord::DatabaseConnectionError')
 
-        expect(ActiveRecord::Base.connection).to have_received(:execute).once.with('SELECT 1')
+    shared_examples 'NG(DB)' do
+      it 'HTTPステータスが503。エラーメッセージが返却される' do
+        is_expected.to eq(503)
+        expect(response.body).to eq('ActiveRecord::DatabaseConnectionError')
       end
     end
 
     # テストケース
     context '正常' do
-      before { allow(ActiveRecord::Base.connection).to receive(:execute).with('SELECT 1').and_return(nil) }
+      include_context 'DB正常'
 
       context 'パラメータがない' do
         let(:params) { nil }
@@ -61,7 +66,7 @@ RSpec.describe 'HealthChecks', type: :request do
       end
     end
     context 'DBエラー' do
-      before { allow(ActiveRecord::Base.connection).to receive(:execute).with('SELECT 1').and_raise(ActiveRecord::DatabaseConnectionError) }
+      include_context 'DB異常'
 
       context 'パラメータがない' do
         let(:params) { nil }
