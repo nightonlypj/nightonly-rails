@@ -36,7 +36,7 @@ RSpec.describe 'TaskEvents', type: :request do
     let_it_be(:user_destroy)      { FactoryBot.build_stubbed(:user) }
 
     # テスト内容
-    shared_examples_for 'ToOK(json/json)' do
+    shared_examples 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
@@ -64,7 +64,7 @@ RSpec.describe 'TaskEvents', type: :request do
     end
 
     # テストケース
-    shared_examples_for 'イベント・タスクがある' do
+    shared_examples 'イベント・タスクがある' do
       let_it_be(:tasks) do
         [
           FactoryBot.create(:task, :skip_validate, :high, space:, started_date: Date.new(2022, 12, 1), ended_date: Date.new(2023, 1, 31),
@@ -123,14 +123,14 @@ RSpec.describe 'TaskEvents', type: :request do
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToOK(json)'
     end
-    shared_examples_for 'イベント・タスクがない' do
+    shared_examples 'イベント・タスクがない' do
       let(:expect_events) { [] }
       let(:expect_tasks) { [] }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToOK(json)'
     end
 
-    shared_examples_for '終了日' do
+    shared_examples '終了日' do
       context 'ない' do
         let(:end_date) { nil }
         it_behaves_like 'ToNG(html)', 406
@@ -186,7 +186,7 @@ RSpec.describe 'TaskEvents', type: :request do
       end
     end
 
-    shared_examples_for '開始日' do
+    shared_examples '開始日' do
       let(:params) { { start_date:, end_date: } }
       context 'ない' do
         let(:start_date) { nil }
@@ -222,41 +222,41 @@ RSpec.describe 'TaskEvents', type: :request do
       end
     end
 
-    shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
+    shared_examples '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
       let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '開始日'
     end
-    shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do
+    shared_examples '[APIログイン中/削除予約済み][非公開]権限がない' do
       let(:params) { valid_params }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 403
     end
 
-    shared_examples_for '[*]スペースが存在しない' do
+    shared_examples '[*]スペースが存在しない' do
       let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       let(:params) { valid_params }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 404
     end
-    shared_examples_for '[*]スペースが公開' do
+    shared_examples '[*]スペースが公開' do
       let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       let(:member) { nil }
       it_behaves_like '開始日'
     end
-    shared_examples_for '[未ログイン]スペースが非公開' do
+    shared_examples '[未ログイン]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       let(:params) { valid_params }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 401
     end
-    shared_examples_for '[APIログイン中/削除予約済み]スペースが非公開' do
+    shared_examples '[APIログイン中/削除予約済み]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :admin
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :reader
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がない'
     end
 
-    shared_examples_for '[APIログイン中/削除予約済み]' do
+    shared_examples '[APIログイン中/削除予約済み]' do
       it_behaves_like '[*]スペースが存在しない'
       it_behaves_like '[*]スペースが公開'
       it_behaves_like '[APIログイン中/削除予約済み]スペースが非公開'

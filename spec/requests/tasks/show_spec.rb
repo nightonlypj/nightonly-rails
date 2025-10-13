@@ -29,7 +29,7 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     # テスト内容
-    shared_examples_for 'ToOK(json/json)' do
+    shared_examples 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
@@ -44,7 +44,7 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     # テストケース
-    shared_examples_for 'タスク担当者' do
+    shared_examples 'タスク担当者' do
       context 'いない' do
         let(:task_assigne_users) { nil }
         it_behaves_like 'ToNG(html)', 406
@@ -57,12 +57,12 @@ RSpec.describe 'Tasks', type: :request do
       end
     end
 
-    shared_examples_for '[APIログイン中/削除予約済み][*][ある]タスクIDが存在する' do
+    shared_examples '[APIログイン中/削除予約済み][*][ある]タスクIDが存在する' do
       let_it_be(:task) { FactoryBot.create(:task, space:, created_user:) }
       let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, :weekly, task:, order: 1)] }
       it_behaves_like 'タスク担当者'
     end
-    shared_examples_for '[*][公開][ない]タスクIDが存在する' do
+    shared_examples '[*][公開][ない]タスクIDが存在する' do
       let_it_be(:task) { FactoryBot.create(:task, space:, created_user:) }
       let_it_be(:task_cycles) do
         task_cycle = FactoryBot.create(:task_cycle, :yearly, :week, task:, order: 3)
@@ -74,61 +74,61 @@ RSpec.describe 'Tasks', type: :request do
       end
       it_behaves_like 'タスク担当者'
     end
-    shared_examples_for '[*][*][*]タスクIDが存在しない' do
+    shared_examples '[*][*][*]タスクIDが存在しない' do
       let_it_be(:task) { FactoryBot.build_stubbed(:task) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 404
     end
 
-    shared_examples_for '[APIログイン中/削除予約済み][*]権限がある' do |power|
+    shared_examples '[APIログイン中/削除予約済み][*]権限がある' do |power|
       let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '[APIログイン中/削除予約済み][*][ある]タスクIDが存在する'
       it_behaves_like '[*][*][*]タスクIDが存在しない'
     end
-    shared_examples_for '[*][公開]権限がない' do
+    shared_examples '[*][公開]権限がない' do
       let(:member) { nil }
       it_behaves_like '[*][公開][ない]タスクIDが存在する'
       it_behaves_like '[*][*][*]タスクIDが存在しない'
     end
-    shared_examples_for '[未ログイン][非公開]権限がない' do
+    shared_examples '[未ログイン][非公開]権限がない' do
       let_it_be(:task) { FactoryBot.create(:task, space:, created_user:) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 401
     end
-    shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do
+    shared_examples '[APIログイン中/削除予約済み][非公開]権限がない' do
       let_it_be(:task) { FactoryBot.create(:task, space:, created_user:) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 403
     end
 
-    shared_examples_for '[*]スペースが存在しない' do
+    shared_examples '[*]スペースが存在しない' do
       let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       let_it_be(:task) { FactoryBot.build_stubbed(:task) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 404
     end
-    shared_examples_for '[未ログイン]スペースが公開' do
+    shared_examples '[未ログイン]スペースが公開' do
       let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       include_context 'メンバーパターン作成(member)'
       # it_behaves_like '[未ログイン][*]権限がある', :admin # NOTE: 未ログインの為、権限がない
       # it_behaves_like '[未ログイン][*]権限がある', :reader
       it_behaves_like '[*][公開]権限がない'
     end
-    shared_examples_for '[APIログイン中/削除予約済み]スペースが公開' do
+    shared_examples '[APIログイン中/削除予約済み]スペースが公開' do
       let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       include_context 'メンバーパターン作成(member)'
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :admin
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :reader
       it_behaves_like '[*][公開]権限がない'
     end
-    shared_examples_for '[未ログイン]スペースが非公開' do
+    shared_examples '[未ログイン]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       include_context 'メンバーパターン作成(member)'
       # it_behaves_like '[未ログイン][*]権限がある', :admin # NOTE: 未ログインの為、権限がない
       # it_behaves_like '[未ログイン][*]権限がある', :reader
       it_behaves_like '[未ログイン][非公開]権限がない'
     end
-    shared_examples_for '[APIログイン中/削除予約済み]スペースが非公開' do
+    shared_examples '[APIログイン中/削除予約済み]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       include_context 'メンバーパターン作成(member)'
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :admin
@@ -136,7 +136,7 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がない'
     end
 
-    shared_examples_for '[APIログイン中/削除予約済み]' do
+    shared_examples '[APIログイン中/削除予約済み]' do
       it_behaves_like '[*]スペースが存在しない'
       it_behaves_like '[APIログイン中/削除予約済み]スペースが公開'
       it_behaves_like '[APIログイン中/削除予約済み]スペースが非公開'

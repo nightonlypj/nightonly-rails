@@ -47,7 +47,7 @@ RSpec.describe 'Tasks', type: :request do
     # テスト内容
     let(:current_task)               { Task.eager_load(:task_cycles_active, :task_assigne).last }
     let(:current_task_cycles_active) { current_task.task_cycles_active.order(:order, :updated_at, :id) }
-    shared_examples_for 'OK' do
+    shared_examples 'OK' do
       it 'タスクが1件・周期が対象数作成・対象項目が設定される' do
         expect do
           subject
@@ -85,13 +85,13 @@ RSpec.describe 'Tasks', type: :request do
         end.to change(Task, :count).by(1) && change(TaskCycle, :count).by(expect_task_cycles_active.count)
       end
     end
-    shared_examples_for 'NG' do
+    shared_examples 'NG' do
       it 'タスク・周期が作成されない' do
         expect { subject }.not_to change(Task, :count) && change(TaskCycle, :count)
       end
     end
 
-    shared_examples_for 'ToOK(json/json)' do
+    shared_examples 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       let(:task_count) { 1 }
@@ -123,14 +123,14 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     # テストケース
-    shared_examples_for '[APIログイン中][*]権限がある' do |power|
+    shared_examples '[APIログイン中][*]権限がある' do |power|
       let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like 'パラメータなし（タスク）'
       it_behaves_like '有効なパラメータ（タスク周期）'
       it_behaves_like '有効なパラメータ（タスク担当者）'
       it_behaves_like '無効なパラメータ（タスク）'
     end
-    shared_examples_for '[APIログイン中][*]権限がない' do |power|
+    shared_examples '[APIログイン中][*]権限がない' do |power|
       let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) if power.present? }
       let(:params) { { task: valid_attributes } }
       it_behaves_like 'NG(html)'
@@ -139,7 +139,7 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like 'ToNG(json)', 403
     end
 
-    shared_examples_for '[APIログイン中][*]' do
+    shared_examples '[APIログイン中][*]' do
       include_context 'メンバーパターン作成(member)'
       it_behaves_like '[APIログイン中][*]権限がある', :admin
       it_behaves_like '[APIログイン中][*]権限がある', :writer
@@ -147,7 +147,7 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like '[APIログイン中][*]権限がない', nil
     end
 
-    shared_examples_for '[APIログイン中]スペースが存在しない' do
+    shared_examples '[APIログイン中]スペースが存在しない' do
       let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       let(:params) { { task: valid_attributes } }
       it_behaves_like 'NG(html)'
@@ -155,15 +155,15 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 404
     end
-    shared_examples_for '[APIログイン中]スペースが公開' do
+    shared_examples '[APIログイン中]スペースが公開' do
       let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       it_behaves_like '[APIログイン中][*]'
     end
-    shared_examples_for '[APIログイン中]スペースが非公開' do
+    shared_examples '[APIログイン中]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like '[APIログイン中][*]'
     end
-    shared_examples_for '[APIログイン中]スペースが非公開（削除予約済み）' do
+    shared_examples '[APIログイン中]スペースが非公開（削除予約済み）' do
       let_it_be(:space) { FactoryBot.create(:space, :private, :destroy_reserved, created_user:) }
       let(:params) { { task: valid_attributes } }
       before_all { FactoryBot.create(:member, space:, user:) }

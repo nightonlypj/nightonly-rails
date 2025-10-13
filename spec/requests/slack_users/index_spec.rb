@@ -21,7 +21,7 @@ RSpec.describe 'SlackUser', type: :request do
     before_all { spaces.each { |space| FactoryBot.create(:member, space:, user: other_user) } }
 
     # テスト内容
-    shared_examples_for 'ToOK(json/json)' do
+    shared_examples 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
@@ -36,7 +36,7 @@ RSpec.describe 'SlackUser', type: :request do
     end
 
     # テストケース
-    shared_examples_for '[APIログイン中/削除予約済み]' do
+    shared_examples '[APIログイン中/削除予約済み]' do
       context '参加スペースがない' do
         let(:except_memberids) { {} }
         it_behaves_like 'ToNG(html)', 406

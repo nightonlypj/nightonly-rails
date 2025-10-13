@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe NoticeMailer, type: :mailer do
   # テスト内容（共通）
-  shared_examples_for 'Header' do
+  shared_examples 'Header' do
     it 'タイトル・送信者のメールアドレスが設定と、宛先がユーザーのメールアドレスと一致する' do
       expect(mail.subject).to eq(get_subject(mail_subject, space_name: space.name, env_name: Settings.env_name || ''))
       expect(mail.from).to eq([Settings.mailer_from.email])
@@ -35,7 +35,7 @@ RSpec.describe NoticeMailer, type: :mailer do
 
     # テスト内容
     let(:current_send_history) { SendHistory.find(send_history.id) }
-    shared_examples_for 'OK' do
+    shared_examples 'OK' do
       let!(:start_time) { Time.current }
       it_behaves_like 'Header'
       it '対象項目が含まれる。ステータスが成功、対象項目が変更される' do
@@ -101,7 +101,7 @@ RSpec.describe NoticeMailer, type: :mailer do
         expect(current_send_history.completed_at).to be_between(start_time.floor, Time.current)
       end
     end
-    shared_examples_for 'NG' do
+    shared_examples 'NG' do
       let!(:start_time) { Time.current }
       it 'ステータスが失敗、対象項目が変更される' do
         expect(mail.to).to be_nil
@@ -113,7 +113,7 @@ RSpec.describe NoticeMailer, type: :mailer do
     end
 
     # テストケース
-    shared_examples_for 'target_date' do
+    shared_examples 'target_date' do
       context '今日' do
         let(:target_date) { Time.current }
         let(:target_date_i18n) { nil }

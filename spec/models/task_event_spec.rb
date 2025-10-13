@@ -151,14 +151,14 @@ RSpec.describe TaskEvent, type: :model do
     let_it_be(:user) { FactoryBot.create(:user) }
 
     # テスト内容
-    shared_examples_for 'OK' do |params, value|
+    shared_examples 'OK' do |params, value|
       let(:type) { params[:type] }
       let(:notice_target) { params[:notice_target] }
       it_behaves_like 'Value', value, "#{params}の場合、#{value}"
     end
 
     # テストケース
-    shared_examples_for '[未処理/前提対応待ち/前提確認済み]担当者' do
+    shared_examples '[未処理/前提対応待ち/前提確認済み]担当者' do
       context 'いない' do
         let_it_be(:task_event) { FactoryBot.create(:task_event, status:) }
         it_behaves_like 'OK', { type: :next, notice_target: :start }, ':alarm_clock:'
@@ -186,7 +186,7 @@ RSpec.describe TaskEvent, type: :model do
         it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
       end
     end
-    shared_examples_for '[処理中]担当者がいない/いる' do
+    shared_examples '[処理中]担当者がいない/いる' do
       it_behaves_like 'OK', { type: :next, notice_target: :start }, ':alarm_clock:'
       it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':red_circle:'
       it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':cloud:' # <- warning/cloud
@@ -198,7 +198,7 @@ RSpec.describe TaskEvent, type: :model do
       it_behaves_like 'OK', { type: :date_include, notice_target: :next }, ':sunny:' # <- warning/cloud
       it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
     end
-    shared_examples_for '[保留]担当者がいない/いる' do
+    shared_examples '[保留]担当者がいない/いる' do
       it_behaves_like 'OK', { type: :next, notice_target: :start }, ':alarm_clock:'
       it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':red_circle:'
       it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':cloud:'
@@ -210,7 +210,7 @@ RSpec.describe TaskEvent, type: :model do
       it_behaves_like 'OK', { type: :date_include, notice_target: :next }, ':cloud:' # <- sunny
       it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
     end
-    shared_examples_for '[確認待ち]担当者がいない/いる' do
+    shared_examples '[確認待ち]担当者がいない/いる' do
       it_behaves_like 'OK', { type: :next, notice_target: :start }, ':alarm_clock:'
       it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':red_circle:'
       it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':sunny:' # <- cloud
@@ -222,7 +222,7 @@ RSpec.describe TaskEvent, type: :model do
       it_behaves_like 'OK', { type: :date_include, notice_target: :next }, ':sunny:' # <- cloud
       it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
     end
-    shared_examples_for '[完了/対応不要]担当者がいない/いる' do
+    shared_examples '[完了/対応不要]担当者がいない/いる' do
       it_behaves_like 'OK', { type: :next, notice_target: :start }, ':sunny:' # <- alarm_clock
       it_behaves_like 'OK', { type: :expired, notice_target: :start }, ':sunny:' # <- red_circle
       it_behaves_like 'OK', { type: :end_today, notice_target: :start }, ':sunny:'
@@ -234,7 +234,7 @@ RSpec.describe TaskEvent, type: :model do
       it_behaves_like 'OK', { type: :date_include, notice_target: :next }, ':sunny:'
       it_behaves_like 'OK', { type: :completed, notice_target: :next }, ':sunny:'
     end
-    shared_examples_for '[完了/対応不要]担当者' do
+    shared_examples '[完了/対応不要]担当者' do
       context '担当者がいない' do
         let_it_be(:task_event) { FactoryBot.create(:task_event, status:) }
         it_behaves_like '[完了/対応不要]担当者がいない/いる'
