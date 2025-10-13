@@ -186,12 +186,12 @@ RSpec.describe Space, type: :model do
     let(:space) { FactoryBot.create(:space, created_user:) }
 
     let(:current_space) { described_class.find(space.id) }
-    let!(:start_time) { Time.current.floor }
-    let!(:start_time_schedule) { Time.current.floor + Settings.space_destroy_schedule_days.days }
+    let!(:start_time) { Time.current }
+    let!(:start_time_schedule) { Time.current + Settings.space_destroy_schedule_days.days }
     it '削除依頼日時が現在日時、削除予定日時が現在日時＋設定日数に変更され、保存される' do
       is_expected.to be(true)
-      expect(current_space.destroy_requested_at).to be_between(start_time, Time.current)
-      expect(current_space.destroy_schedule_at).to be_between(start_time_schedule, Time.current + Settings.space_destroy_schedule_days.days)
+      expect(current_space.destroy_requested_at).to be_between(start_time.floor, Time.current)
+      expect(current_space.destroy_schedule_at).to be_between(start_time_schedule.floor, Time.current + Settings.space_destroy_schedule_days.days)
     end
   end
 

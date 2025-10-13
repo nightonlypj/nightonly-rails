@@ -34,7 +34,7 @@ RSpec.describe 'Invitations', type: :request do
     # テスト内容
     let(:current_invitation) { Invitation.find(invitation.id) }
     shared_examples_for 'OK' do
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       let(:schedule_days) { Settings.invitation_destroy_schedule_days.days }
       it '対象項目が変更される' do
         subject
@@ -43,8 +43,8 @@ RSpec.describe 'Invitations', type: :request do
         expect(current_invitation.ended_at).to eq(Time.new(9999, 12, 31, 23, 59, 59, '+09:00'))
 
         if invitation.destroy_schedule_at.blank? && attributes[:delete].present? && attributes[:undo_delete].blank?
-          expect(current_invitation.destroy_requested_at).to be_between(start_time, Time.current)
-          expect(current_invitation.destroy_schedule_at).to be_between(start_time + schedule_days, Time.current + schedule_days)
+          expect(current_invitation.destroy_requested_at).to be_between(start_time.floor, Time.current)
+          expect(current_invitation.destroy_schedule_at).to be_between(start_time.floor + schedule_days, Time.current + schedule_days)
         elsif invitation.destroy_schedule_at.present? && attributes[:undo_delete].present?
           expect(current_invitation.destroy_requested_at).to be_nil
           expect(current_invitation.destroy_schedule_at).to be_nil

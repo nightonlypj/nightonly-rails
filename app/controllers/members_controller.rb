@@ -38,7 +38,7 @@ class MembersController < ApplicationAuthController
     users = User.where(email: @emails)
     exist_users = User.joins(:members).where(members: { space: @space, user: users })
     create_users = users - exist_users
-    insert_datas = create_users.map { |user| @member.attributes.symbolize_keys.merge(user_id: user.id) }
+    insert_datas = create_users.map { |user| @member.attributes.symbolize_keys.merge(user_id: user.id).except(:id) }
     Member.insert_all!(insert_datas) if insert_datas.present?
 
     @exist_user_mails = exist_users.pluck(:email)

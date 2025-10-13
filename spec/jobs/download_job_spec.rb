@@ -24,7 +24,7 @@ RSpec.describe DownloadJob, type: :job do
       download.completed_at = nil
     end
     shared_examples_for 'OK' do
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       let(:result_body) do
         result = ''
         body_data.each do |data|
@@ -36,7 +36,7 @@ RSpec.describe DownloadJob, type: :job do
       it 'ダウンロードの対象項目が変更され、ダウンロードファイルが作成・対象項目が設定される' do
         subject
         expect(current_download.status.to_sym).to eq(:success)
-        expect(current_download.completed_at).to be_between(start_time, Time.current)
+        expect(current_download.completed_at).to be_between(start_time.floor, Time.current)
 
         # NOTE: current_download_file.body.encoding: #<Encoding:ASCII-8BIT>
         case download.char_code.to_sym
@@ -55,14 +55,14 @@ RSpec.describe DownloadJob, type: :job do
       end
     end
     shared_examples_for 'NG' do |message|
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       it '例外が発生し、対象項目が設定される' do
         subject
       rescue StandardError => e
         job.status_failure(e) # NOTE: Specだとrescue_fromが呼び出されない為
         expect(current_download.status.to_sym).to eq(:failure)
         expect(current_download.error_message).to eq(message)
-        expect(current_download.completed_at).to be_between(start_time, Time.current)
+        expect(current_download.completed_at).to be_between(start_time.floor, Time.current)
       end
     end
 

@@ -23,14 +23,14 @@ RSpec.describe 'Downloads', type: :request do
     # テスト内容
     let(:current_download) { Download.last }
     shared_examples_for 'OK' do
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       before { allow(DownloadJob).to receive(:perform_later).and_return(true) }
       it 'ダウンロードが作成・対象項目が設定される。DownloadJobが呼ばれる' do
         expect do
           subject
           expect(current_download.user).to eq(user)
           expect(current_download.status.to_sym).to eq(:waiting)
-          expect(current_download.requested_at).to be_between(start_time, Time.current)
+          expect(current_download.requested_at).to be_between(start_time.floor, Time.current)
           expect(current_download.completed_at).to be_nil
           expect(current_download.error_message).to be_nil
           expect(current_download.last_downloaded_at).to be_nil

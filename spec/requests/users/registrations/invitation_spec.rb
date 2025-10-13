@@ -63,7 +63,7 @@ RSpec.describe 'Users::Registrations', type: :request do
     let(:current_members)     { Member.order(:id) }
     let(:current_invitations) { Invitation.where(id: invitation_ids).order(:id) }
     shared_examples_for 'OK' do
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       let(:url) { "http://#{Settings.base_domain}#{user_confirmation_path}" }
       it 'ユーザーが作成・対象項目が設定される。メールが送信される' do
         expect do
@@ -83,14 +83,18 @@ RSpec.describe 'Users::Registrations', type: :request do
             expect(current_members[index].user).to eq(current_user)
             expect(current_members[index].power).to eq(item.power)
             expect(current_members[index].invitationed_user).to eq(item.created_user)
-            expect(current_members[index].invitationed_at).to item.email.present? ? eq(item.created_at.floor) : be_between(start_time, Time.current)
+            if item.email.present?
+              expect(current_members[index].invitationed_at).to be_between(item.created_at.floor, item.created_at)
+            else
+              expect(current_members[index].invitationed_at).to be_between(start_time.floor, Time.current)
+            end
           end
 
           # 招待
           current_invitations.each do |current_invitation|
-            expect(current_invitation.email_joined_at).to be_between(start_time, Time.current)
+            expect(current_invitation.email_joined_at).to be_between(start_time.floor, Time.current)
             expect(current_invitation.last_updated_user_id).to be_nil
-            expect(current_invitation.updated_at).to be_between(start_time, Time.current)
+            expect(current_invitation.updated_at).to be_between(start_time.floor, Time.current)
           end
         end.to change(User, :count).by(1)
       end
