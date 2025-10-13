@@ -169,7 +169,7 @@ class TasksController < ApplicationAuthController
       elsif inactive_task_cycles[key].present?
         @upsert_task_cycles.push(inactive_task_cycles[key].attributes.symbolize_keys.merge(order: count, deleted_at: nil, updated_at: @now))
       else
-        @insert_task_cycles.push(task_cycle.attributes.symbolize_keys.merge(order: count, created_at: @now, updated_at: @now))
+        @insert_task_cycles.push(task_cycle.attributes.symbolize_keys.merge(order: count, created_at: @now, updated_at: @now).except(:id))
       end
     end
     return if cycle_error > 0

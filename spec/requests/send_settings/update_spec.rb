@@ -63,7 +63,7 @@ RSpec.describe 'SendSetting', type: :request do
     end
     let(:current_send_settings_inactive) { SendSetting.inactive.where(space:) }
     shared_examples_for 'OK' do
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       it '対象項目が変更される' do
         subject
         expect(current_send_setting.space).to eq(space)
@@ -86,8 +86,8 @@ RSpec.describe 'SendSetting', type: :request do
           current_send_setting_inactive = current_send_settings_inactive.first
           expect(current_send_setting_inactive.id).to eq(except_send_setting_inactive.id)
           expect(current_send_setting_inactive.last_updated_user_id).to eq(user.id)
-          expect(current_send_setting_inactive.deleted_at).to be_between(start_time, Time.current)
-          expect(current_send_setting_inactive.updated_at).to be_between(start_time, Time.current)
+          expect(current_send_setting_inactive.deleted_at).to be_between(start_time.floor, Time.current)
+          expect(current_send_setting_inactive.updated_at).to be_between(start_time.floor, Time.current)
         else
           expect(current_send_settings_inactive.count).to eq(0)
         end

@@ -54,11 +54,11 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
     # テスト内容
     let(:current_send_history) { SendHistory.find(send_history.id) }
     shared_examples_for 'OK' do |status|
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       it "ステータスが#{status}、対象項目が変更される" do
         subject
         expect(current_send_history.status.to_sym).to eq(status)
-        expect(current_send_history.completed_at).to be_between(start_time, Time.current)
+        expect(current_send_history.completed_at).to be_between(start_time.floor, Time.current)
         expect(current_send_history.error_message).to status == :failure ? be_present : be_nil
         expect(current_send_history.send_data).not_to be_nil
         next if status != :success

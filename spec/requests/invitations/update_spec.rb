@@ -49,8 +49,8 @@ RSpec.describe 'Invitations', type: :request do
           expect(current_invitation.destroy_requested_at).to be_nil
           expect(current_invitation.destroy_schedule_at).to be_nil
         else
-          expect(current_invitation.destroy_requested_at).to eq(invitation.destroy_requested_at)
-          expect(current_invitation.destroy_schedule_at).to eq(invitation.destroy_schedule_at)
+          expect(current_invitation.destroy_requested_at&.floor).to eq(invitation.destroy_requested_at&.floor)
+          expect(current_invitation.destroy_schedule_at&.floor).to eq(invitation.destroy_schedule_at&.floor)
         end
       end
     end

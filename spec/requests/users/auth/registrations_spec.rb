@@ -1064,8 +1064,8 @@ RSpec.describe 'Users::Auth::Registrations', type: :request do
       let(:accept_headers) { ACCEPT_INC_JSON }
       it '削除依頼日時・削除予定日時が変更されない。メールが送信されない' do
         subject
-        expect(current_user.destroy_requested_at).to eq(user.destroy_requested_at)
-        expect(current_user.destroy_schedule_at).to eq(user.destroy_schedule_at)
+        expect(current_user.destroy_requested_at&.floor).to eq(user.destroy_requested_at&.floor)
+        expect(current_user.destroy_schedule_at&.floor).to eq(user.destroy_schedule_at&.floor)
         expect(ActionMailer::Base.deliveries.count).to eq(0)
       end
     end

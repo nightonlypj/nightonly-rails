@@ -35,7 +35,7 @@ RSpec.describe 'TaskEvents', type: :request do
     # テスト内容
     let(:current_task_event) { TaskEvent.find(task_event.id) }
     shared_examples_for 'OK' do
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       it '対象項目が変更される' do
         subject
         expect(current_task_event.code).to eq(task_event.code)
@@ -44,12 +44,19 @@ RSpec.describe 'TaskEvents', type: :request do
         expect(current_task_event.started_date).to eq(task_event.started_date)
         expect(current_task_event.ended_date).to eq(task_event.ended_date)
         expect(current_task_event.last_ended_date).to eq(attributes[:last_ended_date])
-        expect(current_task_event.last_completed_at).to expect_last_completed_at[:new] ? be_between(start_time,
-                                                                                                    Time.current) : eq(expect_last_completed_at[:data])
+        if expect_last_completed_at[:new]
+          expect(current_task_event.last_completed_at).to be_between(start_time.floor, Time.current)
+        else
+          expect(current_task_event.last_completed_at&.floor).to eq(expect_last_completed_at[:data]&.floor)
+        end
         expect(current_task_event.status.to_sym).to eq(attributes[:status])
         expect(current_task_event.init_assigned_user_id).to eq(task_event.init_assigned_user_id)
         expect(current_task_event.assigned_user_id).to eq(expect_assigned_user_id)
-        expect(current_task_event.assigned_at).to expect_assigned_at[:new] ? be_between(start_time, Time.current) : eq(expect_assigned_at[:data])
+        if expect_assigned_at[:new]
+          expect(current_task_event.assigned_at).to be_between(start_time.floor, Time.current)
+        else
+          expect(current_task_event.assigned_at&.floor).to eq(expect_assigned_at[:data]&.floor)
+        end
         expect(current_task_event.memo).to eq(attributes[:memo])
         expect(current_task_event.last_updated_user_id).to be(user.id)
       end

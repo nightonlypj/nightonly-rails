@@ -7,7 +7,7 @@ class SendHistoriesController < ApplicationAuthController
 
   # GET /send_histories/:space_code(.json) 通知履歴一覧API
   def index
-    @send_histories = SendHistory.where(space: @space).eager_load(:send_setting).order(target_date: :desc, completed_at: :desc, id: :desc)
+    @send_histories = SendHistory.where(space: @space).eager_load(:send_setting).order(target_date: :desc, id: :desc)
       .page(params[:page]).per(Settings.default_send_histories_limit)
   end
 

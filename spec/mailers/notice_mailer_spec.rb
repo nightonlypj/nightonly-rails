@@ -36,7 +36,7 @@ RSpec.describe NoticeMailer, type: :mailer do
     # テスト内容
     let(:current_send_history) { SendHistory.find(send_history.id) }
     shared_examples_for 'OK' do
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       it_behaves_like 'Header'
       it '対象項目が含まれる。ステータスが成功、対象項目が変更される' do
         if target_date_i18n.present?
@@ -98,17 +98,17 @@ RSpec.describe NoticeMailer, type: :mailer do
 
         expect(current_send_history.send_data).not_to be_nil
         expect(current_send_history.status.to_sym).to eq(:success)
-        expect(current_send_history.completed_at).to be_between(start_time, Time.current)
+        expect(current_send_history.completed_at).to be_between(start_time.floor, Time.current)
       end
     end
     shared_examples_for 'NG' do
-      let!(:start_time) { Time.current.floor }
+      let!(:start_time) { Time.current }
       it 'ステータスが失敗、対象項目が変更される' do
         expect(mail.to).to be_nil
 
         expect(current_send_history.status.to_sym).to eq(:failure)
         expect(current_send_history.error_message).not_to be_nil
-        expect(current_send_history.completed_at).to be_between(start_time, Time.current)
+        expect(current_send_history.completed_at).to be_between(start_time.floor, Time.current)
       end
     end
 
