@@ -3,7 +3,7 @@ server_env: 'development'
 base_domain: <%= ENV['BASE_DOMAIN'] %>
 cors_origins: '*'
 base_image_url: <%= ENV['BASE_IMAGE_URL'].presence || "'https://#{ENV['BASE_DOMAIN']}'" %>
-front_url: 'http://localhost:5000'
+front_url: <%= ENV['FRONT_URL'] %>
 logo_image_url: 'https://task.nightonly.com/logo.png' # NOTE: どこからでもアクセスできるURL
 redirect_whitelist: <%= eval(ENV['REDIRECT_WHITELIST'].presence || '[]') %>
 default_confirm_success_url: null
