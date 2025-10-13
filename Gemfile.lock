@@ -602,6 +602,7 @@ DEPENDENCIES
   kaminari
   kaminari-i18n
   letter_opener_web
+  listen
   mini_magick
   mysql2
   nkf

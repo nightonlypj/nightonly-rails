@@ -147,17 +147,17 @@ RSpec.describe Space, type: :model do
     let_it_be(:current_user) { FactoryBot.create(:user) }
 
     # テスト内容
-    shared_examples_for 'OK' do
+    shared_examples 'OK' do
       let(:messages) { {} }
       it_behaves_like 'Errors'
     end
-    shared_examples_for 'NG' do
+    shared_examples 'NG' do
       let(:messages) { { name: [get_locale('activerecord.errors.models.space.attributes.name.taken')] } }
       it_behaves_like 'Errors'
     end
 
     # テストケース
-    shared_examples_for '参加・未参加' do |join_result, nojoin_result|
+    shared_examples '参加・未参加' do |join_result, nojoin_result|
       context '参加' do
         before_all { FactoryBot.create(:member, :admin, space:, user: current_user) }
         it_behaves_like join_result
@@ -216,12 +216,12 @@ RSpec.describe Space, type: :model do
     let(:space) { FactoryBot.create(:space, created_user:) }
 
     let(:current_space) { described_class.find(space.id) }
-    let!(:start_time) { Time.current.floor }
-    let!(:start_time_schedule) { Time.current.floor + Settings.space_destroy_schedule_days.days }
+    let!(:start_time) { Time.current }
+    let!(:start_time_schedule) { Time.current + Settings.space_destroy_schedule_days.days }
     it '削除依頼日時が現在日時、削除予定日時が現在日時＋設定日数に変更され、保存される' do
       is_expected.to be(true)
-      expect(current_space.destroy_requested_at).to be_between(start_time, Time.current)
-      expect(current_space.destroy_schedule_at).to be_between(start_time_schedule, Time.current + Settings.space_destroy_schedule_days.days)
+      expect(current_space.destroy_requested_at).to be_between(start_time.floor, Time.current)
+      expect(current_space.destroy_schedule_at).to be_between(start_time_schedule.floor, Time.current + Settings.space_destroy_schedule_days.days)
     end
   end
 
@@ -248,20 +248,20 @@ RSpec.describe Space, type: :model do
     subject { space.image_url(version) }
 
     # テスト内容
-    shared_examples_for 'OK' do |version|
+    shared_examples 'OK' do |version|
       let(:version) { version }
       it 'デフォルトではないURL' do
         is_expected.not_to be_blank
         is_expected.not_to include('_noimage.jpg')
       end
     end
-    shared_examples_for 'Def' do |version|
+    shared_examples 'Def' do |version|
       let(:version) { version }
       it 'デフォルトのURL' do
         is_expected.to include('_noimage.jpg')
       end
     end
-    shared_examples_for 'Not' do |version|
+    shared_examples 'Not' do |version|
       let(:version) { version }
       it 'URLが返却されない' do
         is_expected.to be_blank

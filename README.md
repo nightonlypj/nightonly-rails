@@ -23,16 +23,14 @@ https://orbstack.dev/download
 # MYSQL_HOST=127.0.0.1
 # POSTGRES_HOST=127.0.0.1
 
-# Docker
+# docker
 MYSQL_HOST=mysql
 POSTGRES_HOST=pg
 ```
 
 ```bash
-$ cp -a config/settings/development.yml,local config/settings/development.yml
-
 # dockerをビルドして起動（Ctrl-Cで強制終了。-dは[make down]で終了）
-$ make up-all（または up-all-d）
+$ make up（または up-all, up-d, up-all-d）
 
 # データベース・初期データ作成・更新
 $ make db
@@ -301,7 +299,6 @@ $ brew uninstall postgresql@17
 
 ```bash
 $ cp -a .env.example .env
-$ cp -a config/settings/development.yml,local config/settings/development.yml
 
 # Gemインストール
 gem install bundler -v 2.7.2
@@ -329,7 +326,7 @@ $ make j（または jobs）
 
 ```bash
 # Schemaspy実行
-$ make ssd-mysql（または schemaspy-docker-mysql, ssd-pg, schemaspy-docker-pg, ssd-sqlite, schemaspy-docker-sqlite）
+$ make ssd-mysql（または schemaspy-docker-mysql, ssd-mariadb, schemaspy-docker-mariadb, ssd-pg, schemaspy-docker-pg, ssd-sqlite, schemaspy-docker-sqlite）
 ```
 
 #### localで実行
@@ -359,7 +356,7 @@ $ java -version
 openjdk version "24.0.2" 2025-07-15
 
 # Schemaspy実行
-$ make ss-mariadb（または schemaspy-mariadb, ss-mysql, schemaspy-mysql, ss-pg, schemaspy-pg, ss-sqlite, schemaspy-sqlite）
+$ make ss-mysql（または schemaspy-mysql, ss-mariadb, schemaspy-mariadb, ss-pg, schemaspy-pg, ss-sqlite, schemaspy-sqlite）
 ```
 
 ## 使い方
@@ -383,7 +380,7 @@ $ make db
 $ make reset
 
 # Gemインストール
-$ make bundle
+$ make install（または bundle）
 ```
 
 ### 起動
@@ -506,6 +503,8 @@ server {
         proxy_set_header    X-Real-IP           $remote_addr;
         proxy_redirect      off;
         proxy_pass          http://127.0.0.1:3000;
+
+        proxy_hide_header   X-Runtime;
     }
 }
 ### END ###
@@ -520,10 +519,14 @@ nginx: configuration file /opt/homebrew/etc/nginx/nginx.conf test is successful
 
 $ brew services start nginx
 ```
+.envを変更
 ```bash
-$ cp -a config/settings/development.yml,dev config/settings/development.yml
-overwrite config/settings/development.yml? (y/n [n]) y
-
+# BASE_DOMAIN=localhost:3000
+# BASE_IMAGE_URL=http://localhost:3000
+BASE_DOMAIN=localhost
+BASE_IMAGE_URL=http://localhost
+```
+```bash
 # Railsサーバー起動
 $ make s
 

@@ -66,4 +66,3 @@ yarn-debug.log*
 
 # NOTE: 環境で切り替える為
 /public/robots.txt
-config/settings/development.yml

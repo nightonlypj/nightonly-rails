@@ -1,6 +1,7 @@
 debug: false
 server_env: 'test'
 base_domain: 'localhost.test'
+cors_origins: '*'
 base_image_url: 'http://localhost.test'
 front_url: 'http://front.localhost.test'
 logo_image_url: 'https://front.localhost.test/logo.png'
