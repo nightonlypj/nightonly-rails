@@ -147,7 +147,7 @@ shared_examples 'ToOK(json)' do |page = nil|
   it_behaves_like 'ToNG(json/html)', 406
   it_behaves_like 'ToOK(json/json)'
 end
-shared_examples_for 'ToOK(csv)' do
+shared_examples 'ToOK(csv)' do
   it_behaves_like 'ToNG(json/html)', 406, :csv
   it_behaves_like 'ToOK(csv/*)', :json
   it_behaves_like 'ToOK(csv/*)', :csv
@@ -224,7 +224,7 @@ shared_examples 'ToNG(json)' do |code, errors = nil, alert = nil, notice = nil|
   it_behaves_like 'ToNG(json/html)', 406
   it_behaves_like 'ToNG(json/json)', code, errors, alert, notice
 end
-shared_examples_for 'ToNG(csv)' do |code, errors = nil, alert = nil, notice = nil|
+shared_examples 'ToNG(csv)' do |code, errors = nil, alert = nil, notice = nil|
   let(:subject_page) { 1 }
   it_behaves_like 'ToNG(json/html)', 406, :json
   it_behaves_like 'ToNG(json/html)', 406, :csv

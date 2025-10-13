@@ -117,17 +117,17 @@ RSpec.describe Space, type: :model do
     let_it_be(:current_user) { FactoryBot.create(:user) }
 
     # テスト内容
-    shared_examples_for 'OK' do
+    shared_examples 'OK' do
       let(:messages) { {} }
       it_behaves_like 'Errors'
     end
-    shared_examples_for 'NG' do
+    shared_examples 'NG' do
       let(:messages) { { name: [get_locale('activerecord.errors.models.space.attributes.name.taken')] } }
       it_behaves_like 'Errors'
     end
 
     # テストケース
-    shared_examples_for '参加・未参加' do |join_result, nojoin_result|
+    shared_examples '参加・未参加' do |join_result, nojoin_result|
       context '参加' do
         before_all { FactoryBot.create(:member, :admin, space:, user: current_user) }
         it_behaves_like join_result
@@ -218,20 +218,20 @@ RSpec.describe Space, type: :model do
     subject { space.image_url(version) }
 
     # テスト内容
-    shared_examples_for 'OK' do |version|
+    shared_examples 'OK' do |version|
       let(:version) { version }
       it 'デフォルトではないURL' do
         is_expected.not_to be_blank
         is_expected.not_to include('_noimage.jpg')
       end
     end
-    shared_examples_for 'Def' do |version|
+    shared_examples 'Def' do |version|
       let(:version) { version }
       it 'デフォルトのURL' do
         is_expected.to include('_noimage.jpg')
       end
     end
-    shared_examples_for 'Not' do |version|
+    shared_examples 'Not' do |version|
       let(:version) { version }
       it 'URLが返却されない' do
         is_expected.to be_blank

@@ -82,7 +82,7 @@ RSpec.describe Member, type: :model do
     let(:now) { Time.current }
 
     # テスト内容
-    shared_examples_for 'updated_at' do
+    shared_examples 'updated_at' do
       it '更新日時' do
         is_expected.to eq(member.updated_at)
       end
