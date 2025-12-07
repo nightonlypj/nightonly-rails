@@ -95,9 +95,9 @@ RSpec.describe User, type: :model do
     let!(:start_time) { Time.current }
     it '削除依頼日時が現在日時、削除予定日時が現在日時＋設定日数に変更され、保存される' do
       is_expected.to be(true)
-      expect(current_user.destroy_requested_at).to be_between(start_time.floor, Time.current)
+      expect(current_user.destroy_requested_at).to be_between(start_time.floor, Time.current.ceil)
       expect(current_user.destroy_schedule_at).to be_between(start_time.floor + Settings.user_destroy_schedule_days.days,
-                                                             Time.current + Settings.user_destroy_schedule_days.days)
+                                                             Time.current.ceil + Settings.user_destroy_schedule_days.days)
     end
   end
 

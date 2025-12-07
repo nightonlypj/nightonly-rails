@@ -5,6 +5,8 @@
 
 ## 環境構築手順（Dockerの場合） ※構築は早いが、動作は遅い
 
+Ruby/Rails/Gemのバージョンアップや追加に向いている（環境依存が少ない）
+
 ### Dockerインストール
 
 #### Docker Desktop
@@ -51,6 +53,8 @@ $ make up-base（または up-base-d）
 ```
 
 ## 環境構築手順（Macの場合） ※構築は手間だが、動作は早い
+
+通常の開発に向いている（開発効率が良い）
 
 ### Homebrewインストール
 
@@ -409,6 +413,9 @@ $ make l（または lint, rubocop）
 
 # RSpec実行（パラメータでファイル名指定可）
 $ make rspec
+
+# RSpec実行（失敗のみ）
+$ make rspec-fail
 
 # Brakeman実行
 $ make b（または brakeman）

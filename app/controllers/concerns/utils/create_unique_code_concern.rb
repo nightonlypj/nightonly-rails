@@ -10,7 +10,7 @@ module Utils::CreateUniqueCodeConcern
       code = Digest::MD5.hexdigest(SecureRandom.uuid).to_i(16).to_s(36).rjust(25, '0') # NOTE: 16進数32桁を36進数25桁に変換
       # :nocov:
       code = code[0, length] if length.present?
-      return code if model.where(key => code).blank?
+      return code unless model.exists?(key => code)
 
       if try_count < 10
         logger.warn "[WARN](#{try_count})Not unique code(#{code}): #{logger_message}"

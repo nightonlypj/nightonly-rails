@@ -74,7 +74,7 @@ class ImageUploader < CarrierWave::Uploader::Base
   end
 
   def content_type_allowlist
-    [%r{image/}]
+    %w[image/jpeg image/gif image/png]
   end
 
   def size_range
