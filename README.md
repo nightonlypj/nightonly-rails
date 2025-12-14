@@ -82,7 +82,7 @@ $ brew doctor
 Your system is ready to brew.
 
 $ brew -v
-Homebrew 4.6.9
+Homebrew 5.0.4
 # バージョンは異なっても良い
 ```
 
@@ -93,7 +93,7 @@ $ brew install imagemagick
 （$ brew upgrade imagemagick）
 
 $ magick -version
-Version: ImageMagick 7.1.2-3 Q16-HDRI aarch64 23340 https://imagemagick.org
+Version: ImageMagick 7.1.2-9 Q16-HDRI aarch64 23451 https://imagemagick.org
 # バージョンは異なっても良い
 ```
 
@@ -104,7 +104,7 @@ $ brew install graphviz
 （$ brew upgrade graphviz）
 
 $ dot -V
-dot - graphviz version 13.1.2 (20250808.2320)
+dot - graphviz version 14.0.5 (20251129.0259)
 # バージョンは異なっても良い
 ```
 
@@ -115,7 +115,7 @@ $ brew install --cask font-freefont
 （$ brew upgrade --cask font-freefont）
 
 $ brew info --cask font-freefont
-Installed using the formulae.brew.sh API on 2025-09-14 at 19:19:42
+==> font-freefont: 20120503
 # バージョンは異なっても良い
 ```
 
@@ -150,7 +150,7 @@ $ brew install openssl@3
 $ source ~/.bash_profile
 
 $ openssl version
-OpenSSL 3.5.2 5 Aug 2025 (Library: OpenSSL 3.5.2 5 Aug 2025)
+OpenSSL 3.6.0 1 Oct 2025 (Library: OpenSSL 3.6.0 1 Oct 2025)
 ```
 ```bash
 # Rubyインストール
@@ -221,7 +221,7 @@ password = xyz789
 ```bash
 $ mysql
 # MariaDBの場合
-Server version: 12.0.2-MariaDB Homebrew
+Server version: 12.1.2-MariaDB Homebrew
 # MySQLの場合
 Server version: 9.4.0 Homebrew
 # バージョンは異なっても良いが、本番と同じが理想
