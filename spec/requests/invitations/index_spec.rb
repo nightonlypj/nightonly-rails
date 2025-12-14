@@ -212,7 +212,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'リダイレクト(json)', 2
     end
     shared_examples '[ログイン中/削除予約済み][*][ある]招待URLが最大表示数と同じ' do
-      count = Settings.test_invitations_count
+      count = Settings.test_invitations_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -225,7 +225,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples '[APIログイン中/削除予約済み][*][ある]招待URLが最大表示数と同じ' do
-      count = Settings.test_invitations_count
+      count = Settings.test_invitations_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -240,7 +240,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'リダイレクト(json)', 2
     end
     shared_examples '[ログイン中/削除予約済み][*][ある]招待URLが最大表示数より多い' do
-      count = Settings.test_invitations_count
+      count = Settings.test_invitations_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -256,7 +256,7 @@ RSpec.describe 'Invitations', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples '[APIログイン中/削除予約済み][*][ある]招待URLが最大表示数より多い' do
-      count = Settings.test_invitations_count
+      count = Settings.test_invitations_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context '招待URL一覧作成', count.active, count.expired, count.deleted, count.email_joined + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406

@@ -132,27 +132,25 @@ RSpec.describe 'Invitations', type: :request do
     end
     shared_examples '[ログイン中][*][ある][存在する]無効なパラメータ' do
       let(:params) { { invitation: invalid_attributes } }
-      message = get_locale('activerecord.errors.models.invitation.attributes.ended_time.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
       else
-        it_behaves_like 'ToNG(html)', 422, [message]
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.invitation.attributes.ended_time.blank')]
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples '[APIログイン中][*][ある][存在する]無効なパラメータ' do
       let(:params) { { invitation: invalid_attributes } }
-      message = get_locale('activerecord.errors.models.invitation.attributes.ended_time.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
       else
-        it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.invitation.attributes.ended_time.blank')] # NOTE: HTMLもログイン状態になる
       end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(json)', 422, { ended_time: [message] }
+      it_behaves_like 'ToNG(json)', 422, { ended_time: [get_locale('activerecord.errors.models.invitation.attributes.ended_time.blank')] }
     end
 
     shared_examples '[ログイン中][*][ある]招待コードが存在する' do |status|

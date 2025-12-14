@@ -71,27 +71,25 @@ RSpec.describe 'Spaces', type: :request do
     # テストケース
     shared_examples '[ログイン中][削除予約なし][ある]パラメータなし' do
       let(:params) { nil }
-      message = get_locale('activerecord.errors.models.space.attributes.name.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
       else
-        it_behaves_like 'ToNG(html)', 422, [message]
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.space.attributes.name.blank')]
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples '[APIログイン中][削除予約なし][ある]パラメータなし' do
       let(:params) { nil }
-      message = get_locale('activerecord.errors.models.space.attributes.name.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
       else
-        it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.space.attributes.name.blank')] # NOTE: HTMLもログイン状態になる
       end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(json)', 422, { name: [message] }
+      it_behaves_like 'ToNG(json)', 422, { name: [get_locale('activerecord.errors.models.space.attributes.name.blank')] }
     end
     shared_examples '[ログイン中][削除予約なし][ある]有効なパラメータ（同名のスペースが存在しない）' do
       let(:params) { { space: attributes } }
@@ -121,51 +119,47 @@ RSpec.describe 'Spaces', type: :request do
     end
     shared_examples '[ログイン中][削除予約なし][ある]有効なパラメータ（同名のスペースが存在する）' do
       let(:params) { { space: exist_attributes } }
-      message = get_locale('activerecord.errors.models.space.attributes.name.taken')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
       else
-        it_behaves_like 'ToNG(html)', 422, [message]
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.space.attributes.name.taken')]
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples '[APIログイン中][削除予約なし][ある]有効なパラメータ（同名のスペースが存在する）' do
       let(:params) { { space: exist_attributes } }
-      message = get_locale('activerecord.errors.models.space.attributes.name.taken')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
       else
-        it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.space.attributes.name.taken')] # NOTE: HTMLもログイン状態になる
       end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(json)', 422, { name: [message] }
+      it_behaves_like 'ToNG(json)', 422, { name: [get_locale('activerecord.errors.models.space.attributes.name.taken')] }
     end
     shared_examples '[ログイン中][削除予約なし][ある]無効なパラメータ' do
       let(:params) { { space: invalid_attributes } }
-      message = get_locale('activerecord.errors.models.space.attributes.name.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
       else
-        it_behaves_like 'ToNG(html)', 422, [message]
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.space.attributes.name.blank')]
       end
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples '[APIログイン中][削除予約なし][ある]無効なパラメータ' do
       let(:params) { { space: invalid_attributes } }
-      message = get_locale('activerecord.errors.models.space.attributes.name.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
       else
-        it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.space.attributes.name.blank')] # NOTE: HTMLもログイン状態になる
       end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(json)', 422, { name: [message] }
+      it_behaves_like 'ToNG(json)', 422, { name: [get_locale('activerecord.errors.models.space.attributes.name.blank')] }
     end
 
     shared_examples '[ログイン中][削除予約なし]権限がある' do |power|

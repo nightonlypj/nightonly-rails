@@ -73,7 +73,7 @@ Rails.application.configure do
   # config.action_mailer.default_url_options = { host: 'example.com' }
   config.action_mailer.default_url_options = { host: Settings.base_domain, protocol: 'https' }
   config.action_mailer.delivery_method = ENV['DELIVERY_METHOD'].present? ? ENV['DELIVERY_METHOD'].to_sym : :sendmail
-  config.action_mailer.smtp_settings = ENV['SMTP_SETTINGS'].present? ? eval(ENV['SMTP_SETTINGS']) : nil # rubocop:disable Security/Eval
+  config.action_mailer.smtp_settings = ENV['SMTP_SETTINGS'].present? ? eval(ENV['SMTP_SETTINGS']) : nil
   ### END ###
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
