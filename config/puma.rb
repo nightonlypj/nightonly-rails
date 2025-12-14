@@ -34,10 +34,10 @@ workers ENV.fetch('WEB_CONCURRENCY', 1) unless RUBY_PLATFORM.include?('darwin') 
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
 ### START ###
 # port ENV.fetch('PORT', 3000)
-puma_port = ENV.fetch('PUMA_PORT', nil)
-puma_bind = ENV.fetch('PUMA_BIND', 'unix:/workdir/tmp/sockets/unicorn.sock')
+puma_port = ENV.fetch('PORT', 3000)
+puma_bind = ENV.fetch('PUMA_BIND', nil)
 if puma_bind.nil? || puma_bind.empty? # NOTE: Railsの記法は使えない為 # rubocop:disable Rails/Blank
-  port(puma_port.nil? || puma_port.empty? ? 3000 : puma_port.to_i) # rubocop:disable Rails/Blank
+  port puma_port.to_i
 else
   bind puma_bind
 end
