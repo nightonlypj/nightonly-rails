@@ -74,7 +74,7 @@ class ImageUploader < CarrierWave::Uploader::Base
   end
 
   def content_type_allowlist
-    [%r{image/}]
+    %w[image/jpeg image/gif image/png]
   end
 
   def size_range
@@ -96,7 +96,7 @@ class ImageUploader < CarrierWave::Uploader::Base
 
   def secure_token
     var = :"@#{mounted_as}_secure_token"
-    model.instance_variable_get(var) or model.instance_variable_set(var, Digest::MD5.hexdigest(SecureRandom.uuid))
+    model.instance_variable_get(var) or model.instance_variable_set(var, SecureRandom.uuid.delete('-'))
   end
   ### END ###
 end

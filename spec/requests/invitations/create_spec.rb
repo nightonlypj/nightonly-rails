@@ -78,16 +78,15 @@ RSpec.describe 'Invitations', type: :request do
     # テストケース
     shared_examples '[ログイン中][*][ある]パラメータなし' do
       let(:params) { nil }
-=begin
-      msg_domains = get_locale('activerecord.errors.models.invitation.attributes.domains.blank')
-      msg_power   = get_locale('activerecord.errors.models.invitation.attributes.power.blank')
-=end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
 =begin
       else
-        it_behaves_like 'ToNG(html)', 422, [msg_domains, msg_power]
+        it_behaves_like 'ToNG(html)', 422, [
+          get_locale('activerecord.errors.models.invitation.attributes.domains.blank'),
+          get_locale('activerecord.errors.models.invitation.attributes.power.blank')
+        ]
 =end
       end
       it_behaves_like 'NG(json)'
@@ -95,18 +94,22 @@ RSpec.describe 'Invitations', type: :request do
     end
     shared_examples '[APIログイン中][*][ある]パラメータなし' do
       let(:params) { nil }
-      msg_domains = get_locale('activerecord.errors.models.invitation.attributes.domains.blank')
-      msg_power   = get_locale('activerecord.errors.models.invitation.attributes.power.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
 =begin
       else
-        it_behaves_like 'ToNG(html)', 422, [msg_domains, msg_power]
+        it_behaves_like 'ToNG(html)', 422, [
+          get_locale('activerecord.errors.models.invitation.attributes.domains.blank'),
+          get_locale('activerecord.errors.models.invitation.attributes.power.blank')
+        ]
 =end
       end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(json)', 422, { domains: [msg_domains], power: [msg_power] }
+      it_behaves_like 'ToNG(json)', 422, {
+        domains: [get_locale('activerecord.errors.models.invitation.attributes.domains.blank')],
+        power: [get_locale('activerecord.errors.models.invitation.attributes.power.blank')]
+      }
     end
     shared_examples '[ログイン中][*][ある]有効なパラメータ' do
       let(:params) { { invitation: attributes } }
@@ -148,7 +151,7 @@ RSpec.describe 'Invitations', type: :request do
         it_behaves_like 'ToNG(html)', 406
 =begin
       else
-        it_behaves_like 'ToNG(html)', 422, [message]
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.invitation.attributes.domains.blank')]
 =end
       end
       it_behaves_like 'NG(json)'
@@ -156,17 +159,16 @@ RSpec.describe 'Invitations', type: :request do
     end
     shared_examples '[APIログイン中][*][ある]無効なパラメータ' do
       let(:params) { { invitation: invalid_attributes } }
-      message = get_locale('activerecord.errors.models.invitation.attributes.domains.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
 =begin
       else
-        it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.invitation.attributes.domains.blank')] # NOTE: HTMLもログイン状態になる
 =end
       end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(json)', 422, { domains: [message] }
+      it_behaves_like 'ToNG(json)', 422, { domains: [get_locale('activerecord.errors.models.invitation.attributes.domains.blank')] }
     end
 
     shared_examples '[ログイン中][*]権限がある' do |power|

@@ -189,7 +189,7 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'リダイレクト(json)', 2
     end
     shared_examples '[ログイン中/削除予約済み]ダウンロード結果が最大表示数と同じ' do
-      count = Settings.test_downloads_count
+      count = Settings.test_downloads_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -204,7 +204,7 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples '[APIログイン中/削除予約済み]ダウンロード結果が最大表示数と同じ' do
-      count = Settings.test_downloads_count
+      count = Settings.test_downloads_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -221,7 +221,7 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'リダイレクト(json)', 2
     end
     shared_examples '[ログイン中/削除予約済み]ダウンロード結果が最大表示数より多い' do
-      count = Settings.test_downloads_count
+      count = Settings.test_downloads_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -239,7 +239,7 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
     shared_examples '[APIログイン中/削除予約済み]ダウンロード結果が最大表示数より多い' do
-      count = Settings.test_downloads_count
+      count = Settings.test_downloads_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406

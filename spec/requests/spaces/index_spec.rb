@@ -200,7 +200,7 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'リダイレクト(json)', 2
     end
     shared_examples '[未ログイン]スペースが最大表示数と同じ' do
-      count = Settings.test_spaces_count
+      count = Settings.test_spaces_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'スペース一覧作成', 0, count.public_admin + count.public_none + count.private_admin + count.private_reader, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -217,7 +217,7 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'リダイレクト(json)', 2
     end
     shared_examples '[ログイン中/削除予約済み]スペースが最大表示数と同じ' do
-      count = Settings.test_spaces_count
+      count = Settings.test_spaces_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'スペース一覧作成', count.public_admin, count.public_none, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -234,7 +234,7 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'リダイレクト(json)', 2
     end
     shared_examples '[APIログイン中/削除予約済み]スペースが最大表示数と同じ' do
-      count = Settings.test_spaces_count
+      count = Settings.test_spaces_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'スペース一覧作成', count.public_admin, count.public_none, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -251,9 +251,8 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'リダイレクト(json)', 2
     end
     shared_examples '[未ログイン]スペースが最大表示数より多い' do
-      count = Settings.test_spaces_count
-      all = count.public_admin + count.public_none + count.private_admin + count.private_reader
-      include_context 'スペース一覧作成', 0, all + 1, 0, 0
+      count = Settings.test_spaces_count # rubocop:disable RSpec/LeakyLocalVariable
+      include_context 'スペース一覧作成', 0, count.public_admin + count.public_none + count.private_admin + count.private_reader + 1, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
 =begin
@@ -274,7 +273,7 @@ RSpec.describe 'Spaces', type: :request do
       it_behaves_like 'リダイレクト(json)', 3
     end
     shared_examples '[ログイン中/削除予約済み]スペースが最大表示数より多い' do
-      count = Settings.test_spaces_count
+      count = Settings.test_spaces_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'スペース一覧作成', count.public_admin, count.public_none + 1, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -296,7 +295,7 @@ RSpec.describe 'Spaces', type: :request do
       # it_behaves_like 'リダイレクト(json)', 3
     end
     shared_examples '[APIログイン中/削除予約済み]スペースが最大表示数より多い' do
-      count = Settings.test_spaces_count
+      count = Settings.test_spaces_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'スペース一覧作成', count.public_admin, count.public_none + 1, count.private_admin, count.private_reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406

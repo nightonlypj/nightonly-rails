@@ -86,11 +86,13 @@ RSpec.describe 'Downloads', type: :request do
     shared_examples '[ログイン中/削除予約済み][member][ある]パラメータなし' do
       let(:attributes) { params }
 =begin
+      # rubocop:disable RSpec/LeakyLocalVariable
       msg_target       = get_locale('activerecord.errors.models.download.attributes.target.blank')
       msg_format       = get_locale('activerecord.errors.models.download.attributes.format.blank')
       msg_char_code    = get_locale('activerecord.errors.models.download.attributes.char_code.blank')
       msg_newline_code = get_locale('activerecord.errors.models.download.attributes.newline_code.blank')
       msg_output_items = get_locale('activerecord.errors.models.download.attributes.output_items.blank')
+      # rubocop:enable RSpec/LeakyLocalVariable
 =end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
@@ -105,11 +107,13 @@ RSpec.describe 'Downloads', type: :request do
     end
     shared_examples '[APIログイン中/削除予約済み][member][ある]パラメータなし' do
       let(:attributes) { params }
+      # rubocop:disable RSpec/LeakyLocalVariable
       msg_target       = get_locale('activerecord.errors.models.download.attributes.target.blank')
       msg_format       = get_locale('activerecord.errors.models.download.attributes.format.blank')
       msg_char_code    = get_locale('activerecord.errors.models.download.attributes.char_code.blank')
       msg_newline_code = get_locale('activerecord.errors.models.download.attributes.newline_code.blank')
       msg_output_items = get_locale('activerecord.errors.models.download.attributes.output_items.blank')
+      # rubocop:enable RSpec/LeakyLocalVariable
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -138,15 +142,12 @@ RSpec.describe 'Downloads', type: :request do
     end
     shared_examples '[APIログイン中/削除予約済み][member][ある]有効なパラメータ' do
       let(:attributes) { valid_attributes.merge(params).merge(add_attributes) }
-=begin
-      message = get_locale('activerecord.errors.models.download.attributes.output_items.blank')
-=end
       it_behaves_like 'NG(html)' # NOTE: HTMLもログイン状態になるが、パラメータが異なる為
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
 =begin
       else
-        it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になるが、パラメータが異なる為
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.download.attributes.output_items.blank')] # NOTE: HTMLもログイン状態になるが、パラメータが異なる為
 =end
       end
       it_behaves_like 'OK(json)'
@@ -154,15 +155,12 @@ RSpec.describe 'Downloads', type: :request do
     end
     shared_examples '[ログイン中/削除予約済み][member][ある]無効なパラメータ' do
       let(:attributes) { invalid_attributes.merge(params).merge(add_attributes) }
-=begin
-      message = get_locale('activerecord.errors.models.download.attributes.target.blank')
-=end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
 =begin
       else
-        it_behaves_like 'ToNG(html)', 422, [message]
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.download.attributes.target.blank')]
 =end
       end
       it_behaves_like 'NG(json)'
@@ -170,17 +168,16 @@ RSpec.describe 'Downloads', type: :request do
     end
     shared_examples '[APIログイン中/削除予約済み][member][ある]無効なパラメータ' do
       let(:attributes) { invalid_attributes.merge(params).merge(add_attributes) }
-      message = get_locale('activerecord.errors.models.download.attributes.target.blank')
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
 =begin
       else
-        it_behaves_like 'ToNG(html)', 422, [message] # NOTE: HTMLもログイン状態になる
+        it_behaves_like 'ToNG(html)', 422, [get_locale('activerecord.errors.models.download.attributes.target.blank')] # NOTE: HTMLもログイン状態になる
 =end
       end
       it_behaves_like 'NG(json)'
-      it_behaves_like 'ToNG(json)', 422, { target: [message] }
+      it_behaves_like 'ToNG(json)', 422, { target: [get_locale('activerecord.errors.models.download.attributes.target.blank')] }
     end
 
     shared_examples '[ログイン中/削除予約済み][member]権限がある' do |power|

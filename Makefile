@@ -153,6 +153,11 @@ rspec:
 	if $(IS_IN_DOCKER) || ! $(IS_APP_RUNNING); then $(call RUN_CMD,$$CMD); else $(call RUN_CMD,docker compose exec app $$CMD); fi
 	@if [ $(words $(MAKECMDGOALS)) -eq 1 ]; then $(call RUN_CMD,open coverage/index.html); fi
 
+.PHONY: rspec-fail
+rspec-fail:
+	@CMD="bundle exec rspec --only-failures"; \
+	if $(IS_IN_DOCKER) || ! $(IS_APP_RUNNING); then $(call RUN_CMD,$$CMD); else $(call RUN_CMD,docker compose exec app $$CMD); fi
+
 .PHONY: brakeman b
 brakeman:
 	@CMD="bundle exec brakeman -Aqzw1 --no-pager"; \

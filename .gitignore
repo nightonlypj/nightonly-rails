@@ -46,6 +46,7 @@ nbproject/
 /yarn-error.log
 yarn-debug.log*
 .yarn-integrity
+npm-debug.log*
 
 /public/assets
 /app/assets/builds/*

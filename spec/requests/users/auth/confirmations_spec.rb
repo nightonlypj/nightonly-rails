@@ -203,17 +203,17 @@ RSpec.describe 'Users::Auth::Confirmations', type: :request do
       it '[リダイレクトURLがある]確認日時が現在日時に変更される' do
         @redirect_url = FRONT_SITE_URL
         subject
-        expect(current_user.confirmed_at).to be_between(start_time.floor, Time.now.utc)
+        expect(current_user.confirmed_at).to be_between(start_time.floor, Time.now.utc.ceil)
       end
       it '[リダイレクトURLがない]確認日時が現在日時に変更される' do
         @redirect_url = nil
         subject
-        expect(current_user.confirmed_at).to be_between(start_time.floor, Time.now.utc)
+        expect(current_user.confirmed_at).to be_between(start_time.floor, Time.now.utc.ceil)
       end
       it '[リダイレクトURLがホワイトリストにない]確認日時が現在日時に変更される' do
         @redirect_url = BAD_SITE_URL
         subject
-        expect(current_user.confirmed_at).to be_between(start_time.floor, Time.now.utc)
+        expect(current_user.confirmed_at).to be_between(start_time.floor, Time.now.utc.ceil)
       end
     end
     shared_examples 'NG' do

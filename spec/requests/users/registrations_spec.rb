@@ -459,9 +459,9 @@ RSpec.describe 'Users::Registrations', type: :request do
       let(:url) { "http://#{Settings.base_domain}#{delete_undo_user_registration_path}" }
       it "削除依頼日時が現在日時に、削除予定日時が#{Settings.user_destroy_schedule_days}日後に変更される。メールが送信される" do
         subject
-        expect(current_user.destroy_requested_at).to be_between(start_time.floor, Time.current)
+        expect(current_user.destroy_requested_at).to be_between(start_time.floor, Time.current.ceil)
         expect(current_user.destroy_schedule_at).to be_between(start_time.floor + Settings.user_destroy_schedule_days.days,
-                                                               Time.current + Settings.user_destroy_schedule_days.days)
+                                                               Time.current.ceil + Settings.user_destroy_schedule_days.days)
         expect(ActionMailer::Base.deliveries.count).to eq(1)
         expect(ActionMailer::Base.deliveries[0].subject).to eq(get_subject('mailer.user.destroy_reserved.subject')) # アカウント削除受け付けのお知らせ
         expect(ActionMailer::Base.deliveries[0].html_part.body).to include(url)

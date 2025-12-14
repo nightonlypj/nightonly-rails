@@ -269,7 +269,7 @@ RSpec.describe 'Users::Passwords', type: :request do
       it "パスワードリセット送信日時がなし#{'・メールアドレス確認日時が現在日時' if change_confirmed}に変更される。メールが送信される" do
         subject
         expect(current_user.reset_password_sent_at).to be_nil
-        expect(current_user.confirmed_at).to change_confirmed ? be_between(start_time.floor, Time.current) : eq(send_user.confirmed_at)
+        expect(current_user.confirmed_at).to change_confirmed ? be_between(start_time.floor, Time.current.ceil) : eq(send_user.confirmed_at)
         expect(current_user.locked_at).to be_nil # NOTE: ロック中の場合は解除する
         expect(current_user.failed_attempts).to eq(0)
 

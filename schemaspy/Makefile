@@ -1,4 +1,4 @@
-SCHEMASPY_JAR=schemaspy-6.2.4.jar
+SCHEMASPY_JAR=schemaspy-app.jar
 
 define RUN_CMD
 	echo $(1); \

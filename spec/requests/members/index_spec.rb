@@ -248,7 +248,7 @@ RSpec.describe 'Members', type: :request do
     # テストケース
     shared_examples '[ログイン中/削除予約済み][*][ある]メンバーが最大表示数と同じ' do |power|
       let_it_be(:user_power) { power }
-      count = Settings.test_members_count
+      count = Settings.test_members_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'メンバー一覧作成', count.admin, count.reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -264,7 +264,7 @@ RSpec.describe 'Members', type: :request do
     end
     shared_examples '[APIログイン中/削除予約済み][*][ある]メンバーが最大表示数と同じ' do |power|
       let_it_be(:user_power) { power }
-      count = Settings.test_members_count
+      count = Settings.test_members_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'メンバー一覧作成', count.admin, count.reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -282,7 +282,7 @@ RSpec.describe 'Members', type: :request do
     end
     shared_examples '[ログイン中/削除予約済み][*][ある]メンバーが最大表示数より多い' do |power|
       let_it_be(:user_power) { power }
-      count = Settings.test_members_count
+      count = Settings.test_members_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'メンバー一覧作成', count.admin, count.reader + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -301,7 +301,7 @@ RSpec.describe 'Members', type: :request do
     end
     shared_examples '[APIログイン中/削除予約済み][*][ある]メンバーが最大表示数より多い' do |power|
       let_it_be(:user_power) { power }
-      count = Settings.test_members_count
+      count = Settings.test_members_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'メンバー一覧作成', count.admin, count.reader + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
