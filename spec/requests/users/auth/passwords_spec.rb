@@ -595,8 +595,8 @@ RSpec.describe 'Users::Auth::Passwords', type: :request do
       it_behaves_like 'NG'
       it_behaves_like 'ToNG', 422, false, false, false
       # it_behaves_like 'ToMsg', Array, 1, 'devise_token_auth.passwords.missing_passwords', nil, nil, nil
-      error_msg = 'activerecord.errors.models.user.attributes.password.blank'
-      it_behaves_like 'ToMsg', ActiveSupport::HashWithIndifferentAccess, 2, error_msg, nil, 'errors.messages.not_saved.one', nil
+      it_behaves_like 'ToMsg', ActiveSupport::HashWithIndifferentAccess, 2, 'activerecord.errors.models.user.attributes.password.blank', nil,
+                      'errors.messages.not_saved.one', nil
     end
     shared_examples '[APIログイン中][期限内/期限切れ]無効なパラメータ（パスワードがない）' do
       let(:params) { invalid_attributes }
@@ -642,8 +642,8 @@ RSpec.describe 'Users::Auth::Passwords', type: :request do
       it_behaves_like 'NG'
       it_behaves_like 'ToNG', 422, false, false, false
       # it_behaves_like 'ToMsg', Array, 1, 'devise_token_auth.passwords.missing_passwords', nil, nil, nil
-      error_msg = 'activerecord.errors.models.user.attributes.password_confirmation.confirmation'
-      it_behaves_like 'ToMsg', ActiveSupport::HashWithIndifferentAccess, 2, error_msg, nil, 'errors.messages.not_saved.one', nil
+      it_behaves_like 'ToMsg', ActiveSupport::HashWithIndifferentAccess, 2, 'activerecord.errors.models.user.attributes.password_confirmation.confirmation',
+                      nil, 'errors.messages.not_saved.one', nil
     end
     shared_examples '[APIログイン中][期限内/期限切れ]無効なパラメータ（パスワード確認がない）' do
       let(:params) { invalid_attributes_confirm }
