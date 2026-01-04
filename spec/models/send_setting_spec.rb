@@ -37,7 +37,7 @@ RSpec.describe SendSetting, type: :model do
     let(:url_maximum) { url + ('a' * (Settings.slack_webhook_url_maximum - url.length)) }
 
     # テストケース
-    shared_examples_for '[InValid]通知' do
+    shared_examples '[InValid]通知' do
       context 'する' do
         let(:slack_enabled) { true }
         it_behaves_like 'InValid'
@@ -87,7 +87,7 @@ RSpec.describe SendSetting, type: :model do
     let(:mention_maximum) { mention + ('a' * (Settings.slack_mention_maximum - mention.length)) }
 
     # テストケース
-    shared_examples_for '[InValid]通知' do
+    shared_examples '[InValid]通知' do
       context 'する' do
         let(:slack_enabled) { true }
         it_behaves_like 'InValid'
@@ -156,7 +156,7 @@ RSpec.describe SendSetting, type: :model do
     subject(:model) { FactoryBot.build_stubbed(:send_setting, :email, email_enabled:, email_address:) }
 
     # テストケース
-    shared_examples_for '[InValid]通知' do
+    shared_examples '[InValid]通知' do
       context 'する' do
         let(:email_enabled) { true }
         it_behaves_like 'InValid'

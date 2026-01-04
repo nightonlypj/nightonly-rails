@@ -30,14 +30,14 @@ RSpec.describe 'SlackUser', type: :request do
 
     # テスト内容
     let(:current_slack_users) { SlackUser.where(user:).eager_load(:slack_domain).order(:id) }
-    shared_examples_for 'OK' do
+    shared_examples 'OK' do
       it '対象項目が変更される' do
         subject
         expect(current_slack_users.count).to eq(expect_slack_users.count)
         current_slack_users.each { |current_slack_user| expect(current_slack_user.memberid).to eq(expect_slack_users[current_slack_user.slack_domain.name]) }
       end
     end
-    shared_examples_for 'NG' do
+    shared_examples 'NG' do
       it '変更されない' do
         subject
         expect(current_slack_users.count).to eq(slack_user.present? ? 1 : 0)
@@ -45,7 +45,7 @@ RSpec.describe 'SlackUser', type: :request do
       end
     end
 
-    shared_examples_for 'ToOK(json/json)' do
+    shared_examples 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do

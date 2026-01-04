@@ -25,7 +25,7 @@ RSpec.describe 'SendHistory', type: :request do
     let_it_be(:other_send_setting) { FactoryBot.create(:send_setting) }
 
     # テスト内容
-    shared_examples_for 'ToOK(json/json)' do
+    shared_examples 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
@@ -42,7 +42,7 @@ RSpec.describe 'SendHistory', type: :request do
       end
     end
 
-    shared_examples_for 'リスト表示(json)' do |page|
+    shared_examples 'リスト表示(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       let(:subject_page) { page }
@@ -61,7 +61,7 @@ RSpec.describe 'SendHistory', type: :request do
     end
 
     # テストケース
-    shared_examples_for '通知履歴' do
+    shared_examples '通知履歴' do
       context 'ない' do
         include_context '通知履歴一覧作成', 0, 0, 0, 0, 0
         it_behaves_like 'ToNG(html)', 406
@@ -69,14 +69,14 @@ RSpec.describe 'SendHistory', type: :request do
         it_behaves_like 'リスト表示(json)', 1
       end
       context '最大表示数と同じ' do
-        count = Settings.test_send_histories_count
+        count = Settings.test_send_histories_count # rubocop:disable RSpec/LeakyLocalVariable
         include_context '通知履歴一覧作成', count.waiting, count.processing, count.success, count.skip, count.failure
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)', 1
         it_behaves_like 'リスト表示(json)', 1
       end
       context '最大表示数より多い' do
-        count = Settings.test_send_histories_count
+        count = Settings.test_send_histories_count # rubocop:disable RSpec/LeakyLocalVariable
         include_context '通知履歴一覧作成', count.waiting, count.processing, count.success, count.skip, count.failure + 1
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)', 1
@@ -86,32 +86,32 @@ RSpec.describe 'SendHistory', type: :request do
       end
     end
 
-    shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
+    shared_examples '[APIログイン中/削除予約済み][非公開]権限がある' do |power|
       let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '通知履歴'
     end
-    shared_examples_for '[APIログイン中/削除予約済み][非公開]権限がない' do
+    shared_examples '[APIログイン中/削除予約済み][非公開]権限がない' do
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 403
     end
 
-    shared_examples_for '[*]スペースが存在しない' do
+    shared_examples '[*]スペースが存在しない' do
       let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 404
     end
-    shared_examples_for '[*]スペースが公開' do
+    shared_examples '[*]スペースが公開' do
       let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       include_context '通知設定作成'
       let(:member) { nil }
       it_behaves_like '通知履歴'
     end
-    shared_examples_for '[未ログイン]スペースが非公開' do
+    shared_examples '[未ログイン]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like 'ToNG(html)', 406
       it_behaves_like 'ToNG(json)', 401
     end
-    shared_examples_for '[APIログイン中/削除予約済み]スペースが非公開' do
+    shared_examples '[APIログイン中/削除予約済み]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       include_context '通知設定作成'
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がある', :admin
@@ -119,7 +119,7 @@ RSpec.describe 'SendHistory', type: :request do
       it_behaves_like '[APIログイン中/削除予約済み][非公開]権限がない'
     end
 
-    shared_examples_for '[APIログイン中/削除予約済み]' do
+    shared_examples '[APIログイン中/削除予約済み]' do
       it_behaves_like '[*]スペースが存在しない'
       it_behaves_like '[*]スペースが公開'
       it_behaves_like '[APIログイン中/削除予約済み]スペースが非公開'

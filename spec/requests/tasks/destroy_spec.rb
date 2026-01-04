@@ -27,18 +27,18 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     # テスト内容
-    shared_examples_for 'OK' do
+    shared_examples 'OK' do
       it 'タスク・周期が削除される' do
         expect { subject }.to change(Task, :count).by(destroy_count * -1) && change(TaskCycle, :count).by(task_cycles.count * -1)
       end
     end
-    shared_examples_for 'NG' do
+    shared_examples 'NG' do
       it 'タスク・周期が削除されない' do
         expect { subject }.not_to change(Task, :count) && change(TaskCycle, :count)
       end
     end
 
-    shared_examples_for 'ToOK(json/json)' do
+    shared_examples 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
@@ -52,7 +52,7 @@ RSpec.describe 'Tasks', type: :request do
     end
 
     # テストケース
-    shared_examples_for '[APIログイン中][*]権限がある' do |power|
+    shared_examples '[APIログイン中][*]権限がある' do |power|
       before_all { FactoryBot.create(:member, power, space:, user:) }
       context 'パラメータなし' do
         let(:params) { nil }
@@ -96,7 +96,7 @@ RSpec.describe 'Tasks', type: :request do
         it_behaves_like 'ToNG(json)', 422, nil, 'alert.task.destroy.ids.notfound'
       end
     end
-    shared_examples_for '[APIログイン中][*]権限がない' do |power|
+    shared_examples '[APIログイン中][*]権限がない' do |power|
       before_all { FactoryBot.create(:member, power, space:, user:) if power.present? }
       let(:params) { { ids: [task_destroy.id] } }
       it_behaves_like 'NG(html)'
@@ -105,7 +105,7 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like 'ToNG(json)', 403
     end
 
-    shared_examples_for '[APIログイン中][*]' do
+    shared_examples '[APIログイン中][*]' do
       let_it_be(:task_destroy) { FactoryBot.create(:task, space:, created_user:) }
       let_it_be(:task_cycles)  { [FactoryBot.create(:task_cycle, task: task_destroy, order: 1)] }
       it_behaves_like '[APIログイン中][*]権限がある', :admin
@@ -114,7 +114,7 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like '[APIログイン中][*]権限がない', nil
     end
 
-    shared_examples_for '[APIログイン中]スペースが存在しない' do
+    shared_examples '[APIログイン中]スペースが存在しない' do
       let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       let(:params) { { ids: [] } }
       it_behaves_like 'NG(html)'
@@ -122,15 +122,15 @@ RSpec.describe 'Tasks', type: :request do
       it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 404
     end
-    shared_examples_for '[APIログイン中]スペースが公開' do
+    shared_examples '[APIログイン中]スペースが公開' do
       let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       it_behaves_like '[APIログイン中][*]'
     end
-    shared_examples_for '[APIログイン中]スペースが非公開' do
+    shared_examples '[APIログイン中]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like '[APIログイン中][*]'
     end
-    shared_examples_for '[APIログイン中]スペースが非公開（削除予約済み）' do
+    shared_examples '[APIログイン中]スペースが非公開（削除予約済み）' do
       let_it_be(:space) { FactoryBot.create(:space, :private, :destroy_reserved, created_user:) }
       let_it_be(:task_destroy) { FactoryBot.create(:task, space:, created_user:) }
       let_it_be(:task_cycles)  { [FactoryBot.create(:task_cycle, task: task_destroy, order: 1)] }

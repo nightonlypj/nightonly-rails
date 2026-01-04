@@ -10,7 +10,7 @@ RSpec.describe 'Members', type: :request do
   let_it_be(:created_user) { FactoryBot.create(:user) }
 
   # テスト内容（共通）
-  shared_examples_for 'ToOK[氏名]' do
+  shared_examples 'ToOK[氏名]' do
     let!(:default_members_limit) { Settings.default_members_limit }
     before { Settings.default_members_limit = [default_members_limit, members.count].max }
     after  { Settings.default_members_limit = default_members_limit }
@@ -36,7 +36,7 @@ RSpec.describe 'Members', type: :request do
       end
     end
   end
-  shared_examples_for 'ToOK[count](json)' do
+  shared_examples 'ToOK[count](json)' do
     it 'HTTPステータスが200。件数が一致する' do
       is_expected.to eq(200)
       expect(response_json_members.count).to eq(members.count)
@@ -66,7 +66,7 @@ RSpec.describe 'Members', type: :request do
 
 =begin
     # テスト内容
-    shared_examples_for 'ToOK(html/*)' do
+    shared_examples 'ToOK(html/*)' do
       it 'HTTPステータスが200。対象項目が含まれる' do
         is_expected.to eq(200)
         expect_space_html(response, space, user_power)
@@ -86,7 +86,7 @@ RSpec.describe 'Members', type: :request do
       end
     end
 =end
-    shared_examples_for 'ToOK(json/json)' do
+    shared_examples 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
@@ -119,7 +119,7 @@ RSpec.describe 'Members', type: :request do
     end
 
 =begin
-    shared_examples_for 'ページネーション表示' do |page, link_page|
+    shared_examples 'ページネーション表示' do |page, link_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       let(:subject_page) { page }
@@ -129,7 +129,7 @@ RSpec.describe 'Members', type: :request do
         expect(response.body).to include("\"#{members_path(space_code: space.code, page: url_page)}\"")
       end
     end
-    shared_examples_for 'ページネーション非表示' do |page, link_page|
+    shared_examples 'ページネーション非表示' do |page, link_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       let(:subject_page) { page }
@@ -140,7 +140,7 @@ RSpec.describe 'Members', type: :request do
       end
     end
 
-    shared_examples_for 'リスト表示' do |page|
+    shared_examples 'リスト表示' do |page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       let(:subject_page) { page }
@@ -208,7 +208,7 @@ RSpec.describe 'Members', type: :request do
       end
     end
 =end
-    shared_examples_for 'リスト表示(json)' do |page|
+    shared_examples 'リスト表示(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       let(:subject_page) { page }
@@ -226,7 +226,7 @@ RSpec.describe 'Members', type: :request do
     end
 
 =begin
-    shared_examples_for 'リダイレクト' do |page, redirect_page|
+    shared_examples 'リダイレクト' do |page, redirect_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       let(:subject_page) { page }
@@ -236,7 +236,7 @@ RSpec.describe 'Members', type: :request do
       end
     end
 =end
-    shared_examples_for 'リダイレクト(json)' do |page|
+    shared_examples 'リダイレクト(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       let(:subject_page) { page }
@@ -246,9 +246,9 @@ RSpec.describe 'Members', type: :request do
     end
 
     # テストケース
-    shared_examples_for '[ログイン中/削除予約済み][*][ある]メンバーが最大表示数と同じ' do |power|
+    shared_examples '[ログイン中/削除予約済み][*][ある]メンバーが最大表示数と同じ' do |power|
       let_it_be(:user_power) { power }
-      count = Settings.test_members_count
+      count = Settings.test_members_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'メンバー一覧作成', count.admin, count.reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -262,9 +262,9 @@ RSpec.describe 'Members', type: :request do
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
-    shared_examples_for '[APIログイン中/削除予約済み][*][ある]メンバーが最大表示数と同じ' do |power|
+    shared_examples '[APIログイン中/削除予約済み][*][ある]メンバーが最大表示数と同じ' do |power|
       let_it_be(:user_power) { power }
-      count = Settings.test_members_count
+      count = Settings.test_members_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'メンバー一覧作成', count.admin, count.reader
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -280,9 +280,9 @@ RSpec.describe 'Members', type: :request do
       it_behaves_like 'リスト表示(json)', 1
       it_behaves_like 'リダイレクト(json)', 2
     end
-    shared_examples_for '[ログイン中/削除予約済み][*][ある]メンバーが最大表示数より多い' do |power|
+    shared_examples '[ログイン中/削除予約済み][*][ある]メンバーが最大表示数より多い' do |power|
       let_it_be(:user_power) { power }
-      count = Settings.test_members_count
+      count = Settings.test_members_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'メンバー一覧作成', count.admin, count.reader + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -299,9 +299,9 @@ RSpec.describe 'Members', type: :request do
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
-    shared_examples_for '[APIログイン中/削除予約済み][*][ある]メンバーが最大表示数より多い' do |power|
+    shared_examples '[APIログイン中/削除予約済み][*][ある]メンバーが最大表示数より多い' do |power|
       let_it_be(:user_power) { power }
-      count = Settings.test_members_count
+      count = Settings.test_members_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'メンバー一覧作成', count.admin, count.reader + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -323,66 +323,66 @@ RSpec.describe 'Members', type: :request do
       it_behaves_like 'リダイレクト(json)', 3
     end
 
-    shared_examples_for '[ログイン中/削除予約済み][*]権限がある' do |power|
+    shared_examples '[ログイン中/削除予約済み][*]権限がある' do |power|
       # it_behaves_like '[ログイン中/削除予約済み][*][ある]メンバーがいない', power # NOTE: 自分がいる
       it_behaves_like '[ログイン中/削除予約済み][*][ある]メンバーが最大表示数と同じ', power
       it_behaves_like '[ログイン中/削除予約済み][*][ある]メンバーが最大表示数より多い', power
     end
-    shared_examples_for '[APIログイン中/削除予約済み][*]権限がある' do |power|
+    shared_examples '[APIログイン中/削除予約済み][*]権限がある' do |power|
       # it_behaves_like '[APIログイン中/削除予約済み][*][ある]メンバーがいない', power # NOTE: 自分がいる
       it_behaves_like '[APIログイン中/削除予約済み][*][ある]メンバーが最大表示数と同じ', power
       it_behaves_like '[APIログイン中/削除予約済み][*][ある]メンバーが最大表示数より多い', power
     end
-    shared_examples_for '[ログイン中/削除予約済み][*]権限がない' do
+    shared_examples '[ログイン中/削除予約済み][*]権限がない' do
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
-    shared_examples_for '[APIログイン中/削除予約済み][*]権限がない' do
+    shared_examples '[APIログイン中/削除予約済み][*]権限がない' do
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 403
       it_behaves_like 'ToNG(json)', 403
     end
 
-    shared_examples_for '[ログイン中/削除予約済み]スペースが存在しない' do
+    shared_examples '[ログイン中/削除予約済み]スペースが存在しない' do
       let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 404
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
-    shared_examples_for '[APIログイン中/削除予約済み]スペースが存在しない' do
+    shared_examples '[APIログイン中/削除予約済み]スペースが存在しない' do
       let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       it_behaves_like 'ToNG(html)', Settings.api_only_mode ? 406 : 404
       it_behaves_like 'ToNG(json)', 404
     end
-    shared_examples_for '[ログイン中/削除予約済み]スペースが公開' do
+    shared_examples '[ログイン中/削除予約済み]スペースが公開' do
       let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       it_behaves_like '[ログイン中/削除予約済み][*]権限がある', :admin
       it_behaves_like '[ログイン中/削除予約済み][*]権限がある', :reader
       it_behaves_like '[ログイン中/削除予約済み][*]権限がない'
     end
-    shared_examples_for '[APIログイン中/削除予約済み]スペースが公開' do
+    shared_examples '[APIログイン中/削除予約済み]スペースが公開' do
       let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :admin
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :reader
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がない'
     end
-    shared_examples_for '[ログイン中/削除予約済み]スペースが非公開' do
+    shared_examples '[ログイン中/削除予約済み]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like '[ログイン中/削除予約済み][*]権限がある', :admin
       it_behaves_like '[ログイン中/削除予約済み][*]権限がある', :reader
       it_behaves_like '[ログイン中/削除予約済み][*]権限がない'
     end
-    shared_examples_for '[APIログイン中/削除予約済み]スペースが非公開' do
+    shared_examples '[APIログイン中/削除予約済み]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :admin
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がある', :reader
       it_behaves_like '[APIログイン中/削除予約済み][*]権限がない'
     end
 
-    shared_examples_for '[ログイン中/削除予約済み]' do
+    shared_examples '[ログイン中/削除予約済み]' do
       it_behaves_like '[ログイン中/削除予約済み]スペースが存在しない'
       it_behaves_like '[ログイン中/削除予約済み]スペースが公開'
       it_behaves_like '[ログイン中/削除予約済み]スペースが非公開'
     end
-    shared_examples_for '[APIログイン中/削除予約済み]' do
+    shared_examples '[APIログイン中/削除予約済み]' do
       it_behaves_like '[APIログイン中/削除予約済み]スペースが存在しない'
       it_behaves_like '[APIログイン中/削除予約済み]スペースが公開'
       it_behaves_like '[APIログイン中/削除予約済み]スペースが非公開'
@@ -433,7 +433,7 @@ RSpec.describe 'Members', type: :request do
     before_all { FactoryBot.create(:member, user: FactoryBot.create(:user, name: '氏名(Aaa)')) } # NOTE: 対象外
 
     # テスト内容
-    shared_examples_for 'ToNG[0件]' do
+    shared_examples 'ToNG[0件]' do
       it '0件/存在しないメッセージが含まれる' do
         is_expected.to eq(200)
         if subject_format == :json
@@ -449,33 +449,33 @@ RSpec.describe 'Members', type: :request do
     end
 
     # テストケース
-    shared_examples_for '[管理者]部分一致' do
+    shared_examples '[管理者]部分一致' do
       let(:params) { { text: 'aaa' } }
       let(:members) { [member_all, member_admin_only] }
       it_behaves_like 'ToOK[氏名]'
     end
-    shared_examples_for '[管理者以外]部分一致' do
+    shared_examples '[管理者以外]部分一致' do
       let(:params) { { text: 'aaa' } }
       let(:members) { [member_all] }
       it_behaves_like 'ToOK[氏名]'
     end
-    shared_examples_for '[*]不一致' do
+    shared_examples '[*]不一致' do
       let(:params) { { text: 'zzz' } }
       it_behaves_like 'ToNG[0件]'
     end
 
-    shared_examples_for '管理者' do |power|
+    shared_examples '管理者' do |power|
       before_all { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '[管理者]部分一致'
       it_behaves_like '[*]不一致'
     end
-    shared_examples_for '管理者以外' do |power|
+    shared_examples '管理者以外' do |power|
       before_all { FactoryBot.create(:member, power, space:, user:) }
       it_behaves_like '[管理者以外]部分一致'
       it_behaves_like '[*]不一致'
     end
 
-    shared_examples_for '権限' do
+    shared_examples '権限' do
       it_behaves_like '管理者', :admin
       it_behaves_like '管理者以外', :reader
     end
@@ -621,7 +621,7 @@ RSpec.describe 'Members', type: :request do
     let_it_be(:member_destroy_reserved) { FactoryBot.create(:member, space:, user: FactoryBot.create(:user, :destroy_reserved)) }
 
     # テストケース
-    shared_examples_for '状態' do
+    shared_examples '状態' do
       context '■有効, ■削除予定' do
         let(:params) { { active: 1, destroy: 1 } }
         let(:members) { [member_destroy_reserved, member_active] }

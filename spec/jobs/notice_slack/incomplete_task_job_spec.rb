@@ -53,12 +53,12 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
 
     # テスト内容
     let(:current_send_history) { SendHistory.find(send_history.id) }
-    shared_examples_for 'OK' do |status|
-      let!(:start_time) { Time.current.floor }
+    shared_examples 'OK' do |status|
+      let!(:start_time) { Time.current }
       it "ステータスが#{status}、対象項目が変更される" do
         subject
         expect(current_send_history.status.to_sym).to eq(status)
-        expect(current_send_history.completed_at).to be_between(start_time, Time.current)
+        expect(current_send_history.completed_at).to be_between(start_time.floor, Time.current.ceil)
         expect(current_send_history.error_message).to status == :failure ? be_present : be_nil
         expect(current_send_history.send_data).not_to be_nil
         next if status != :success
@@ -129,7 +129,7 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
     end
 
     # テストケース
-    shared_examples_for '通知履歴のタスクイベント' do
+    shared_examples '通知履歴のタスクイベント' do
       context 'ある' do
         let_it_be(:send_history) do
           FactoryBot.create(:send_history, send_setting:, target_date:, notice_target:,
@@ -146,7 +146,7 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
         it_behaves_like 'OK', :success
       end
     end
-    shared_examples_for '通知履歴の通知対象' do
+    shared_examples '通知履歴の通知対象' do
       context '開始確認' do
         let_it_be(:notice_target) { :start }
         it_behaves_like '通知履歴のタスクイベント'
@@ -156,7 +156,7 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
         it_behaves_like '通知履歴のタスクイベント'
       end
     end
-    shared_examples_for '通知履歴の対象日' do
+    shared_examples '通知履歴の対象日' do
       let_it_be(:send_setting) do
         FactoryBot.create(:send_setting, :slack, space:, slack_domain:, slack_mention:,
                                                  start_notice_completed: notice_completed, next_notice_completed: notice_completed)
@@ -172,7 +172,7 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
         it_behaves_like '通知履歴の通知対象'
       end
     end
-    shared_examples_for '通知設定の完了通知' do
+    shared_examples '通知設定の完了通知' do
       context 'する' do
         let_it_be(:notice_completed) { true }
         it_behaves_like '通知履歴の対象日'

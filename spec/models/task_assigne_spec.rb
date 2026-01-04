@@ -15,7 +15,7 @@ RSpec.describe TaskAssigne, type: :model do
 
     # テスト内容
     before { task_assigne.user_ids = '0' }
-    shared_examples_for 'user_ids' do
+    shared_examples 'user_ids' do
       it do # "user_idsに#{user_ids}がセットされる" do
         subject
         expect(task_assigne.user_ids).to eq(user_ids)

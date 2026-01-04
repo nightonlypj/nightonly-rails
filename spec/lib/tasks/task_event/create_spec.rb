@@ -8,7 +8,7 @@ RSpec.describe :task_event, type: :task do
     subject { Rake.application['task_event:create_send_notice:now'].invoke(dry_run) }
 
     # テスト内容
-    shared_examples_for 'OK' do
+    shared_examples 'OK' do
       it '正常終了' do
         expect { subject }.not_to raise_error
       end
@@ -195,7 +195,7 @@ RSpec.describe :task_event, type: :task do
     # テスト内容
     let(:current_task_events) { TaskEvent.where(space:).eager_load(task_cycle: { task: :task_assigne }).order(:id) }
     let(:current_send_histories) { SendHistory.where(space:).order(:id) }
-    shared_examples_for 'OK' do |notice_target, create = { history: true, send: true }, params = { dry_run: false, send_notice: true }|
+    shared_examples 'OK' do |notice_target, create = { history: true, send: true }, params = { dry_run: false, send_notice: true }|
       let(:dry_run) { params[:dry_run].to_s }
       let(:send_notice) { params[:send_notice].to_s }
       before { allow(NoticeSlack::IncompleteTaskJob).to receive(:perform_later).and_return(true) }
@@ -302,7 +302,7 @@ RSpec.describe :task_event, type: :task do
       end
     end
 
-    shared_examples_for '通知履歴作成' do |status|
+    shared_examples '通知履歴作成' do |status|
       let_it_be(:send_histories) do
         [
           FactoryBot.create(:send_history, :start, :slack, status, send_setting:, target_date:),
@@ -312,7 +312,7 @@ RSpec.describe :task_event, type: :task do
     end
 
     # テストケース
-    shared_examples_for '[当日（営業日）][(翌営業日・終了確認)開始時間より後][ある][*][通知済み/エラー]翌営業日・終了確認' do |status|
+    shared_examples '[当日（営業日）][(翌営業日・終了確認)開始時間より後][ある][*][通知済み/エラー]翌営業日・終了確認' do |status|
       let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space:, next_notice_completed:) }
       let_it_be(:send_histories_start) do
         [
@@ -344,7 +344,7 @@ RSpec.describe :task_event, type: :task do
       end
     end
 
-    shared_examples_for '[当日（営業日）][(開始確認)開始時間より後][ある][ある][*]開始確認' do
+    shared_examples '[当日（営業日）][(開始確認)開始時間より後][ある][ある][*]開始確認' do
       let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space:, start_notice_completed:) }
       context '未通知' do
         let(:send_histories) { [] }
@@ -359,7 +359,7 @@ RSpec.describe :task_event, type: :task do
         it_behaves_like 'OK', :start, { history: true, send: true }
       end
     end
-    shared_examples_for '[当日（営業日）][(翌営業日・終了確認)開始時間より後][ある][ある][*]開始確認' do
+    shared_examples '[当日（営業日）][(翌営業日・終了確認)開始時間より後][ある][ある][*]開始確認' do
       context '未通知' do
         let_it_be(:send_setting) { FactoryBot.create(:send_setting, :changed, :slack, :email, space:, next_notice_completed:) }
         let(:send_histories) { [] }

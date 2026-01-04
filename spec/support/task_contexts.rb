@@ -97,7 +97,7 @@ shared_context 'タスク作成・更新条件設定' do
   include_context '祝日設定(2022/11-2023/01)'
 end
 
-shared_examples_for 'パラメータなし（タスク）' do |update|
+shared_examples 'パラメータなし（タスク）' do |update|
   let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task:, order: 1)] if update }
   let(:task_cycle_inactive) { nil }
   let(:params) { nil }
@@ -112,7 +112,7 @@ shared_examples_for 'パラメータなし（タスク）' do |update|
   }
 end
 
-shared_examples_for '有効なパラメータ（タスク周期）' do |update|
+shared_examples '有効なパラメータ（タスク周期）' do |update|
   context "毎週 × 削除なし/あり#{'、変更なし' if update}" do
     let(:attributes) do
       valid_task_attributes.merge(
@@ -417,7 +417,7 @@ shared_examples_for '有効なパラメータ（タスク周期）' do |update|
   end
 end
 
-shared_examples_for '有効なパラメータ（タスク担当者）' do |update|
+shared_examples '有効なパラメータ（タスク担当者）' do |update|
   let(:task_cycle_inactive) { nil } # 元の値
   let(:except_task_cycle_inactive) { nil }
   let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task:, **valid_attributes[:cycles][0], order: 1)] if update } # 元の値
@@ -472,7 +472,7 @@ shared_examples_for '有効なパラメータ（タスク担当者）' do |updat
   end
 end
 
-shared_examples_for '無効なパラメータ（タスク）' do |update|
+shared_examples '無効なパラメータ（タスク）' do |update|
   let_it_be(:task_cycles) { [FactoryBot.create(:task_cycle, task:, order: 1)] if update }
   let(:task_cycle_inactive) { nil }
   context 'タスクが不正値' do

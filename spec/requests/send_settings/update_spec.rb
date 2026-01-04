@@ -62,8 +62,8 @@ RSpec.describe 'SendSetting', type: :request do
       SendSetting.active.where(space:).eager_load(:slack_domain, :last_updated_user).order(updated_at: :desc, id: :desc).first
     end
     let(:current_send_settings_inactive) { SendSetting.inactive.where(space:) }
-    shared_examples_for 'OK' do
-      let!(:start_time) { Time.current.floor }
+    shared_examples 'OK' do
+      let!(:start_time) { Time.current }
       it '対象項目が変更される' do
         subject
         expect(current_send_setting.space).to eq(space)
@@ -86,14 +86,14 @@ RSpec.describe 'SendSetting', type: :request do
           current_send_setting_inactive = current_send_settings_inactive.first
           expect(current_send_setting_inactive.id).to eq(except_send_setting_inactive.id)
           expect(current_send_setting_inactive.last_updated_user_id).to eq(user.id)
-          expect(current_send_setting_inactive.deleted_at).to be_between(start_time, Time.current)
-          expect(current_send_setting_inactive.updated_at).to be_between(start_time, Time.current)
+          expect(current_send_setting_inactive.deleted_at).to be_between(start_time.floor, Time.current.ceil)
+          expect(current_send_setting_inactive.updated_at).to be_between(start_time.floor, Time.current.ceil)
         else
           expect(current_send_settings_inactive.count).to eq(0)
         end
       end
     end
-    shared_examples_for 'NG' do
+    shared_examples 'NG' do
       it '変更されない' do
         subject
         expect(current_send_setting).to eq(send_setting)
@@ -102,7 +102,7 @@ RSpec.describe 'SendSetting', type: :request do
       end
     end
 
-    shared_examples_for 'ToOK(json/json)' do
+    shared_examples 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
@@ -126,7 +126,7 @@ RSpec.describe 'SendSetting', type: :request do
     end
 
     # テストケース
-    shared_examples_for '[APIログイン中][*]権限がある' do |power|
+    shared_examples '[APIログイン中][*]権限がある' do |power|
       let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       context 'パラメータなし' do
         let(:params) { nil }
@@ -256,7 +256,7 @@ RSpec.describe 'SendSetting', type: :request do
         it_behaves_like 'ToNG(json)', 422, { slack_name: [get_locale('activerecord.errors.models.slack_domain.attributes.name.blank')] }
       end
     end
-    shared_examples_for '[APIログイン中][*]権限がない' do |power|
+    shared_examples '[APIログイン中][*]権限がない' do |power|
       let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) if power.present? }
       let(:attributes) { valid_attributes }
       let(:params) { { send_setting: params_attributes } }
@@ -269,14 +269,14 @@ RSpec.describe 'SendSetting', type: :request do
       it_behaves_like 'ToNG(json)', 403
     end
 
-    shared_examples_for '[APIログイン中][*]' do
+    shared_examples '[APIログイン中][*]' do
       it_behaves_like '[APIログイン中][*]権限がある', :admin
       it_behaves_like '[APIログイン中][*]権限がない', :writer
       it_behaves_like '[APIログイン中][*]権限がない', :reader
       it_behaves_like '[APIログイン中][*]権限がない', nil
     end
 
-    shared_examples_for '[APIログイン中]スペースが存在しない' do
+    shared_examples '[APIログイン中]スペースが存在しない' do
       let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       let(:attributes) { valid_attributes }
       let(:params) { { send_setting: params_attributes } }
@@ -286,15 +286,15 @@ RSpec.describe 'SendSetting', type: :request do
       # it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 404
     end
-    shared_examples_for '[APIログイン中]スペースが公開' do
+    shared_examples '[APIログイン中]スペースが公開' do
       let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       it_behaves_like '[APIログイン中][*]'
     end
-    shared_examples_for '[APIログイン中]スペースが非公開' do
+    shared_examples '[APIログイン中]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like '[APIログイン中][*]'
     end
-    shared_examples_for '[APIログイン中]スペースが非公開（削除予約済み）' do
+    shared_examples '[APIログイン中]スペースが非公開（削除予約済み）' do
       let_it_be(:space) { FactoryBot.create(:space, :private, :destroy_reserved, created_user:) }
       let(:attributes) { valid_attributes }
       let(:params) { { send_setting: params_attributes } }

@@ -124,7 +124,7 @@ class TasksController < ApplicationAuthController
 
     validate_months(params[:months])
 
-    render '/failure', locals: { errors: @task.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if @task.errors.any?
+    render '/failure', locals: { errors: @task.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_content if @task.errors.any?
   end
 
   def validate_cycles(cycles, target)
@@ -169,7 +169,7 @@ class TasksController < ApplicationAuthController
       elsif inactive_task_cycles[key].present?
         @upsert_task_cycles.push(inactive_task_cycles[key].attributes.symbolize_keys.merge(order: count, deleted_at: nil, updated_at: @now))
       else
-        @insert_task_cycles.push(task_cycle.attributes.symbolize_keys.merge(order: count, created_at: @now, updated_at: @now))
+        @insert_task_cycles.push(task_cycle.attributes.symbolize_keys.merge(order: count, created_at: @now, updated_at: @now).except(:id))
       end
     end
     return if cycle_error > 0
@@ -276,7 +276,7 @@ class TasksController < ApplicationAuthController
       alert = 'alert.task.destroy.ids.notfound' if @tasks.empty?
     end
 
-    render '/failure', locals: { alert: t(alert) }, status: :unprocessable_entity if alert.present?
+    render '/failure', locals: { alert: t(alert) }, status: :unprocessable_content if alert.present?
   end
 
   # Only allow a list of trusted parameters through.
@@ -288,7 +288,7 @@ class TasksController < ApplicationAuthController
     params[:task][:premise] = params[:task][:premise]&.gsub(/\R/, "\n")
     params[:task][:process] = params[:task][:process]&.gsub(/\R/, "\n")
 
-    params.require(:task).permit(:priority, :title, :summary, :premise, :process, :started_date, :ended_date)
+    params.expect(task: %i[priority title summary premise process started_date ended_date])
   end
 
   def task_cycle_params(task_cycle)

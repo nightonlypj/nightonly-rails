@@ -27,13 +27,13 @@ RSpec.describe 'Downloads', type: :request do
 
 =begin
     # テスト内容
-    shared_examples_for 'ToOK(html/*)' do
+    shared_examples 'ToOK(html/*)' do
       it 'HTTPステータスが200' do
         is_expected.to eq(200)
       end
     end
 =end
-    shared_examples_for 'ToOK(json/json)' do
+    shared_examples 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       before { user.cache_undownloaded_count = nil } # NOTE: キャッシュクリア
@@ -54,7 +54,7 @@ RSpec.describe 'Downloads', type: :request do
     end
 
 =begin
-    shared_examples_for 'ページネーション表示' do |page, link_page|
+    shared_examples 'ページネーション表示' do |page, link_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       let(:subject_page) { page }
@@ -64,7 +64,7 @@ RSpec.describe 'Downloads', type: :request do
         expect(response.body).to include("\"#{downloads_path(page: url_page)}\"")
       end
     end
-    shared_examples_for 'ページネーション非表示' do |page, link_page|
+    shared_examples 'ページネーション非表示' do |page, link_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       let(:subject_page) { page }
@@ -75,7 +75,7 @@ RSpec.describe 'Downloads', type: :request do
       end
     end
 
-    shared_examples_for 'リスト表示（0件）' do
+    shared_examples 'リスト表示（0件）' do
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       let(:subject_page) { 1 }
@@ -84,7 +84,7 @@ RSpec.describe 'Downloads', type: :request do
         expect(response.body).to include(I18n.t('対象が見つかりません。'))
       end
     end
-    shared_examples_for 'リスト表示' do |page|
+    shared_examples 'リスト表示' do |page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       let(:subject_page) { page }
@@ -121,7 +121,7 @@ RSpec.describe 'Downloads', type: :request do
       end
     end
 =end
-    shared_examples_for 'リスト表示(json)' do |page|
+    shared_examples 'リスト表示(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       let(:subject_page) { page }
@@ -139,7 +139,7 @@ RSpec.describe 'Downloads', type: :request do
     end
 
 =begin
-    shared_examples_for 'リダイレクト' do |page, redirect_page|
+    shared_examples 'リダイレクト' do |page, redirect_page|
       let(:subject_format) { nil }
       let(:accept_headers) { ACCEPT_INC_HTML }
       let(:subject_page) { page }
@@ -149,7 +149,7 @@ RSpec.describe 'Downloads', type: :request do
       end
     end
 =end
-    shared_examples_for 'リダイレクト(json)' do |page|
+    shared_examples 'リダイレクト(json)' do |page|
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       let(:subject_page) { page }
@@ -159,7 +159,7 @@ RSpec.describe 'Downloads', type: :request do
     end
 
     # テストケース
-    shared_examples_for '[ログイン中/削除予約済み]ダウンロード結果が存在しない' do
+    shared_examples '[ログイン中/削除予約済み]ダウンロード結果が存在しない' do
       include_context 'ダウンロード結果一覧作成', 0, 0, 0, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -173,7 +173,7 @@ RSpec.describe 'Downloads', type: :request do
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
-    shared_examples_for '[APIログイン中/削除予約済み]ダウンロード結果が存在しない' do
+    shared_examples '[APIログイン中/削除予約済み]ダウンロード結果が存在しない' do
       include_context 'ダウンロード結果一覧作成', 0, 0, 0, 0, 0
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -188,8 +188,8 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'ToOK(json)', 1
       it_behaves_like 'リダイレクト(json)', 2
     end
-    shared_examples_for '[ログイン中/削除予約済み]ダウンロード結果が最大表示数と同じ' do
-      count = Settings.test_downloads_count
+    shared_examples '[ログイン中/削除予約済み]ダウンロード結果が最大表示数と同じ' do
+      count = Settings.test_downloads_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -203,8 +203,8 @@ RSpec.describe 'Downloads', type: :request do
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
-    shared_examples_for '[APIログイン中/削除予約済み]ダウンロード結果が最大表示数と同じ' do
-      count = Settings.test_downloads_count
+    shared_examples '[APIログイン中/削除予約済み]ダウンロード結果が最大表示数と同じ' do
+      count = Settings.test_downloads_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -220,8 +220,8 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'リスト表示(json)', 1
       it_behaves_like 'リダイレクト(json)', 2
     end
-    shared_examples_for '[ログイン中/削除予約済み]ダウンロード結果が最大表示数より多い' do
-      count = Settings.test_downloads_count
+    shared_examples '[ログイン中/削除予約済み]ダウンロード結果が最大表示数より多い' do
+      count = Settings.test_downloads_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -238,8 +238,8 @@ RSpec.describe 'Downloads', type: :request do
       end
       it_behaves_like 'ToNG(json)', 401 # NOTE: APIは未ログイン扱い
     end
-    shared_examples_for '[APIログイン中/削除予約済み]ダウンロード結果が最大表示数より多い' do
-      count = Settings.test_downloads_count
+    shared_examples '[APIログイン中/削除予約済み]ダウンロード結果が最大表示数より多い' do
+      count = Settings.test_downloads_count # rubocop:disable RSpec/LeakyLocalVariable
       include_context 'ダウンロード結果一覧作成', count.waiting, count.processing, count.success, count.failure, count.downloaded + 1
       if Settings.api_only_mode
         it_behaves_like 'ToNG(html)', 406
@@ -261,12 +261,12 @@ RSpec.describe 'Downloads', type: :request do
       it_behaves_like 'リダイレクト(json)', 3
     end
 
-    shared_examples_for '[ログイン中/削除予約済み]' do
+    shared_examples '[ログイン中/削除予約済み]' do
       it_behaves_like '[ログイン中/削除予約済み]ダウンロード結果が存在しない'
       it_behaves_like '[ログイン中/削除予約済み]ダウンロード結果が最大表示数と同じ'
       it_behaves_like '[ログイン中/削除予約済み]ダウンロード結果が最大表示数より多い'
     end
-    shared_examples_for '[APIログイン中/削除予約済み]' do
+    shared_examples '[APIログイン中/削除予約済み]' do
       it_behaves_like '[APIログイン中/削除予約済み]ダウンロード結果が存在しない'
       it_behaves_like '[APIログイン中/削除予約済み]ダウンロード結果が最大表示数と同じ'
       it_behaves_like '[APIログイン中/削除予約済み]ダウンロード結果が最大表示数より多い'
@@ -310,7 +310,7 @@ RSpec.describe 'Downloads', type: :request do
     subject { get downloads_path(format: subject_format), params:, headers: auth_headers.merge(accept_headers) }
 
     # テスト内容
-    shared_examples_for 'ToOK[依頼日時]' do
+    shared_examples 'ToOK[依頼日時]' do
       it 'HTTPステータスが200。対象の依頼日時が一致する/含まれる' do
         is_expected.to eq(200)
         if subject_format == :json
@@ -331,7 +331,7 @@ RSpec.describe 'Downloads', type: :request do
         end
       end
     end
-    shared_examples_for 'ToNG[0件]' do
+    shared_examples 'ToNG[0件]' do
       it '0件/存在しないメッセージが含まれる' do
         is_expected.to eq(200)
         if subject_format == :json
@@ -347,20 +347,20 @@ RSpec.describe 'Downloads', type: :request do
     end
 
     # テストケース
-    shared_examples_for 'IDが存在する' do
+    shared_examples 'IDが存在する' do
       let_it_be(:space) { FactoryBot.create(:space, created_user: user) }
       let_it_be(:download) { FactoryBot.create(:download, space:, user:) }
       let(:params) { { id: download.id, target_id: nil } }
       let(:downloads) { [download] }
       it_behaves_like 'ToOK[依頼日時]'
     end
-    shared_examples_for 'IDが存在しない' do
+    shared_examples 'IDが存在しない' do
       let_it_be(:download) { FactoryBot.build_stubbed(:download) }
       let(:params) { { id: download.id, target_id: nil } }
       it_behaves_like 'ToNG[0件]'
     end
 
-    shared_examples_for 'ID' do
+    shared_examples 'ID' do
       it_behaves_like 'IDが存在する'
       it_behaves_like 'IDが存在しない'
     end
@@ -394,7 +394,7 @@ RSpec.describe 'Downloads', type: :request do
     let_it_be(:space) { FactoryBot.create(:space) }
 
     # テスト内容
-    shared_examples_for 'OK' do |status, alert, notice|
+    shared_examples 'OK' do |status, alert, notice|
       it 'HTTPステータスが200。対象が一致する/メッセージが含まれる' do
         is_expected.to eq(200)
         if subject_format == :json
@@ -421,42 +421,42 @@ RSpec.describe 'Downloads', type: :request do
     end
 
     # テストケース
-    shared_examples_for '一覧に存在する(notice)' do |status|
+    shared_examples '一覧に存在する(notice)' do |status|
       before_all { FactoryBot.create_list(:download, Settings.default_downloads_limit, user:, space:) }
       let_it_be(:download) { FactoryBot.create(:download, status, user:, space:) }
       it_behaves_like 'OK', status, nil, "notice.download.status.#{status}"
     end
-    shared_examples_for '一覧に存在しない(notice)' do |status|
+    shared_examples '一覧に存在しない(notice)' do |status|
       let_it_be(:download) { FactoryBot.create(:download, status, user:, space:) }
       before_all { FactoryBot.create_list(:download, Settings.default_downloads_limit, user:, space:) }
       it_behaves_like 'OK', status, nil, "notice.download.status.#{status}"
     end
-    shared_examples_for '一覧に存在する(alert)' do |status|
+    shared_examples '一覧に存在する(alert)' do |status|
       before_all { FactoryBot.create_list(:download, Settings.default_downloads_limit, user:, space:) }
       let_it_be(:download) { FactoryBot.create(:download, status, user:, space:) }
       it_behaves_like 'OK', status, "alert.download.status.#{status}", nil
     end
-    shared_examples_for '一覧に存在しない(alert)' do |status|
+    shared_examples '一覧に存在しない(alert)' do |status|
       let_it_be(:download) { FactoryBot.create(:download, status, user:, space:) }
       before_all { FactoryBot.create_list(:download, Settings.default_downloads_limit, user:, space:) }
       it_behaves_like 'OK', status, "alert.download.status.#{status}", nil
     end
-    shared_examples_for '一覧に存在する(nil)' do |status|
+    shared_examples '一覧に存在する(nil)' do |status|
       before_all { FactoryBot.create_list(:download, Settings.default_downloads_limit, user:, space:) }
       let_it_be(:download) { FactoryBot.create(:download, status, user:, space:) }
       it_behaves_like 'OK', :success, nil, nil
     end
-    shared_examples_for '一覧に存在しない(nil)' do |status|
+    shared_examples '一覧に存在しない(nil)' do |status|
       let_it_be(:download) { FactoryBot.create(:download, status, user:, space:) }
       before_all { FactoryBot.create_list(:download, Settings.default_downloads_limit, user:, space:) }
       it_behaves_like 'OK', :success, nil, nil
     end
-    shared_examples_for '存在しない' do
+    shared_examples '存在しない' do
       let_it_be(:download) { FactoryBot.build_stubbed(:download) }
       it_behaves_like 'OK', nil, nil, nil
     end
 
-    shared_examples_for '対象ID' do
+    shared_examples '対象ID' do
       it_behaves_like '一覧に存在する(notice)', :waiting
       it_behaves_like '一覧に存在する(notice)', :processing
       it_behaves_like '一覧に存在する(notice)', :success

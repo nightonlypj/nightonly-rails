@@ -134,7 +134,7 @@ namespace :task_event do
     unique_codes = []
     try_count = 1
     loop do
-      codes = Array.new(count - unique_codes.count) { Digest::MD5.hexdigest(SecureRandom.uuid).to_i(16).to_s(36).rjust(25, '0') }
+      codes = Array.new(count - unique_codes.count) { Utils::UniqueCodeGenerator.base36_uuid }
       unique_codes += codes - TaskEvent.where(code: codes).pluck(:code)
       return unique_codes if unique_codes.count >= count
 

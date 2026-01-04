@@ -34,8 +34,8 @@ RSpec.describe 'TaskEvents', type: :request do
 
     # テスト内容
     let(:current_task_event) { TaskEvent.find(task_event.id) }
-    shared_examples_for 'OK' do
-      let!(:start_time) { Time.current.floor }
+    shared_examples 'OK' do
+      let!(:start_time) { Time.current }
       it '対象項目が変更される' do
         subject
         expect(current_task_event.code).to eq(task_event.code)
@@ -44,24 +44,31 @@ RSpec.describe 'TaskEvents', type: :request do
         expect(current_task_event.started_date).to eq(task_event.started_date)
         expect(current_task_event.ended_date).to eq(task_event.ended_date)
         expect(current_task_event.last_ended_date).to eq(attributes[:last_ended_date])
-        expect(current_task_event.last_completed_at).to expect_last_completed_at[:new] ? be_between(start_time,
-                                                                                                    Time.current) : eq(expect_last_completed_at[:data])
+        if expect_last_completed_at[:new]
+          expect(current_task_event.last_completed_at).to be_between(start_time.floor, Time.current.ceil)
+        else
+          expect(current_task_event.last_completed_at&.floor).to eq(expect_last_completed_at[:data]&.floor)
+        end
         expect(current_task_event.status.to_sym).to eq(attributes[:status])
         expect(current_task_event.init_assigned_user_id).to eq(task_event.init_assigned_user_id)
         expect(current_task_event.assigned_user_id).to eq(expect_assigned_user_id)
-        expect(current_task_event.assigned_at).to expect_assigned_at[:new] ? be_between(start_time, Time.current) : eq(expect_assigned_at[:data])
+        if expect_assigned_at[:new]
+          expect(current_task_event.assigned_at).to be_between(start_time.floor, Time.current.ceil)
+        else
+          expect(current_task_event.assigned_at&.floor).to eq(expect_assigned_at[:data]&.floor)
+        end
         expect(current_task_event.memo).to eq(attributes[:memo])
         expect(current_task_event.last_updated_user_id).to be(user.id)
       end
     end
-    shared_examples_for 'NG' do
+    shared_examples 'NG' do
       it '変更されない' do
         subject
         expect(current_task_event).to eq(task_event)
       end
     end
 
-    shared_examples_for 'ToOK(json/json)' do
+    shared_examples 'ToOK(json/json)' do
       let(:subject_format) { :json }
       let(:accept_headers) { ACCEPT_INC_JSON }
       it 'HTTPステータスが200。対象項目が一致する' do
@@ -79,7 +86,7 @@ RSpec.describe 'TaskEvents', type: :request do
     end
 
     # テストケース
-    shared_examples_for '[APIログイン中][*]権限がある' do |power|
+    shared_examples '[APIログイン中][*]権限がある' do |power|
       let_it_be(:member) { FactoryBot.create(:member, power, space:, user:) }
       context 'イベントコードが存在する' do
         context 'パラメータなし' do
@@ -177,7 +184,7 @@ RSpec.describe 'TaskEvents', type: :request do
         it_behaves_like 'ToNG(json)', 404
       end
     end
-    shared_examples_for '[APIログイン中][*]権限がない' do |power|
+    shared_examples '[APIログイン中][*]権限がない' do |power|
       before_all { FactoryBot.create(:member, power, space:, user:) if power.present? }
       let_it_be(:task_event) { FactoryBot.create(:task_event, space:) }
       let(:params) { { task_event: valid_attributes } }
@@ -187,14 +194,14 @@ RSpec.describe 'TaskEvents', type: :request do
       it_behaves_like 'ToNG(json)', 403
     end
 
-    shared_examples_for '[APIログイン中][*]' do
+    shared_examples '[APIログイン中][*]' do
       it_behaves_like '[APIログイン中][*]権限がある', :admin
       it_behaves_like '[APIログイン中][*]権限がある', :writer
       it_behaves_like '[APIログイン中][*]権限がない', :reader
       it_behaves_like '[APIログイン中][*]権限がない', nil
     end
 
-    shared_examples_for '[APIログイン中]スペースが存在しない' do
+    shared_examples '[APIログイン中]スペースが存在しない' do
       let_it_be(:space) { FactoryBot.build_stubbed(:space) }
       let_it_be(:task_event) { FactoryBot.build_stubbed(:task_event) }
       let(:params) { { task_event: valid_attributes } }
@@ -203,15 +210,15 @@ RSpec.describe 'TaskEvents', type: :request do
       # it_behaves_like 'NG(json)'
       it_behaves_like 'ToNG(json)', 404
     end
-    shared_examples_for '[APIログイン中]スペースが公開' do
+    shared_examples '[APIログイン中]スペースが公開' do
       let_it_be(:space) { FactoryBot.create(:space, :public, created_user:) }
       it_behaves_like '[APIログイン中][*]'
     end
-    shared_examples_for '[APIログイン中]スペースが非公開' do
+    shared_examples '[APIログイン中]スペースが非公開' do
       let_it_be(:space) { FactoryBot.create(:space, :private, created_user:) }
       it_behaves_like '[APIログイン中][*]'
     end
-    shared_examples_for '[APIログイン中]スペースが非公開（削除予約済み）' do
+    shared_examples '[APIログイン中]スペースが非公開（削除予約済み）' do
       let_it_be(:space) { FactoryBot.create(:space, :private, :destroy_reserved, created_user:) }
       before_all { FactoryBot.create(:member, space:, user:) }
       let_it_be(:task_event) { FactoryBot.create(:task_event, space:) }
