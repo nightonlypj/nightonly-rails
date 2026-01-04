@@ -9,7 +9,7 @@ RSpec.describe Invitation, type: :model do
   #   ない, 正常値, 重複
   describe 'validates :code' do
     subject(:model) { FactoryBot.build_stubbed(:invitation, code:) }
-    let(:valid_code) { Digest::MD5.hexdigest(SecureRandom.uuid) }
+    let(:valid_code) { Utils::UniqueCodeGenerator.base36_uuid }
 
     # テストケース
     context 'ない' do
