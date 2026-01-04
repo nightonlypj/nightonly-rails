@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :task_event do
-    code            { Digest::MD5.hexdigest(SecureRandom.uuid).to_i(16).to_s(36).rjust(25, '0') }
+    code            { Utils::UniqueCodeGenerator.base36_uuid }
     started_date    { Time.zone.today }
     ended_date      { started_date }
     last_ended_date { ended_date }
