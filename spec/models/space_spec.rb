@@ -8,7 +8,7 @@ RSpec.describe Space, type: :model do
   #   ない, 正常値, 重複
   describe 'validates :code' do
     subject(:model) { FactoryBot.build_stubbed(:space, code:) }
-    let(:valid_code) { Digest::MD5.hexdigest(SecureRandom.uuid) }
+    let(:valid_code) { Utils::UniqueCodeGenerator.base36_uuid }
 
     # テストケース
     context 'ない' do
@@ -220,8 +220,8 @@ RSpec.describe Space, type: :model do
     let!(:start_time_schedule) { Time.current + Settings.space_destroy_schedule_days.days }
     it '削除依頼日時が現在日時、削除予定日時が現在日時＋設定日数に変更され、保存される' do
       is_expected.to be(true)
-      expect(current_space.destroy_requested_at).to be_between(start_time.floor, Time.current)
-      expect(current_space.destroy_schedule_at).to be_between(start_time_schedule.floor, Time.current + Settings.space_destroy_schedule_days.days)
+      expect(current_space.destroy_requested_at).to be_between(start_time.floor, Time.current.ceil)
+      expect(current_space.destroy_schedule_at).to be_between(start_time_schedule.floor, Time.current.ceil + Settings.space_destroy_schedule_days.days)
     end
   end
 
@@ -295,14 +295,15 @@ RSpec.describe Space, type: :model do
   #   更新日時: 作成日時と同じ, 作成日時以降
   describe '#last_updated_at' do
     subject { space.last_updated_at }
+    let(:created_at) { 1.day.ago }
 
     # テストケース
     context '更新日時が作成日時と同じ' do
-      let(:space) { FactoryBot.create(:space, created_user:) }
+      let(:space) { FactoryBot.create(:space, created_user:, created_at:, updated_at: created_at) }
       it_behaves_like 'Value', nil, 'nil'
     end
     context '更新日時が作成日時以降' do
-      let(:space) { FactoryBot.create(:space, created_user:, created_at: 1.hour.ago, updated_at: Time.current) }
+      let(:space) { FactoryBot.create(:space, created_user:, created_at:, updated_at: Time.current) }
       it '更新日時' do
         is_expected.to eq(space.updated_at)
       end

@@ -30,7 +30,7 @@ RSpec.describe 'Downloads', type: :request do
           subject
           expect(current_download.user).to eq(user)
           expect(current_download.status.to_sym).to eq(:waiting)
-          expect(current_download.requested_at).to be_between(start_time.floor, Time.current)
+          expect(current_download.requested_at).to be_between(start_time.floor, Time.current.ceil)
           expect(current_download.completed_at).to be_nil
           expect(current_download.error_message).to be_nil
           expect(current_download.last_downloaded_at).to be_nil

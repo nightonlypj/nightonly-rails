@@ -36,7 +36,7 @@ RSpec.describe DownloadJob, type: :job do
       it 'ダウンロードの対象項目が変更され、ダウンロードファイルが作成・対象項目が設定される' do
         subject
         expect(current_download.status.to_sym).to eq(:success)
-        expect(current_download.completed_at).to be_between(start_time.floor, Time.current)
+        expect(current_download.completed_at).to be_between(start_time.floor, Time.current.ceil)
 
         # NOTE: current_download_file.body.encoding: #<Encoding:ASCII-8BIT>
         case download.char_code.to_sym
@@ -62,7 +62,7 @@ RSpec.describe DownloadJob, type: :job do
         job.status_failure(e) # NOTE: Specだとrescue_fromが呼び出されない為
         expect(current_download.status.to_sym).to eq(:failure)
         expect(current_download.error_message).to eq(message)
-        expect(current_download.completed_at).to be_between(start_time.floor, Time.current)
+        expect(current_download.completed_at).to be_between(start_time.floor, Time.current.ceil)
       end
     end
 

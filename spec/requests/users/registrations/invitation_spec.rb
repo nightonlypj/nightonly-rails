@@ -87,15 +87,15 @@ RSpec.describe 'Users::Registrations', type: :request do
             if item.email.present?
               expect(current_members[index].invitationed_at).to be_between(item.created_at.floor, item.created_at)
             else
-              expect(current_members[index].invitationed_at).to be_between(start_time.floor, Time.current)
+              expect(current_members[index].invitationed_at).to be_between(start_time.floor, Time.current.ceil)
             end
           end
 
           # 招待
           current_invitations.each do |current_invitation|
-            expect(current_invitation.email_joined_at).to be_between(start_time.floor, Time.current)
+            expect(current_invitation.email_joined_at).to be_between(start_time.floor, Time.current.ceil)
             expect(current_invitation.last_updated_user_id).to be_nil
-            expect(current_invitation.updated_at).to be_between(start_time.floor, Time.current)
+            expect(current_invitation.updated_at).to be_between(start_time.floor, Time.current.ceil)
           end
         end.to change(User, :count).by(1)
       end

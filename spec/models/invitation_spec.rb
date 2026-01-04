@@ -9,7 +9,7 @@ RSpec.describe Invitation, type: :model do
   #   ない, 正常値, 重複
   describe 'validates :code' do
     subject(:model) { FactoryBot.build_stubbed(:invitation, code:) }
-    let(:valid_code) { Digest::MD5.hexdigest(SecureRandom.uuid) }
+    let(:valid_code) { Utils::UniqueCodeGenerator.base36_uuid }
 
     # テストケース
     context 'ない' do
@@ -435,14 +435,15 @@ RSpec.describe Invitation, type: :model do
   #   更新日時: 作成日時と同じ, 作成日時以降
   describe '#last_updated_at' do
     subject { invitation.last_updated_at }
+    let(:created_at) { 1.day.ago }
 
     # テストケース
     context '更新日時が作成日時と同じ' do
-      let(:invitation) { FactoryBot.create(:invitation, space:, created_user:) }
+      let(:invitation) { FactoryBot.create(:invitation, space:, created_user:, created_at:, updated_at: created_at) }
       it_behaves_like 'Value', nil, 'nil'
     end
     context '更新日時が作成日時以降' do
-      let(:invitation) { FactoryBot.create(:invitation, created_at: 1.hour.ago, updated_at: Time.current, space:, created_user:) }
+      let(:invitation) { FactoryBot.create(:invitation, created_at:, updated_at: Time.current, space:, created_user:) }
       it '更新日時' do
         is_expected.to eq(invitation.updated_at)
       end
