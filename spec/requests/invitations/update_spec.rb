@@ -43,8 +43,8 @@ RSpec.describe 'Invitations', type: :request do
         expect(current_invitation.ended_at).to eq(Time.new(9999, 12, 31, 23, 59, 59, '+09:00'))
 
         if invitation.destroy_schedule_at.blank? && attributes[:delete].present? && attributes[:undo_delete].blank?
-          expect(current_invitation.destroy_requested_at).to be_between(start_time.floor, Time.current)
-          expect(current_invitation.destroy_schedule_at).to be_between(start_time.floor + schedule_days, Time.current + schedule_days)
+          expect(current_invitation.destroy_requested_at).to be_between(start_time.floor, Time.current.ceil)
+          expect(current_invitation.destroy_schedule_at).to be_between(start_time.floor + schedule_days, Time.current.ceil + schedule_days)
         elsif invitation.destroy_schedule_at.present? && attributes[:undo_delete].present?
           expect(current_invitation.destroy_requested_at).to be_nil
           expect(current_invitation.destroy_schedule_at).to be_nil

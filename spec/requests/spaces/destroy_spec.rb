@@ -27,9 +27,9 @@ RSpec.describe 'Spaces', type: :request do
       let!(:start_time) { Time.current }
       it "削除依頼日時が現在日時に、削除予定日時が#{Settings.space_destroy_schedule_days}日後に変更される" do
         subject
-        expect(current_space.destroy_requested_at).to be_between(start_time.floor, Time.current)
+        expect(current_space.destroy_requested_at).to be_between(start_time.floor, Time.current.ceil)
         expect(current_space.destroy_schedule_at).to be_between(start_time.floor + Settings.space_destroy_schedule_days.days,
-                                                                Time.current + Settings.space_destroy_schedule_days.days)
+                                                                Time.current.ceil + Settings.space_destroy_schedule_days.days)
       end
     end
     shared_examples 'NG' do
