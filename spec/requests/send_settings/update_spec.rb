@@ -86,8 +86,8 @@ RSpec.describe 'SendSetting', type: :request do
           current_send_setting_inactive = current_send_settings_inactive.first
           expect(current_send_setting_inactive.id).to eq(except_send_setting_inactive.id)
           expect(current_send_setting_inactive.last_updated_user_id).to eq(user.id)
-          expect(current_send_setting_inactive.deleted_at).to be_between(start_time.floor, Time.current)
-          expect(current_send_setting_inactive.updated_at).to be_between(start_time.floor, Time.current)
+          expect(current_send_setting_inactive.deleted_at).to be_between(start_time.floor, Time.current.ceil)
+          expect(current_send_setting_inactive.updated_at).to be_between(start_time.floor, Time.current.ceil)
         else
           expect(current_send_settings_inactive.count).to eq(0)
         end

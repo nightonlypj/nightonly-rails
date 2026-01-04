@@ -95,7 +95,7 @@ class TaskEventsController < ApplicationAuthController
       end
     end
 
-    render '/failure', locals: { errors:, alert: t('errors.messages.default') }, status: :unprocessable_entity if errors.present?
+    render '/failure', locals: { errors:, alert: t('errors.messages.default') }, status: :unprocessable_content if errors.present?
   end
 
   def validate_date(value)
@@ -116,7 +116,7 @@ class TaskEventsController < ApplicationAuthController
     @task_event.assign_attributes(task_event_params.merge(last_updated_user: current_user))
     return if @task_event.valid?
 
-    render '/failure', locals: { errors: @task_event.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
+    render '/failure', locals: { errors: @task_event.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_content
   end
 
   # Only allow a list of trusted parameters through.
@@ -125,6 +125,6 @@ class TaskEventsController < ApplicationAuthController
     params[:task_event][:status] = nil if TaskEvent.statuses[params[:task_event][:status]].blank? # NOTE: ArgumentError対策
     assigned_user_code = params[:task_event][:assigned_user].present? ? params[:task_event][:assigned_user][:code] : nil
 
-    params.require(:task_event).permit(:last_ended_date, :status, :memo).merge(assigned_user_code:)
+    params.expect(task_event: %i[last_ended_date status memo]).merge(assigned_user_code:)
   end
 end

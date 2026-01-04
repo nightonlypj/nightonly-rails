@@ -98,14 +98,14 @@ RSpec.describe 'Tasks', type: :request do
         it_behaves_like 'リスト表示(json)', 1
       end
       context '最大表示数と同じ' do
-        count = Settings.test_tasks_count
+        count = Settings.test_tasks_count # rubocop:disable RSpec/LeakyLocalVariable
         include_context 'タスク一覧作成', count.high, count.middle, count.low, count.none
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)', 1
         it_behaves_like 'リスト表示(json)', 1
       end
       context '最大表示数より多い' do
-        count = Settings.test_tasks_count
+        count = Settings.test_tasks_count # rubocop:disable RSpec/LeakyLocalVariable
         include_context 'タスク一覧作成', count.high, count.middle, count.low, count.none + 1
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)', 1

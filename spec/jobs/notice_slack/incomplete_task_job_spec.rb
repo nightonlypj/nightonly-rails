@@ -58,7 +58,7 @@ RSpec.describe NoticeSlack::IncompleteTaskJob, type: :job do
       it "ステータスが#{status}、対象項目が変更される" do
         subject
         expect(current_send_history.status.to_sym).to eq(status)
-        expect(current_send_history.completed_at).to be_between(start_time.floor, Time.current)
+        expect(current_send_history.completed_at).to be_between(start_time.floor, Time.current.ceil)
         expect(current_send_history.error_message).to status == :failure ? be_present : be_nil
         expect(current_send_history.send_data).not_to be_nil
         next if status != :success

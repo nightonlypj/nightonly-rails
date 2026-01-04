@@ -86,13 +86,11 @@ RSpec.describe 'Downloads', type: :request do
     shared_examples '[ログイン中/削除予約済み][member][ある]パラメータなし' do
       let(:attributes) { params }
 =begin
-      # rubocop:disable RSpec/LeakyLocalVariable
       msg_target       = get_locale('activerecord.errors.models.download.attributes.target.blank')
       msg_format       = get_locale('activerecord.errors.models.download.attributes.format.blank')
       msg_char_code    = get_locale('activerecord.errors.models.download.attributes.char_code.blank')
       msg_newline_code = get_locale('activerecord.errors.models.download.attributes.newline_code.blank')
       msg_output_items = get_locale('activerecord.errors.models.download.attributes.output_items.blank')
-      # rubocop:enable RSpec/LeakyLocalVariable
 =end
       it_behaves_like 'NG(html)'
       if Settings.api_only_mode

@@ -77,11 +77,14 @@ RSpec.describe 'TaskEvents', type: :request do
       end
       let_it_be(:task_cycles) do
         [
-          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :tue, handling_holiday: :after, period: 2, holiday: false, order: 1),
-          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 1, handling_holiday: :before, period: 1, holiday: false, order: 1),
-          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 2, period: 2, holiday: false, order: 1),
+          FactoryBot.create(:task_cycle, :weekly, task: tasks[0], wday: :tue, handling_holiday: :after, period: 2,
+                                                  holiday: false, order: 1, updated_at: 4.days.ago),
+          FactoryBot.create(:task_cycle, :monthly, :day, task: tasks[1], day: 1, handling_holiday: :before, period: 1,
+                                                         holiday: false, order: 1, updated_at: 3.days.ago),
+          FactoryBot.create(:task_cycle, :yearly, :business_day, task: tasks[2], month: 1, business_day: 2, period: 2,
+                                                                 holiday: false, order: 1, updated_at: 2.days.ago),
           FactoryBot.create(:task_cycle, :yearly, :week, task: tasks[2], month: 2, week: :third, wday: :wed, handling_holiday: :onday, period: 6,
-                                                         holiday: true, order: 1)
+                                                         holiday: true, order: 1, updated_at: 1.day.ago)
         ]
       end
       let_it_be(:task_events) do

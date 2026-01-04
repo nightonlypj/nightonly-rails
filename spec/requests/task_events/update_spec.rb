@@ -45,7 +45,7 @@ RSpec.describe 'TaskEvents', type: :request do
         expect(current_task_event.ended_date).to eq(task_event.ended_date)
         expect(current_task_event.last_ended_date).to eq(attributes[:last_ended_date])
         if expect_last_completed_at[:new]
-          expect(current_task_event.last_completed_at).to be_between(start_time.floor, Time.current)
+          expect(current_task_event.last_completed_at).to be_between(start_time.floor, Time.current.ceil)
         else
           expect(current_task_event.last_completed_at&.floor).to eq(expect_last_completed_at[:data]&.floor)
         end
@@ -53,7 +53,7 @@ RSpec.describe 'TaskEvents', type: :request do
         expect(current_task_event.init_assigned_user_id).to eq(task_event.init_assigned_user_id)
         expect(current_task_event.assigned_user_id).to eq(expect_assigned_user_id)
         if expect_assigned_at[:new]
-          expect(current_task_event.assigned_at).to be_between(start_time.floor, Time.current)
+          expect(current_task_event.assigned_at).to be_between(start_time.floor, Time.current.ceil)
         else
           expect(current_task_event.assigned_at&.floor).to eq(expect_assigned_at[:data]&.floor)
         end

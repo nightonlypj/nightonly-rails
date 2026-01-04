@@ -98,7 +98,7 @@ RSpec.describe NoticeMailer, type: :mailer do
 
         expect(current_send_history.send_data).not_to be_nil
         expect(current_send_history.status.to_sym).to eq(:success)
-        expect(current_send_history.completed_at).to be_between(start_time.floor, Time.current)
+        expect(current_send_history.completed_at).to be_between(start_time.floor, Time.current.ceil)
       end
     end
     shared_examples 'NG' do
@@ -108,7 +108,7 @@ RSpec.describe NoticeMailer, type: :mailer do
 
         expect(current_send_history.status.to_sym).to eq(:failure)
         expect(current_send_history.error_message).not_to be_nil
-        expect(current_send_history.completed_at).to be_between(start_time.floor, Time.current)
+        expect(current_send_history.completed_at).to be_between(start_time.floor, Time.current.ceil)
       end
     end
 

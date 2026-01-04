@@ -126,14 +126,15 @@ RSpec.describe TaskEvent, type: :model do
   #   更新日時: 作成日時と同じ, 作成日時以降
   describe '#last_updated_at' do
     subject { task_event.last_updated_at }
+    let(:created_at) { 1.day.ago }
 
     # テストケース
     context '更新日時が作成日時と同じ' do
-      let(:task_event) { FactoryBot.create(:task_event) }
+      let(:task_event) { FactoryBot.create(:task_event, created_at:, updated_at: created_at) }
       it_behaves_like 'Value', nil, 'nil'
     end
     context '更新日時が作成日時以降' do
-      let(:task_event) { FactoryBot.create(:task_event, created_at: 1.hour.ago, updated_at: Time.current) }
+      let(:task_event) { FactoryBot.create(:task_event, created_at:, updated_at: Time.current) }
       it '更新日時' do
         is_expected.to eq(task_event.updated_at)
       end

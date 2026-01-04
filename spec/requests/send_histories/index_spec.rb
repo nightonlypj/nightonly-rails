@@ -69,14 +69,14 @@ RSpec.describe 'SendHistory', type: :request do
         it_behaves_like 'リスト表示(json)', 1
       end
       context '最大表示数と同じ' do
-        count = Settings.test_send_histories_count
+        count = Settings.test_send_histories_count # rubocop:disable RSpec/LeakyLocalVariable
         include_context '通知履歴一覧作成', count.waiting, count.processing, count.success, count.skip, count.failure
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)', 1
         it_behaves_like 'リスト表示(json)', 1
       end
       context '最大表示数より多い' do
-        count = Settings.test_send_histories_count
+        count = Settings.test_send_histories_count # rubocop:disable RSpec/LeakyLocalVariable
         include_context '通知履歴一覧作成', count.waiting, count.processing, count.success, count.skip, count.failure + 1
         it_behaves_like 'ToNG(html)', 406
         it_behaves_like 'ToOK(json)', 1

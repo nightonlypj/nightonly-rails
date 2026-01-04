@@ -69,7 +69,7 @@ class SlackUsersController < ApplicationAuthController
       end
     end
 
-    render '/failure', locals: { errors:, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity if errors.present?
+    render '/failure', locals: { errors:, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_content if errors.present?
   end
 
   def current_members

@@ -33,7 +33,7 @@ class SendSettingsController < ApplicationAuthController
           @new_send_setting.slack_domain = @slack_domain
         end
         @new_send_setting.save!
-        @send_setting.update!(last_updated_user: current_user, deleted_at: now, updated_at: now) if @send_setting.present?
+        @send_setting.presence&.update!(last_updated_user: current_user, deleted_at: now, updated_at: now)
       end
     end
 
@@ -73,7 +73,7 @@ class SendSettingsController < ApplicationAuthController
     end
     return unless @new_send_setting.errors.any?
 
-    render '/failure', locals: { errors: @new_send_setting.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_entity
+    render '/failure', locals: { errors: @new_send_setting.errors, alert: t('errors.messages.not_saved.other') }, status: :unprocessable_content
   end
 
   def delete_invalid_value(enabled_key, targey_key)
