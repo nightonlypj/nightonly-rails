@@ -450,21 +450,20 @@ worker_rlimit_nofile 65536;
 
 events {
     worker_connections  1024;
-### START ###
-    accept_mutex_delay 100ms;
-    multi_accept on;
-### END ###
 
 http {
 ### START ###
     server_names_hash_bucket_size 64;
     server_tokens off;
-    add_header X-Frame-Options SAMEORIGIN;
-    add_header X-XSS-Protection "1; mode=block";
-    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
     client_max_body_size 64m;
     gzip on;
-    gzip_types text/plain text/css text/javascript application/javascript application/x-javascript application/json text/xml application/xml application/xml+rss;
+    gzip_vary on;
+    gzip_proxied no-cache no-store private expired auth;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss;
 ### END ###
 
     #tcp_nopush     on;

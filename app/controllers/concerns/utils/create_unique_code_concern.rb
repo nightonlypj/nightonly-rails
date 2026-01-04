@@ -7,7 +7,7 @@ module Utils::CreateUniqueCodeConcern
   def create_unique_code(model, key, logger_message, length = nil)
     try_count = 1
     loop do
-      code = SecureRandom.uuid.delete('-') # NOTE: 32桁
+      code = Utils::UniqueCodeGenerator.base36_uuid
       # :nocov:
       code = code[0, length] if length.present?
       return code unless model.exists?(key => code)
